@@ -34,3 +34,20 @@ A public ArcGIS service may be unavailable, rate-limited, or blocked by client n
 ## Static deployment
 
 Deploy `index.html` and `assets/radar-live.css`, `assets/radar-live.js` to GitHub Pages from `main` and `/ (root)`. Never upload proprietary application code or internal/company-selected records to this public repository.
+## Next-generation public executive experience (feature branch)
+
+This branch adds a natural-language **rule-driven** executive assistant: ask for industrial parcels over a specified acreage near an NJ/FL municipality, filter industrial/vacant/multifamily classes, and interrogate source provenance. It does not invent parcels or perform cloud generative inference. The existing source scanner remains the system of record.
+
+- A state-aware county selector displays all 21 NJ counties with public statewide-source support, and currently connected Florida counties Palm Beach, Martin, and St. Lucie. Additional Florida counties appear as **planned, disabled**, not falsely supported.
+- For a typed city, the geocoder's actual county field determines the source filter. If the geocoder does not supply a recognized county, the scan stops rather than using a guessed county center.
+- Show source-supported actual year built, FL effective year built, assessment building area and residential units when present. An effective construction year is **not proof of a remodel**. Remodel dates and lease expirations remain explicitly unavailable.
+- Filter apartments/multifamily by public *assessment class*, not zoning designation or verified number of units. No ability to infer whether a parcel is listed for sale or a tenant is willing to sell.
+- Street, satellite, topographic, and dark maps; individual parcel identify mode; public-record labels and map attributions.
+- OZ 1 reference layer based on a federal spatial service and OZ 2 **third-party eligibility reference** with tract GEOIDs. OZ 2 reference polygons do NOT establish official Treasury designation or certification.
+- A session-only parcel grouping tray for observed acreage sums. Selecting neighboring map parcels does not prove adjacency, unified title or assemblage feasibility.
+- Optional voice dictation with explicit browser/service warning; text input remains the accessible default.
+- An optional NVIDIA Nemotron inference gateway lives in `server/` but is disabled and **does not run on GitHub Pages**. It needs approved private infrastructure, inference compute, authenticated reverse proxy and source-validation QA. No model keys are bundled.
+
+See [public data coverage and state-source backlog](docs/PUBLIC_DATA_COVERAGE.md) and [NVIDIA agent research and deployment roadmap](docs/NVIDIA_AGENT_ROADMAP.md).
+
+**Verification state:** Local static checks and source schema inspections support the code paths. The new OZ reference layers, CORS responses, selected county filters and end-to-end phone behavior have **not** passed authoritative on-device live scans. Do not report them as production-verified until that happens. The pull request includes zero-network GitHub Actions checks to catch unsafe field projection and obvious regressions.
