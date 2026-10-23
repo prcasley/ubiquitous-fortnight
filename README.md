@@ -1,47 +1,34 @@
-# Capital Radar | Public Demo
+# Capital Radar | Public GIS Research Preview
 
-> **PUBLIC SANDBOX. ALL DATA IS FICTIONAL.** Not Woodmont's production Capital Radar application, not a real acquisition tool, and not a property ownership or assessor database.
+**This repository is a public, browser-based parcel-research interface.** It does not include Woodmont proprietary application modules, internal properties or portfolios, contacts, comps, sales or lease transactions, business-development notes, private scoring, private documents, or API credentials. It is not the private Woodmont Capital Radar product.
 
-A self-contained, mobile-friendly static user-interface demonstration for evaluating the **executive experience** of a commercial real estate research app. Developed as a clean-room demonstration with newly written code. Does not embed, copy, or expose Woodmont's Capital Radar proprietary code, live databases, personal contacts, company research, deal strategy, source registries, or Master Comps workbook.
+## Live sources
+- **Florida**: [Florida Department of Revenue 2026 statewide parcel-centroid layer](https://services9.arcgis.com/Gh9awoU677aKree0/ArcGIS/rest/services/Florida_Statewide_Parcel_Centroid_Version/FeatureServer/0) via Florida geographic information services. Uses PARCEL_ID, OWN_NAME, PHY_ADDR1/PHY_CITY, LND_SQFOOT, DOR_UC, ASMNT_YR. GIS centroids are not legal boundary surveys. Source-level redactions are honored. Reported acreage = LND_SQFOOT / 43,560.
+- **New Jersey**: [NJGIN statewide parcel composite](https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0) via public NJGIS. Uses PAMS_PIN, PROP_LOC, MUN_NAME, PROP_CLASS, CALC_ACRE and parcel geometry. The statewide layer does not publish owner names.
 
-## What it does
+The app sends live, unauthenticated, read-only queries to the corresponding source's ArcGIS REST endpoint at the time of each scan. No private dataset is embedded in the repository. Basemap tiles are from OpenStreetMap or Esri. An ArcGIS world geocoder handles optional typed-location searches.
 
-- Responsive overview, property search, demo map, fictional company profiles, fictional comps, and a rules-based demo Q&A panel.
-- 12 deliberately fictional properties. Sample pins use illustrative coordinates in real U.S. cities **but represent no actual parcel, company, ownership or availability**.
-- Filter by U.S. state, illustrated asset type, illustrative acreage; search for phrases such as `industrial over 15 acres in NJ`.
-- Public street tiles via OpenStreetMap and optional satellite tiles via Esri, with credits; when map CDNs cannot load, the list remains usable.
-- Synthetic property detail cards, a local-only shortlist, and an external map link. No data is transmitted to an AI service.
+## Functionality
+- Live radius scan for NJ and FL around a selected map point, saved market center, recognized street address, or user-permitted GPS coordinates.
+- Industrial assessment-use filter, minimum-acre filter and all-use filter.
+- Source-record acreage, parcel IDs, public assessor owner labels (FL only), source links and assessment vintage.
+- Public parcel maps and per-parcel detail cards with source/provenance labels.
+- Read-only owner-name grouping of returned Florida assessment records, not an assertion of beneficial ownership.
+- Local deterministic Ask Radar text summary of the last completed returned scan.
+- Responsive, mobile-usable interface.
 
-## What it does NOT do
+## Important limitations
+- **No transaction or comparable-sales records whatsoever**. No internal comps, comps calculations or financial figures.
+- **Not nationwide**: this version has live source adapters for New Jersey and Florida only. Source-query network policy, CORS, service interruptions, tile access, and location permission affect availability.
+- This is a direct-source prototype. A 1,100-record guard refuses oversized searches rather than falsely reporting zero parcels. Increase filters or narrow radius.
+- The NJ layer intentionally redacts owner names, and only assessment names (not title-verified legal owners or LLC beneficial owners) are returned in Florida.
+- FL industrial classes use DOR_UC 0040-0049; NJ industrial uses PROP_CLASS 4B. These are assessment classes, **not zoning determinations**.
+- The Florida "Vacant" filter is intentionally unavailable pending a verified DOR use-code mapping. Select "All uses" instead.
+- No full nationwide live backend, secure executive sign-in, or internal SharePoint sync is provided by this public website.
+- Data use must follow the public source provider's applicable use terms and attribution requirements.
 
-- No legitimate parcel discovery, deed ownership verification, location-precise acquisition site identity, OZ designation, investment decision, live scanner, actual comps or real company data.
-- No authentication or password protection. The GitHub repository and, if enabled, GitHub Pages are **public**.
-- No sensitive values, API keys, contact details, or connection to any production environment.
-- Geolocation is not automatically requested. A phone's location is not stored or sent to our servers. Third-party base-map servers may receive tile coordinates and normal browser information.
+## Deployment
+Static files under `index.html` and `assets/` can be hosted on GitHub Pages using `main` / `(root)`. Because this repository is public, never add confidential Woodmont material or credentials.
 
-## View locally
-
-Open `index.html` in Edge or Chrome. No server, build, local packages or .bat file required. Live map tiles need an internet connection and permission to load external assets. If tiles are unavailable, the functional list and company screens still work.
-
-## GitHub Pages publication
-
-The repository may be public even when Pages is not enabled. An authorized repo admin can use **Settings → Pages → Build and deployment → Deploy from a branch → main / (root) → Save** to publish the sandbox. The URL should then have the pattern `https://OWNER.github.io/REPO/`; do not assume that a live site exists until GitHub reports a deployed Pages link.
-
-## Important business / security conditions
-
-- This is a **public demonstration** and must remain entirely fictional. Do not add real Woodmont data or upload proprietary Radar code here.
-- Company publication, branding and hosting must be approved before using the public demo to represent Woodmont officially.
-- The real mobile app can use permission-restricted SharePoint/Power Apps (Standard) and approved data; the full scanner requires a separate authorized live-service architecture.
-- This repository should never be connected to the confidential Radar export, SharePoint source folder or private acquisition brief.
-
-## Check after publication
-
-1. Open the site in a private browser tab and on a real phone. Confirm the green **PUBLIC DEMO** banner is visible.
-2. Search `industrial over 15 acres in NJ`, open a sample detail card, and check labels say fictional.
-3. Open map, switch Street/Satellite, and test a marker. If imagery is blocked, record the browser/network issue.
-4. Use the fictional Company, Comps and Ask Radar sections.
-5. Review the public code and network requests; confirm no company data, API keys or private services are present.
-
-## Data provenance
-
-All example company names, property names, scores, acreage, square footage, prices and transaction records were manually invented for this UI demonstration on 2026-10-21. Coordinates are approximate illustrative city locations, not the positions of any claimed legal parcels. No source citations can establish these fictional records.
+## Verification state
+The official source schemas and endpoints have been checked against public ArcGIS documentation. **End-to-end network requests, live CORS responses, on-device GPS, and rendered result accuracy have not yet passed a live device test**. Do not treat the site as production-validated until those are exercised on the deployed Pages site.
