@@ -447,7 +447,8 @@
     renderResults();
   }
   function ingestOne(feature,state,center){
-    const item=normalize(feature,state,center);if(!item)return null;
+    const provider=state==="FL"&&feature?.properties?.PARID?SOURCES.PBC:SOURCES[state];
+    const item=normalize(feature,state,center,provider);if(!item)return null;
     records=[item];filtered=[item];sourceState=state;sourceCenter=center;sourceTime=new Date();countResult=1;
     selectedId=item.key;renderResults();renderMap();renderSource();choose(item.key);
     $("lastUpdated").textContent=sourceTime.toLocaleString();
