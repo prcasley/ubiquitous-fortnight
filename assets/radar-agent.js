@@ -98,7 +98,7 @@
  }
  function applyNewLocation(){
    const state=$("stateSelect").value;
-   applyCounty(state,null);
+   applyCounty(state,state==="FL"?"PalmBeach":"Middlesex");
    clearOldResults();
    bridge()?.setStatus("County and state selected. Press Scan public parcels, or ask Radar for a nearby search.","info");
  }
@@ -150,12 +150,9 @@
      applyCounty(state,county,{center:!!county || !intent.location});
      if(intent.location){
        $("placeInput").value=intent.location+(intent.state&&!new RegExp("\\b"+intent.state+"\\b","i").test(intent.location)?", "+intent.state:"");
-       const before=bridge().getCenter();
-       await bridge().findPlace();
-       const after=bridge().getCenter();
-       if(!after || !before){putMessage("Geocoder was unavailable. Select the correct county on the map and scan again.");return;}
-       if(after.lat===before.lat&&after.lon===before.lon&&intent.location.length>2){
-          putMessage("Couldn't confirm that location from the public geocoder. I did not run a scan at the wrong city.");return;
+       const located=await bridge().findPlace();
+       if(located!==true){
+         putMessage("Couldn't verify the requested location from the public geocoder. No parcel scan was run at a guessed location.");return;
        }
        const matchCounty=String(bridge().getLastGeocodeCounty?.()||"").trim();
        const recognized=countyEntries(state).find(c=>c.label.toLowerCase()===matchCounty.toLowerCase());
