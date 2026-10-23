@@ -227,6 +227,29 @@
      r.start();
    });
  }
+ async function modelExplain(){
+   const rows=bridge()?.getResults()||[],meta=bridge()?.getMeta()||{};
+   if(!rows.length||!meta.ready){putMessage("A completed public parcel scan is needed before requesting an AI explanation.");return;}
+   if(!window.RADAR_NIM_GATEWAY_ACTIVE||location.hostname.endsWith(".github.io")){
+     putMessage("NVIDIA Nemotron is not deployed on this public static site. Use the grounded search agent here; GPU inference requires an approved authenticated host.");return;
+   }
+   const payload={
+     question:$("agentPrompt")?.value.trim()||"Summarize these public assessor records with uncertainties.",
+     sourceURL:bridge()?.getSources()?.[meta.state],
+     records:rows.slice(0,25).map(p=>({id:p.id,address:p.address,state:p.state,acres:p.acres,type:p.type,yearBuilt:p.yearBuilt}))
+   };
+   const btn=$("nemotronExplain");btn.disabled=true;
+   try{
+     const r=await fetch("/api/radar-agent",{method:"POST",credentials:"same-origin",
+       headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+     if(!r.ok)throw Error("Authenticated NVIDIA gateway unavailable (HTTP "+r.status+")");
+     const json=await r.json();
+     if(!json.modelGenerated||typeof json.answer!=="string")throw Error("Unverified model response envelope");
+     putMessage("NVIDIA AI interpretation (NOT an independently verified finding):\n"+json.answer+
+       "\nSource: "+json.sourceURL+"\nPlease verify underlying records before decisions.");
+   }catch(e){putMessage("NVIDIA inference not available: "+String(e.message||e)+". The verified-rule agent remains usable.");}
+   finally{btn.disabled=false;}
+ }
  function init(){
    if(!bridge()||!$("agentForm"))return;
    $("agentForm").addEventListener("submit",e=>{e.preventDefault();ask($("agentPrompt").value);});
@@ -247,6 +270,12 @@
      if(m){applyCounty(m[0],m[1],{center:false});clearOldResults();}
    });
    applyCounty($("stateSelect").value,"Middlesex",{center:false});
+   const nim=$("nemotronExplain");
+   if(nim){const enabled=window.RADAR_NIM_GATEWAY_ACTIVE===true&&!location.hostname.endsWith(".github.io");
+     nim.disabled=!enabled;
+     nim.title=enabled?"Explain the current public scan through an authenticated NVIDIA host":
+       "Available only after secure NVIDIA inference deployment (never directly on GitHub Pages)";
+     nim.addEventListener("click",modelExplain);}
    bindVoice();showAssembly();document.addEventListener("radar:parcel-selected",parcelAction);
    document.addEventListener("radar:scan-complete",()=>assembly.clear());
  }
