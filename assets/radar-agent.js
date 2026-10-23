@@ -118,7 +118,7 @@
  function explainFollowUp(intent){
    const rows=bridge()?.getResults()||[],meta=bridge()?.getMeta()||{};
    if(!meta.ready)return "No completed public scan is loaded. Search for a county or property type first.";
-   if(intent.questionOwnership)return "The public interface intentionally withholds owner names. Some public records contain names, but their legal status and appropriate redistribution must be reviewed before publication. I cannot assert beneficial or deed ownership.";
+   if(intent.questionOwnership)return "For a Florida parcel, open its detail card and choose Look up published assessment name. This queries the official record for that parcel when requested, without mailing addresses. New Jersey statewide GIS redacts owner names; open the official county tax-record lookup for independent research. Assessment names are NOT deed or beneficial-ownership verification.";
    if(intent.questionLease)return "Connected parcel/assessment sources do not provide verified lease start, tenant, rental terms or expiration. Those fields are unavailable here, not zero or unleased.";
    if(intent.questionOZ)return "OZ 1 means tracts designated in the older round. OZ 2 map data currently concerns eligibility or nominations for a later designation round. Turn on the appropriate reference layers; eligibility is NOT designation. Check the IRS source notice before relying on status.";
    if(intent.questionSource)return "Records come from "+meta.source+". Retrieved "+(meta.time||"time unavailable")+
