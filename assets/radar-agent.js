@@ -157,8 +157,17 @@
        if(after.lat===before.lat&&after.lon===before.lon&&intent.location.length>2){
           putMessage("Couldn't confirm that location from the public geocoder. I did not run a scan at the wrong city.");return;
        }
-       const target=chooseNearestCounty(state,after);
-       applyCounty(state,target,{center:false});
+       const matchCounty=String(bridge().getLastGeocodeCounty?.()||"").trim();
+       const recognized=countyEntries(state).find(c=>c.label.toLowerCase()===matchCounty.toLowerCase());
+       if(!recognized){
+         putMessage("The geocoder located the address but did not provide a matching county. Choose the county explicitly to prevent searching the wrong assessment source. No source search was run.");
+         return;
+       }
+       if(!recognized.connected){
+         putMessage("The geocoder identified "+recognized.label+" County, but a vetted public source for that county is not yet connected.");
+         return;
+       }
+       applyCounty(state,recognized.key,{center:false});
      }
      if(intent.type)$("typeSelect").value=intent.type;
      if(intent.acres!=null){$("minAcres").value=String(intent.acres);window.PublicRadarStrictMin=intent.comparison===">";}
