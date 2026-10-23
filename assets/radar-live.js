@@ -61,14 +61,14 @@
     if(state==="NJ") return {"1":"Vacant land","4B":"Industrial","4A":"Commercial","4C":"Apartment","2":"Residential"}[String(p.PROP_CLASS||"")]||"Other / unclassified";
     const s=String(p.DOR_UC??"").trim(), raw=parseInt(s,10);
     const code = raw>=4000 ? Math.floor(raw/100) : raw;
-    if(code>=40&&code<=49) return code===40?"Vacant industrial":code===48?"Warehousing / distribution":"Industrial use code "+code;
+    if(code>=40&&code<=49) return code===48?"Warehousing / distribution":"Industrial assessment use code "+code;
     return s?"Florida use code "+s:"Unclassified";
   };
   const category = (p,state) => {
     if(state==="NJ") return String(p.PROP_CLASS)==="4B"?"Industrial":String(p.PROP_CLASS)==="1"?"Vacant": "Other";
     const code=parseInt(String(p.DOR_UC??""),10);
     const c=code>=4000?Math.floor(code/100):code;
-    return c>=40&&c<=49 ? (c===40?"Vacant":"Industrial") : "Other";
+    return c>=40&&c<=49 ? "Industrial" : "Other";
   };
   const normalize = (feature, state, center) => {
     const a=feature.properties || {}, type=feature.geometry&&feature.geometry.type;
@@ -80,9 +80,6 @@
       const g=L.geoJSON(feature), b=g.getBounds(); if(b.isValid()){lat=b.getCenter().lat;lon=b.getCenter().lng;}
     }
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
-    if(!Number.isFinite(n(a[SOURCES[state].id]))) {
-      // IDs may contain dashes or leading zeroes; this is not a numeric validation requirement.
-    }
     const rawId=String(a[SOURCES[state].id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
     if(!rawId) return null;
     const address=state==="FL"?[a.PHY_ADDR1,a.PHY_CITY,"FL"].filter(Boolean).join(", "):
@@ -110,8 +107,8 @@
       if(mode==="vacant") terms.push("PROP_CLASS = '1'");
       if(min>0) terms.push("CALC_ACRE >= "+Number(min));
     } else {
-      if(mode==="industrial") terms.push("DOR_UC LIKE '4%' AND DOR_UC <> '4000'");
-      if(mode==="vacant") terms.push("DOR_UC LIKE '40%'");
+      if(mode==="industrial") terms.push("DOR_UC IN ('0040','0041','0042','0043','0044','0045','0046','0047','0048','0049')");
+      if(mode==="vacant") terms.push("1=0");
       if(min>0) terms.push("LND_SQFOOT >= "+Math.ceil(min*43560));
     }
     return terms.join(" AND ")||"1=1";
@@ -136,6 +133,7 @@
     const center={lat:map.getCenter().lat,lon:map.getCenter().lng};
     const radius=Number($("radiusSelect").value), min=Number($("minAcres").value)||0;
     const mode=$("typeSelect").value;
+    if(state==="FL"&&mode==="vacant"){status("Florida vacant-land class is not configured from the 2026 assessment schema. Choose All uses or Industrial; no vacancy result is claimed.","warning");return;}
     if(!stateInBounds(center.lat,center.lon,state)){
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
@@ -197,7 +195,7 @@
   function renderMap(){
     if(!map||!layers)return;
     layers.clearLayers();
-    for(const p of filtered.length?filtered:records) {
+    for(const p of filtered) {
       const feature=p.geometry;
       let l;
       if(feature.geometry.type==="Point"){
