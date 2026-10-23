@@ -25,7 +25,7 @@
  const stateFrom=q=>/\b(NJ|new jersey)\b/i.test(q)?"NJ":/\b(FL|florida)\b/i.test(q)?"FL":null;
  function parseIntent(raw){
    const q=clean(raw), l=lower(q);
-   const area=l.match(/\b(?:over|above|greater than|more than|at least|minimum|under)\s+(\d+(?:\.\d+)?)\s*(?:acres?|ac\b)/);
+   const area=l.match(/\b(over|above|greater than|more than|at least|minimum|under)\s+(\d+(?:\.\d+)?)\s*(?:acres?|ac\b)/);
    const radius=l.match(/\b(?:within|radius(?: of)?|in a)\s+(\d+(?:\.\d+)?)\s*(?:miles?|mi\b)/);
    const type=/\b(multifamily|multi.family|apartment|apartments)\b/.test(l)?"multifamily":
      /\b(vacant|undeveloped|empty lots?)\b/.test(l)?"vacant":
@@ -38,7 +38,7 @@
    if(/^(florida|new jersey|nj|fl)$/i.test(location))location="";
    const search=/\b(find|show|scan|search|look for|locate)\b/i.test(q)&&
       (type||area||location||radius||/\b(parcel|properties|near me)\b/i.test(q));
-   return {q,search:!!search,type,acres:area?Number(area[2]):null,comparison:area?(l.includes("under "+area[1])?"under":/\b(over|above|greater than|more than)\b/.test(area[1])?">":">="):null,
+   return {q,search:!!search,type,acres:area?Number(area[2]):null,comparison:area?(area[1]==="under"?"under":/^(over|above|greater than|more than)$/.test(area[1])?">":">="):null,
       radius:radius?Math.min(100,Math.max(.5,Number(radius[1]))):null,
       state:stateFrom(q),countyLabel:countyLabel||null,location,
       sort:/\b(biggest|largest|most acreage)\b/.test(l)?"largest":/\b(nearest|closest)\b/.test(l)?"nearest":null,
