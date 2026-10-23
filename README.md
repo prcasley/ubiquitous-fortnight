@@ -12,7 +12,7 @@ This public, static-browser interface performs **read-only queries to official s
 
 ## Privacy and architecture
 
-- **Florida raw owner fields are NOT requested from the browser.** The public GIS service includes names of individuals, so client-side regex hiding would not protect them from the browser network inspector. An offline-reviewed company-only export may be added separately, but none is included here.
+- **Florida owner names are NOT requested during bulk parcel searches.** One user-initiated parcel-detail lookup can retrieve that individual parcel's published assessment name directly from the Florida official source. Mailing addresses are never requested, and no owner-name index is stored or published in this repository.
 - No New Jersey owner-name harvesting and no data from county tax lists.
 - No transactions, sale/lease comps, price fields, contact records, private parcel shortlists, selected company leads, property value estimates or internal business notes. These fields are excluded from the ArcGIS query projections, UI and export functions.
 - No private API keys or SharePoint/Power BI/CRM connection.
