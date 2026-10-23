@@ -23,7 +23,7 @@ function sanitizedRecords(input){
  if(!Array.isArray(input))return [];
  return input.slice(0,25).map(r=>{
   if(!r||typeof r!=="object")return null;
-  const acreage=Number(r.acres),year=Number(r.yearBuilt);
+  const acreage=r.acres==null?NaN:Number(r.acres),year=r.yearBuilt==null?NaN:Number(r.yearBuilt);
   return {id:value(r.id,60),address:value(r.address,110),state:value(r.state,3),
    assessmentClass:value(r.type,28),
    acres:Number.isFinite(acreage)&&acreage>=0&&acreage<1e7?Math.round(acreage*1000)/1000:null,
