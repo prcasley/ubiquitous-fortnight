@@ -108,8 +108,8 @@
       if(mode==="vacant") terms.push("PROP_CLASS = '1'");
       if(min>0) terms.push("CALC_ACRE >= "+Number(min));
     } else {
-      if(mode==="industrial") terms.push("DOR_UC IN ('0040','0041','0042','0043','0044','0045','0046','0047','0048','0049')");
-      if(mode==="vacant") terms.push("DOR_UC IN (\'010\',\'0010\',\'040\',\'0040\')");
+      if(mode==="industrial") terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
+      if(mode==="vacant") terms.push("DOR_UC IN ('010','0010','040','0040')");
       if(min>0) terms.push("LND_SQFOOT >= "+Math.ceil(min*43560));
     }
     return terms.join(" AND ")||"1=1";
