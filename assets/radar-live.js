@@ -8,7 +8,7 @@
       attribution: "Florida Geographic Information Office / Florida Department of Revenue",
       date: "Assessment year shown per record; verify current source metadata",
       geometry: "point", bounds: [-87.75, 24.35, -79.78, 31.1],
-      fields: "PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,TOT_LVG_AR",
+      fields: "PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,TOT_LVG_AR,ACT_YR_BLT,EFF_YR_BLT,NO_RES_UNT",
       id: "PARCEL_ID"
     },
     NJ: {
@@ -17,7 +17,7 @@
       attribution: "New Jersey Office of GIS / county assessors",
       date: "2026 statewide update; parcel vintages vary",
       geometry: "polygon", bounds: [-75.6, 38.8, -73.8, 41.4],
-      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD",
+      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL",
       id: "PAMS_PIN"
     }
   };
@@ -61,14 +61,14 @@
     if(state==="NJ") return {"1":"Vacant land","4B":"Industrial","4A":"Commercial","4C":"Apartment","2":"Residential"}[String(p.PROP_CLASS||"")]||"Other / unclassified";
     const s=String(p.DOR_UC??"").trim(), raw=parseInt(s,10);
     const code = raw>=4000 ? Math.floor(raw/100) : raw;
-    if(code>=40&&code<=49) return code===48?"Warehousing / distribution":"Industrial assessment use code "+code;
+    if(code===3)return "Multifamily 10+ units (assessment)";if(code===8)return "Multifamily under 10 units (assessment)";if(code===10)return "Vacant commercial (assessment)";if(code===40)return "Vacant industrial (assessment)";if(code>=40&&code<=49) return code===48?"Warehousing / distribution":"Industrial assessment use code "+code;
     return s?"Florida use code "+s:"Unclassified";
   };
   const category = (p,state) => {
-    if(state==="NJ") return String(p.PROP_CLASS)==="4B"?"Industrial":String(p.PROP_CLASS)==="1"?"Vacant": "Other";
+    if(state==="NJ") return String(p.PROP_CLASS)==="4B"?"Industrial":String(p.PROP_CLASS)==="4C"?"Multifamily":String(p.PROP_CLASS)==="1"?"Vacant":"Other";
     const code=parseInt(String(p.DOR_UC??""),10);
     const c=code>=4000?Math.floor(code/100):code;
-    return c>=40&&c<=49 ? "Industrial" : "Other";
+    return c===3||c===8?"Multifamily":c===10||c===40?"Vacant":c>=40&&c<=49?"Industrial":"Other";
   };
   const normalize = (feature, state, center) => {
     const a=feature.properties || {}, type=feature.geometry&&feature.geometry.type;
@@ -86,9 +86,14 @@
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
     const owner=null;
     const acres=numberAcres(a), cls=category(a,state);
+    const officialYear=v=>{const y=Number(v);return Number.isInteger(y)&&y>=1800&&y<=2035?y:null;};
+    const yearBuilt=officialYear(state==="FL"?a.ACT_YR_BLT:a.YR_CONSTR);
+    const effectiveYear=state==="FL"?officialYear(a.EFF_YR_BLT):null;
+    const buildingArea=state==="FL"&&Number(a.TOT_LVG_AR)>0?Number(a.TOT_LVG_AR):null;
+    const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
     return {key:state+":"+rawId, id:rawId, state, address, owner, acres, type:cls,
       use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
-      geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, source:SOURCES[state],
+      geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:SOURCES[state],
       locationPrecision:type==="Point"?"Published parcel centroid":"Polygon bounds midpoint (map display)",
       original:a};
   };
@@ -102,15 +107,18 @@
   }
   function serverWhere(state,mode,min) {
     const terms=[];
-    if(state==="FL") terms.push("CO_NO IN (60,53,66)");
+    const activeCounty=window.PublicRadarCounty||"";
+    const op=window.PublicRadarStrictMin?">":">=";
+    if(state==="FL"){const allowed={PalmBeach:60,Martin:53,StLucie:66};if(allowed[activeCounty])terms.push("CO_NO = "+allowed[activeCounty]);else terms.push("CO_NO IN (60,53,66)");}
+    if(state==="NJ"&&/^[A-Za-z ]{3,12}$/.test(activeCounty))terms.push("UPPER(COUNTY) = '"+activeCounty.toUpperCase()+"'");
     if(state==="NJ") {
       if(mode==="industrial") terms.push("PROP_CLASS = '4B'");
-      if(mode==="vacant") terms.push("PROP_CLASS = '1'");
-      if(min>0) terms.push("CALC_ACRE >= "+Number(min));
+      if(mode==="vacant") terms.push("PROP_CLASS = '1'");if(mode==="multifamily")terms.push("PROP_CLASS = '4C'");
+      if(min>0) terms.push("CALC_ACRE "+op+" "+Number(min));
     } else {
       if(mode==="industrial") terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
-      if(mode==="vacant") terms.push("DOR_UC IN ('010','0010','040','0040')");
-      if(min>0) terms.push("LND_SQFOOT >= "+Math.ceil(min*43560));
+      if(mode==="vacant") terms.push("DOR_UC IN ('010','0010','040','0040')");if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
+      if(min>0) terms.push("LND_SQFOOT "+op+" "+Number((min*43560).toFixed(2)));
     }
     return terms.join(" AND ")||"1=1";
   }
@@ -134,7 +142,7 @@
     const center={lat:map.getCenter().lat,lon:map.getCenter().lng};
     const radius=Number($("radiusSelect").value), min=Number($("minAcres").value)||0;
     const mode=$("typeSelect").value;
-    if(state==="FL"&&mode==="vacant"){status("Florida vacant-land class is not configured from the 2026 assessment schema. Choose All uses or Industrial; no vacancy result is claimed.","warning");return;}
+    
     if(!stateInBounds(center.lat,center.lon,state)){
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
@@ -170,7 +178,7 @@
       const missing=total-data.features.length;
       const msg=records.length ? (fmt(records.length)+" parcels within "+radius+" miles with source-backed geometry/attributes. "+(missing?"Some intersecting parcels lie outside the circle.":"")) :
         "The source responded successfully but no eligible parcel centroids are inside the selected radius.";
-      status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();
+      status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
       if(scanAbort.signal.aborted) status("Search cancelled.","warning");
       else status("Public GIS lookup failed: "+errText(e)+". This is NOT a report of zero properties.","danger");
@@ -234,13 +242,19 @@
   function choose(id){
     const p=records.find(x=>x.key===id);if(!p)return;
     selectedId=id;renderResults();$("details").hidden=false;
-    const owner = p.state==="NJ"?"Not published (NJ Daniel’s Law)":(p.owner||"Not published in this record");
+    const owner="Not displayed in the public research app";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
       '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.id)+'</p>'+
       '<div class="detail-grid"><div><span>Reported site acreage</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
       '<div><span>Assessment use</span><strong>'+safe(p.use)+'</strong></div></div>'+
       '<div class="detail-label">Assessment owner name</div><div class="detail-value">'+safe(owner)+'</div>'+
       '<p class="muted">Public assessment observation; a matching owner name does not prove legal title, LLC control, or a development affiliation.</p>'+
+      '<div class="detail-label">Year built</div><div class="detail-value">'+(p.yearBuilt??"Not published")+'</div>'+
+      '<div class="detail-label">Effective year built (not a confirmed renovation date)</div><div class="detail-value">'+(p.effectiveYear??"Not published")+'</div>'+
+      '<div class="detail-label">Year remodeled</div><div class="detail-value">Not published by connected parcel source</div>'+
+      '<div class="detail-label">Lease expiration / term</div><div class="detail-value">Not published by connected parcel source</div>'+
+      '<div class="detail-label">Reported improvement area</div><div class="detail-value">'+(p.buildingArea!=null?fmt(p.buildingArea)+" SF (assessment field)":"Not published")+'</div>'+
+      '<div class="detail-label">Residential units</div><div class="detail-value">'+(p.residentialUnits??"Not published")+'</div>'+
       '<div class="detail-label">Map location</div><div class="detail-value">'+safe(p.locationPrecision)+'</div>'+
       '<div class="detail-label">Assessment vintage</div><div class="detail-value">'+safe(formatAsOf(p.assessment||p.original.PCLLASTUPD||p.source.date))+'</div>'+
       '<div class="detail-label">Source</div><div class="detail-value">'+safe(p.source.name)+'</div>'+
@@ -249,7 +263,7 @@
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. No comps or sale-price records are loaded.</p>';
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
     map.panTo([p.lat,p.lon],{animate:true});
-    if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
+    document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
   function renderSource(){
     const s=SOURCES[sourceState];
@@ -317,6 +331,11 @@
       (rr.length?" First five: "+rr.slice(0,5).map(p=>p.id+" ("+(p.acres==null?"acres unknown":fmt(p.acres)+" ac")+")").join(", ")+".":"")+
       " This is a local rule-based summary, not a cloud AI answer.";
   }
+  window.PublicRadarBridge={scan,findPlace,setMarket,choose,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:SOURCES[sourceState]?.name||null,count:countResult,ready:!!sourceTime}),
+    getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
+    setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
+    setStatus:status,getSources:()=>({FL:SOURCES.FL.url,NJ:SOURCES.NJ.url})};
   function initMap(){
     if(!window.L){status("Map library unavailable on this network. Browser cannot run parcel scans without it.","danger");return;}
     map=L.map("map",{zoomControl:true,preferCanvas:true}).setView([40.527,-74.363],12);
