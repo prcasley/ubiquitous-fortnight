@@ -35,6 +35,7 @@
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
+  let lastGeocodeCounty=null;
   const $ = id => document.getElementById(id);
   const n = v => Number.isFinite(+v) ? +v : null;
   const safe = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -280,12 +281,13 @@
     status("Centered on "+v.name+". Set a radius and press Scan public parcels.","info");
   }
   async function findPlace(){
+    lastGeocodeCounty=null;
     const q=$("placeInput").value.trim();if(q.length<3){status("Enter a US city or street address.","warning");return;}
     status("Locating "+q+" with the public geocoding service…","info");
     try{
       const u="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?"+
         new URLSearchParams({f:"json",SingleLine:q,countryCode:"USA",sourceCountry:"USA",outSR:"4326",
-         maxLocations:"3",outFields:"RegionAbbr,City,Match_addr",forStorage:"false"}).toString();
+         maxLocations:"3",outFields:"RegionAbbr,City,Match_addr,Subregion",forStorage:"false"}).toString();
       const r=await fetch(u,{credentials:"omit"});if(!r.ok)throw Error("Geocoder HTTP "+r.status);
       const data=await r.json();if(data.error)throw Error(data.error.message||"Geocoder error");
       const cand=(data.candidates||[]).find(c=>c.location&&Number(c.score)>=75);
@@ -295,6 +297,7 @@
       const {x,y}=cand.location;
       if(!stateInBounds(y,x,state))throw Error("Address located outside verified layer extent.");
       $("stateSelect").value=state; map.setView([y,x],13);
+      lastGeocodeCounty=String(cand.attributes?.Subregion||"").replace(/\s+County$/i,"").trim()||null;
       status("Located "+cand.address+" in "+state+". Scan when ready; an address match is NOT a parcel verification.","success");
     }catch(e){status("Location lookup unavailable: "+errText(e),"warning");}
   }
@@ -352,7 +355,7 @@
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:SOURCES[sourceState]?.name||null,count:countResult,ready:!!sourceTime}),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
-    setStatus:status,getSources:()=>({FL:SOURCES.FL.url,NJ:SOURCES.NJ.url})};
+    setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:SOURCES.FL.url,NJ:SOURCES.NJ.url})};
   function initMap(){
     if(!window.L){status("Map library unavailable on this network. Browser cannot run parcel scans without it.","danger");return;}
     map=L.map("map",{zoomControl:true,preferCanvas:true}).setView([40.527,-74.363],12);
