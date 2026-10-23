@@ -257,7 +257,7 @@
     node.innerHTML=filtered.slice(0,300).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi</span><span class="parcel-owner">'+safe(p.owner||"Owner not published / redacted")+'</span></button>').join("");
+       ' · '+p.distance.toFixed(2)+' mi</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":"NJ statewide owner name redacted"))+'</span></button>').join("");
     if(filtered.length>300) node.innerHTML+='<div class="empty">Showing the nearest 300 records in this list. Narrow the text filter to find others.</div>';
     node.querySelectorAll("[data-pid]").forEach(btn=>btn.addEventListener("click",()=>choose(btn.dataset.pid)));
   }
@@ -291,8 +291,8 @@
     node.innerHTML=groups.length?groups.map(g=>'<div class="owner"><strong>'+safe(g.owner)+'</strong><span>'+g.count+
       ' matching parcel'+(g.count===1?"":"s")+' in current scan'+(g.acresCount?' · '+fmt(g.acres)+' reported ac':'')+
       '</span></div>').join(""):'<div class="empty">'+(sourceState==="NJ"?
-      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":"Run a Florida search to inspect published assessment owner names.")+'</div>';
-    $("ownerInfo").textContent="Current scan only · assessment roll names, not verified LLC beneficiaries or deed/title findings.";
+      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
+    $("ownerInfo").textContent="Bulk owner-name directory is disabled. Florida detail cards offer on-demand official assessment lookup; NJ requires a county/state source check.";
   }
   function formatAsOf(raw){
     if(raw==null||raw==="")return "Not provided";
