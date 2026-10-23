@@ -9,7 +9,16 @@
       date: "Assessment year shown per record; verify current source metadata",
       geometry: "point", bounds: [-87.75, 24.35, -79.78, 31.1],
       fields: "PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,TOT_LVG_AR,ACT_YR_BLT,EFF_YR_BLT,NO_RES_UNT",
-      id: "PARCEL_ID"
+      id: "PARCEL_ID",orderField:"OBJECTID"
+    },
+    PBC: {
+      name: "Palm Beach County · public parcel and property details",
+      url: "https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0",
+      attribution: "Palm Beach County public GIS / property appraiser",
+      date: "Live county property layer; property attributes have individual update vintages",
+      geometry: "polygon", bounds: [-80.95,26.30,-79.95,27.10],
+      fields: "PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT",
+      id: "PARID",orderField:"OBJECTID_1"
     },
     NJ: {
       name: "NJGIN · statewide parcels and MOD-IV (2026)",
@@ -18,7 +27,7 @@
       date: "2026 statewide update; parcel vintages vary",
       geometry: "polygon", bounds: [-75.6, 38.8, -73.8, 41.4],
       fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL",
-      id: "PAMS_PIN"
+      id: "PAMS_PIN",orderField:"OBJECTID"
     }
   };
   const AREAS = {
@@ -52,6 +61,7 @@
   };
   const numberAcres = p => {
     if(sourceState==="FL") {
+      const county=Number(p.ACRES);if(Number.isFinite(county)&&county>0)return county;
       const sf=Number(p.LND_SQFOOT);
       return sf > 0 ? sf/43560 : null;
     }
@@ -60,6 +70,7 @@
   };
   const useLabel = (p,state) => {
     if(state==="NJ") return {"1":"Vacant land","4B":"Industrial","4A":"Commercial","4C":"Apartment","2":"Residential"}[String(p.PROP_CLASS||"")]||"Other / unclassified";
+    if(p.PROPERTY_USE!=null)return String(p.PROPERTY_USE).trim()||"Use class unavailable";
     const s=String(p.DOR_UC??"").trim(), raw=parseInt(s,10);
     const code = raw>=4000 ? Math.floor(raw/100) : raw;
     if(code===3)return "Multifamily 10+ units (assessment)";if(code===8)return "Multifamily under 10 units (assessment)";if(code===10)return "Vacant commercial (assessment)";if(code===40)return "Vacant industrial (assessment)";if(code>=40&&code<=49) return code===48?"Warehousing / distribution":"Industrial assessment use code "+code;
@@ -67,11 +78,18 @@
   };
   const category = (p,state) => {
     if(state==="NJ") return String(p.PROP_CLASS)==="4B"?"Industrial":String(p.PROP_CLASS)==="4C"?"Multifamily":String(p.PROP_CLASS)==="1"?"Vacant":"Other";
+    if(p.PROPERTY_USE!=null){
+      const use=String(p.PROPERTY_USE||"").toUpperCase();
+      if(/WAREH|DIST\b|MFG|MANUF|INDUSTR|LUMBER YARD|OPEN STORAGE|LIGHT MFG|HEAVY MFG/.test(use))return "Industrial";
+      if(/APART|MULTI.?FAM/.test(use))return "Multifamily";
+      if(/VACANT|UNDEVELOPED/.test(use))return "Vacant";
+      return "Other";
+    }
     const code=parseInt(String(p.DOR_UC??""),10);
     const c=code>=4000?Math.floor(code/100):code;
     return c===3||c===8?"Multifamily":c===10||c===40?"Vacant":c>=40&&c<=49?"Industrial":"Other";
   };
-  const normalize = (feature, state, center) => {
+  const normalize = (feature, state, center, publishedSource=SOURCES[state]) => {
     const a=feature.properties || {}, type=feature.geometry&&feature.geometry.type;
     let lat=null, lon=null;
     if(type==="Point"&&feature.geometry.coordinates){
@@ -81,20 +99,20 @@
       const g=L.geoJSON(feature), b=g.getBounds(); if(b.isValid()){lat=b.getCenter().lat;lon=b.getCenter().lng;}
     }
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
-    const rawId=String(a[SOURCES[state].id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
+    const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
     if(!rawId) return null;
-    const address=state==="FL"?[a.PHY_ADDR1,a.PHY_CITY,"FL"].filter(Boolean).join(", "):
+    const address=state==="FL"?[a.SITE_ADDR_STR||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
     const owner=null;
     const acres=numberAcres(a), cls=category(a,state);
     const officialYear=v=>{const y=Number(v);return Number.isInteger(y)&&y>=1800&&y<=2035?y:null;};
-    const yearBuilt=officialYear(state==="FL"?a.ACT_YR_BLT:a.YR_CONSTR);
+    const yearBuilt=officialYear(state==="FL"?(a.YRBLT||a.ACT_YR_BLT):a.YR_CONSTR);
     const effectiveYear=state==="FL"?officialYear(a.EFF_YR_BLT):null;
     const buildingArea=state==="FL"&&Number(a.TOT_LVG_AR)>0?Number(a.TOT_LVG_AR):null;
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
     return {key:state+":"+rawId, id:rawId, state, address, owner, acres, type:cls,
       use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
-      geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:SOURCES[state],
+      geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
       locationPrecision:type==="Point"?"Published parcel centroid":"Polygon bounds midpoint (map display)",
       original:a};
   };
