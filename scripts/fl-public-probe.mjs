@@ -3,7 +3,7 @@ const url="https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Pa
 const tests=[
  {name:"county-metadata",params:null},
  {name:"county-production-five-mile",params:{f:"geojson",
-   where:"(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DIST%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%') AND ACRES >= 5",
+   where:"(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%') AND ACRES >= 5",
    geometry:JSON.stringify({xmin:-80.141,ymin:26.642,xmax:-79.973,ymax:26.788,spatialReference:{wkid:4326}}),
    geometryType:"esriGeometryEnvelope",spatialRel:"esriSpatialRelIntersects",inSR:"4326",
    outSR:"4326",returnGeometry:"true",outFields:"PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT",
