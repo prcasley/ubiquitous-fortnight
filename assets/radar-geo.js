@@ -5,10 +5,10 @@
  const $=id=>document.getElementById(id);
  const OZ = {
   oz1:{label:"OZ 1 · 2018 designated tracts (reference)",
-    url:"https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Opportunity_Zones_1/FeatureServer/0",
+    url:"https://geo.dot.gov/server/rest/services/Hosted/OZ_Opportunity_Zones/FeatureServer/0",
     source:"https://www.irs.gov/credits-deductions/businesses/opportunity-zones",color:"#297cc7",limit:280},
-  oz2:{label:"OZ 2 · eligible / nomination-stage tracts, NOT final designation",
-    url:"https://services.arcgis.com/njFNhDsUCentVYJW/ArcGIS/rest/services/Maryland_Official_Eligible_Opportunity_Zones_Census_Tracts_2026/FeatureServer/0",
+  oz2:{label:"OZ 2 · third-party eligibility reference, NOT certified designation",
+    url:"https://services6.arcgis.com/BAJNi3EgCdtQ1BCG/ArcGIS/rest/services/Opportunity_Zone_2_Eligible_Tracts/FeatureServer/0",
     source:"https://www.irs.gov/newsroom/treasury-irs-provide-guidance-to-states-for-nominating-census-tracts-as-qualified-opportunity-zones-under-the-one-big-beautiful-bill",
     color:"#b4752e",limit:280}
  };
@@ -56,18 +56,24 @@
        throw Error("Layer reports "+count+" tracts in view. Zoom in to retrieve at most "+d.limit+" completely.");
      }
      // The returned count is compared with the actual feature count; truncated outputs are rejected.
-     const raw=await queryLayer(d.url,{...base,f:"geojson",outFields:kind==="oz2"?"GEOID,oz_elig,oz_nom":"*",
+     const raw=await queryLayer(d.url,{...base,f:"geojson",outFields:kind==="oz2"?"GEOID,STUSPS,OZ_2_0_Eli":"geoid10,stusps,stname",
        returnGeometry:"true",maxAllowableOffset:"0.00003",geometryPrecision:"5",resultRecordCount:String(d.limit)},ctrl.signal);
      if(!Array.isArray(raw.features)||raw.exceededTransferLimit||raw.features.length!==count)
        throw Error("The public service returned an incomplete set of tract geometries");
-     const selected=kind==="oz2"?raw.features.filter(f=>/^\s*oz eligible\s*$/i.test(String(f.properties?.oz_elig||""))):
-       raw.features;
+     const selected=kind==="oz2" ? raw.features.filter(f=>{
+       const value=String(f.properties?.OZ_2_0_Eli??"").trim().toLowerCase();
+       return /^(yes|true|1|eligible)$/.test(value) ||
+         (/\beligible\b/.test(value) && !/not|ineligible|estimated not|unlikely/.test(value));
+     }) : raw.features;
+     if(kind==="oz2" && raw.features.length && selected.length===0){
+       throw Error("The research layer did not return a verified positive eligibility indicator in its published schema; refusing to classify tracts.");
+     }
      const polygon=selected.filter(f=>f.geometry&&/polygon/i.test(f.geometry.type));
      if(polygon.length!==selected.length)throw Error("One or more tract geometries were missing");
      for(const feat of polygon){
-       const attributes=feat.properties||{},geoid=attributes.GEOID||attributes.GEOID10||attributes.GEOID20||"GEOID unavailable";
+       const attributes=feat.properties||{},geoid=attributes.GEOID||attributes.geoid10||attributes.GEOID10||attributes.GEOID20||"GEOID unavailable";
        const info=kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
-           "2027-round eligibility only; nomination/designation must be verified separately";
+           "Third-party 2027-round eligibility estimate only; validate GEOID against Treasury official eligibility files, and nominations/designations separately";
        const layer=window.L.geoJSON(feat,{style:{color:d.color,weight:1.7,opacity:.9,fillColor:d.color,fillOpacity:.13}});
        const popup=document.createElement("div");
        const label=document.createElement("strong");label.textContent=d.label;
@@ -76,7 +82,7 @@
        popup.append(label,detail,anchor);
        layer.bindPopup(popup);layer.addTo(group);
      }
-     note(kind==="oz2"?polygon.length+" eligible tracts displayed. This is NOT a designated OZ 2 list.":
+     note(kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
    }catch(e){
