@@ -331,7 +331,24 @@
       (rr.length?" First five: "+rr.slice(0,5).map(p=>p.id+" ("+(p.acres==null?"acres unknown":fmt(p.acres)+" ac")+")").join(", ")+".":"")+
       " This is a local rule-based summary, not a cloud AI answer.";
   }
-  window.PublicRadarBridge={scan,findPlace,setMarket,choose,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+  function clearResults(){
+    if(scanAbort)scanAbort.abort();
+    records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
+    $("details").hidden=true;
+    if(layers)layers.clearLayers();
+    $("resultInfo").textContent="No completed parcel results loaded for this selection";
+    $("lastUpdated").textContent="No live scan yet";
+    $("sourceCount").textContent="0";
+    renderResults();
+  }
+  function ingestOne(feature,state,center){
+    const item=normalize(feature,state,center);if(!item)return null;
+    records=[item];filtered=[item];sourceState=state;sourceCenter=center;sourceTime=new Date();countResult=1;
+    selectedId=item.key;renderResults();renderMap();renderSource();choose(item.key);
+    $("lastUpdated").textContent=sourceTime.toLocaleString();
+    return item;
+  }
+  window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:SOURCES[sourceState]?.name||null,count:countResult,ready:!!sourceTime}),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
