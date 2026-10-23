@@ -35,10 +35,10 @@
    let location=(q.match(/\b(?:in|near|around)\s+([A-Za-z][^?.!]*?)(?:\s+(?:over|above|with|within|at least)\s+|$)/i)||[])[1]||"";
    location=location.replace(/\s+(?:under|with)\s+\d+(?:\.\d+)?\s*acres?.*$/i,"").trim();
    if(/^(the|this|these|my) (?:results|scan|parcels|area)$/i.test(location))location="";
-   if(/^(florida|new jersey|nj|fl)$/i.test(location))location="";
+   if(/^(florida|new jersey|nj|fl|me|my location)$/i.test(location))location="";
    const search=/\b(find|show|scan|search|look for|locate)\b/i.test(q)&&
       (type||area||location||radius||/\b(parcel|properties|near me)\b/i.test(q));
-   return {q,search:!!search,type,acres:area?Number(area[2]):null,comparison:area?(area[1]==="under"?"under":/^(over|above|greater than|more than)$/.test(area[1])?">":">="):null,
+   return {q,search:!!search,nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres:area?Number(area[2]):null,comparison:area?(area[1]==="under"?"under":/^(over|above|greater than|more than)$/.test(area[1])?">":">="):null,
       radius:radius?Math.min(100,Math.max(.5,Number(radius[1]))):null,
       state:stateFrom(q),countyLabel:countyLabel||null,location,
       sort:/\b(biggest|largest|most acreage)\b/.test(l)?"largest":/\b(nearest|closest)\b/.test(l)?"nearest":null,
@@ -79,7 +79,8 @@
    const active=rows.filter(x=>x.connected),planned=rows.filter(x=>!x.connected);
    const group=document.createElement("optgroup");group.label="Connected counties";
    for(const c of active){const op=new Option(c.label,c.key);group.append(op);}
-   select.append(group);
+   const allOption=new Option(state==="NJ"?"Statewide source (GPS; county unverified)":"Three connected counties (GPS; county unverified)","");
+   select.append(allOption);select.append(group);
    if(planned.length){
       const pending=document.createElement("optgroup");pending.label="Source research queued (not connected)";
       for(const c of planned){const op=new Option(c.label+" · planned","");op.disabled=true;pending.append(op);}
@@ -138,7 +139,7 @@
    if(!intent.search){putMessage(explainFollowUp(intent),"bot",bridge()?.getSources()?.[bridge()?.getMeta()?.state]);return;}
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
-     const state=intent.state||$ ("stateSelect").value;
+     let state=intent.state||$ ("stateSelect").value;
      if(!["FL","NJ"].includes(state)){putMessage("Currently connected public parcel sources are Florida (three counties) and New Jersey. Other states require a verified new source adapter.");return;}
      $("stateSelect").value=state;
      let county=null;
@@ -147,7 +148,15 @@
        if(row&&!row.connected){putMessage("The county was recognized but is not connected to a verified parcel service yet. No search was fabricated.");return;}
        county=row?.key;
      }
-     applyCounty(state,county,{center:!!county || !intent.location});
+     applyCounty(state,county,{center:!!county || (!intent.location&&!intent.nearMe)});
+     if(intent.nearMe){
+       const location=await bridge().locateGPS();
+       if(!location){putMessage("Device location could not be verified. No nearby parcel scan was run.");return;}
+       state=location.state;$("stateSelect").value=state;
+       applyCounty(state,null,{center:false});
+       $("countySelect").value="";activeCounty="";window.PublicRadarCounty="";
+       putMessage("GPS centered in "+state+". County has not been independently identified, so this request searches the supported public statewide/three-county source within your radius.");
+     }
      if(intent.location){
        $("placeInput").value=intent.location+(intent.state&&!new RegExp("\\b"+intent.state+"\\b","i").test(intent.location)?", "+intent.state:"");
        const located=await bridge().findPlace();
