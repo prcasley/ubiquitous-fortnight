@@ -151,7 +151,7 @@
     const uri=src.url+"/query?"+params.toString();
     const timer=new AbortController();
     if(signal) signal.addEventListener("abort",()=>timer.abort(),{once:true});
-    const timeout=setTimeout(()=>timer.abort(),20000);
+    const timeout=setTimeout(()=>timer.abort(new Error("GIS request exceeded 40 seconds; try a smaller scan area or county source")),40000);
     try {
       const response=await fetch(uri,{signal:timer.signal,credentials:"omit",mode:"cors"});
       if(!response.ok) throw Error("Public GIS service returned HTTP "+response.status);
@@ -172,9 +172,9 @@
     }
     scannerBusy=true; scanAbort=new AbortController(); $("scanButton").disabled=true;
     $("scanButton").textContent="Scanning…";
-    const source=SOURCES[state], env=scanEnvelope(center,radius);
+    const source=(state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(center.lat,center.lon,"PBC"))?SOURCES.PBC:SOURCES[state], env=scanEnvelope(center,radius);
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
-      spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min)};
+      spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
       const count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},scanAbort.signal);
@@ -196,7 +196,7 @@
         return;
       }
       sourceState=state;sourceCenter=center;sourceTime=new Date();
-      records=data.features.map(f=>normalize(f,state,center)).filter(Boolean)
+      records=data.features.map(f=>normalize(f,state,center,source)).filter(Boolean)
         .filter(p=>p.distance<=radius+.025).sort((a,b)=>a.distance-b.distance);
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
       const missing=total-data.features.length;
@@ -290,7 +290,7 @@
     document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
   function renderSource(){
-    const s=SOURCES[sourceState];
+    const s=(records[0]?.source)||SOURCES[sourceState];
     $("sourceName").textContent=s.name;$("sourceDate").textContent=s.date;
     $("sourceLink").href=s.url;$("sourceAttribution").textContent=s.attribution;
     $("sourceCount").textContent=fmt(records.length);
