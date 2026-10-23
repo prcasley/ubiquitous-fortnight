@@ -282,7 +282,7 @@
   }
   async function findPlace(){
     lastGeocodeCounty=null;
-    const q=$("placeInput").value.trim();if(q.length<3){status("Enter a US city or street address.","warning");return;}
+    const q=$("placeInput").value.trim();if(q.length<3){status("Enter a US city or street address.","warning");return false;}
     status("Locating "+q+" with the public geocoding service…","info");
     try{
       const u="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?"+
@@ -299,7 +299,8 @@
       $("stateSelect").value=state; map.setView([y,x],13);
       lastGeocodeCounty=String(cand.attributes?.Subregion||"").replace(/\s+County$/i,"").trim()||null;
       status("Located "+cand.address+" in "+state+". Scan when ready; an address match is NOT a parcel verification.","success");
-    }catch(e){status("Location lookup unavailable: "+errText(e),"warning");}
+      return true;
+    }catch(e){status("Location lookup unavailable: "+errText(e),"warning");return false;}
   }
   function useGPS(){
     if(!navigator.geolocation){status("This browser does not support GPS.","warning");return;}
