@@ -1,0 +1,42 @@
+/* Public executive research experience: additive styles over radar-live.css */
+.radar-agent{border-radius:18px;background:linear-gradient(126deg,#0b2d42 0%,#103e49 65%,#096b64 100%);color:#f6fffc;border:1px solid #245766;box-shadow:0 10px 30px #123c4522;padding:23px 25px;margin:17px 0 18px}
+.agent-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.radar-agent .eyebrow{color:#79e2cd}
+.radar-agent h2{font-family:Manrope,sans-serif;font-size:clamp(19px,2.6vw,24px);margin:4px 0 7px;color:#fff}
+.radar-agent p{font-size:12px;line-height:1.65;color:#d2ebeb;margin-bottom:13px;max-width:620px}
+.agent-tag{display:inline-block;background:#1d626a;color:#baf9e6;border:1px solid #377e7a;border-radius:30px;padding:8px 13px;font-size:10px;font-weight:800;letter-spacing:.01em}
+.agent-form{display:flex;gap:9px;margin:9px 0 12px;align-items:stretch}
+.agent-form input{flex:1;min-width:0;font-size:15px;background:#fff;color:#102e37;border:1px solid #aed1d2;border-radius:10px;padding:13px 15px;line-height:1.3}
+.agent-form .primary{background:#2ab59f;color:#072e33;font-size:12px;min-height:49px}
+.agent-form .primary:hover{background:#6bdbc2}
+.agent-form .secondary{background:#174e58;color:#ddf5ef;border:1px solid #438a89;min-height:49px}
+.agent-form .secondary:disabled{opacity:.5}
+.agent-suggestions{display:flex;gap:8px;flex-wrap:wrap}
+.agent-suggestions button{border:1px solid #558080;color:#e0f6f5;background:#1f535b;border-radius:99px;padding:8px 12px;font-size:11px;font-weight:700}
+.agent-suggestions button:hover{border-color:#8fe9d1;background:#216565}
+.agent-log{margin-top:13px;max-height:275px;overflow:auto;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin}
+.agent-message{border-radius:10px;padding:11px 14px;font-size:12px;white-space:pre-line;line-height:1.6;overflow-wrap:anywhere}
+.agent-message.bot{background:#174955;color:#f0fcfc;border:1px solid #396576;align-self:stretch}
+.agent-message.user{background:#e5f7ed;color:#144f50;align-self:flex-end;max-width:86%;margin-left:10%}
+.agent-message a{color:#74f3d2;font-weight:800;text-decoration:underline}
+.toolbar{grid-template-columns:minmax(140px,1fr) minmax(140px,.9fr) minmax(165px,1fr) minmax(105px,.7fr) minmax(100px,.7fr) minmax(160px,1fr) auto}
+.toolbar select:focus,.toolbar input:focus{outline:2px solid #2ac6aa}
+.layer-toggle{display:flex;gap:5px;align-items:center;color:#486875;font-size:10px;font-weight:700;white-space:nowrap}
+.layer-toggle input{accent-color:#2b968e;width:16px;height:16px}
+.map-actions{gap:7px}
+.map-actions #identifyParcel{font-size:11px;min-height:auto;padding:7px 9px}
+.map-actions #identifyParcel[aria-pressed=true]{background:#e1f5ec;color:#1e685a;border-color:#71bbab}
+.map-research-note{font-size:11px;line-height:1.55;background:#edf7fb;color:#355d72;padding:10px 15px;border-top:1px solid #e1e9ed;white-space:pre-line}
+.map-research-note[data-type="warning"]{background:#fff7e9;color:#725624}
+.map-research-note[data-type="success"]{background:#e9f8ee;color:#246048}
+.assembly-tray{grid-column:1/-1;padding:14px 17px;border:1px solid #b2d6d3;background:#e9f6f3;border-radius:13px;font-size:12px;color:#275d58;display:flex;flex-direction:column;gap:7px}
+.assembly-tray strong{font-size:13px}
+.assembly-tray p{margin:0;line-height:1.55}
+.assembly-tray small{overflow-wrap:anywhere;color:#587775}
+.assembly-tray button{align-self:flex-start}
+#assembleSelect{margin-top:15px}
+#results .parcel{transition:border-color .12s ease,background .12s ease}
+#results .parcel:hover{outline:1px solid #59bfb2}
+@media(max-width:1360px){.toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}.toolbar .primary{grid-column:span 3}}
+@media(max-width:950px){.radar-agent{padding:18px}.agent-top{gap:7px}.layer-toggle{font-size:10px}}
+@media(max-width:690px){.radar-agent{padding:15px;border-radius:14px;margin:12px 0}.agent-tag{font-size:9px}.agent-form{display:grid;grid-template-columns:1fr auto;gap:8px}.agent-form input{grid-column:1/-1;font-size:16px;min-height:48px}.agent-form .secondary{grid-column:1}.agent-form .primary{grid-column:2}.agent-suggestions{gap:6px}.agent-suggestions button{font-size:10px}.agent-message{font-size:12px}.toolbar{grid-template-columns:1fr 1fr;padding:12px}.toolbar>.primary{grid-column:1/-1}.toolbar .field{min-width:0}.toolbar .field:first-child{grid-column:1/-1}.toolbar input,.toolbar select,.geo-row input,.geo-row select{font-size:16px;min-height:45px}.map-actions{flex-wrap:wrap}.map-actions #basemap{font-size:12px}.layer-toggle{font-size:11px}.agent-log{max-height:260px}}
