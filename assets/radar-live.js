@@ -322,6 +322,16 @@
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. No comps or sale-price records are loaded.</p>';
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
+    if(p.state==="NJ"){
+      const section=document.createElement("div");section.className="public-owner-section";
+      const title=document.createElement("strong");title.textContent="NJ owner research · official public tax records";
+      const note=document.createElement("p");note.className="muted";
+      note.textContent="NJGIN's statewide layer redacts names. County/state tax-list searches may provide assessment information; never assume that a matching name establishes beneficial ownership or overrides a protected-person redaction.";
+      const link=document.createElement("a");link.href="https://www.nj.gov/transparency/property/";
+      link.target="_blank";link.rel="noopener noreferrer";
+      link.textContent="Open NJ's official Property Tax / Property Explorer portal ↗";
+      section.append(title,note,link);$("details").append(section);
+    }
     if(p.state==="FL"){
       const section=document.createElement("div");
       section.className="public-owner-section";
