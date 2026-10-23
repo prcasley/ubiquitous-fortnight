@@ -29,7 +29,7 @@
      spatialRel:"esriSpatialRelIntersects",where:"1=1",outSR:"4326"};
  }
  async function queryLayer(uri,params,signal){
-   const url=uri+"/query?"+new URLSearchParams({...params,f:"json"}).toString();
+   const url=uri+"/query?"+new URLSearchParams({...params,f:params.f||"json"}).toString();
    const response=await fetch(url,{signal,credentials:"omit",mode:"cors"});
    if(!response.ok)throw Error("The public map layer responded with HTTP "+response.status);
    const data=await response.json();
