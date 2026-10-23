@@ -44,6 +44,7 @@
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
+  let scanComplete=false;
   let lastGeocodeCounty=null;
   const $ = id => document.getElementById(id);
   const n = v => Number.isFinite(+v) ? +v : null;
@@ -171,7 +172,7 @@
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
     scannerBusy=true; scanAbort=new AbortController(); $("scanButton").disabled=true;
-    records=[];sourceTime=null;countResult=null;
+    records=[];sourceTime=null;countResult=null;scanComplete=false;
     $("scanButton").textContent="Scanning…";
     const source=(state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(center.lat,center.lon,"PBC"))?SOURCES.PBC:SOURCES[state], env=scanEnvelope(center,radius);
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
@@ -202,7 +203,7 @@
           if(response.features.length<batchSize&&!response.exceededTransferLimit){finished=true;break;}
           if(response.features.length===0){finished=true;break;}
         }
-        countResult=finished?records.length:null;
+        countResult=finished?records.length:null;scanComplete=finished;
         status(finished?
           "Palm Beach live scan completed: "+records.length+" mapped parcels within "+radius+" miles. Assessor use is not zoning.":
           "Showing "+records.length+" real Palm Beach parcels, but the "+(batchSize*pages)+
@@ -237,7 +238,7 @@
       const missing=total-data.features.length;
       const msg=records.length ? (fmt(records.length)+" parcels within "+radius+" miles with source-backed geometry/attributes. "+(missing?"Some intersecting parcels lie outside the circle.":"")) :
         "The source responded successfully but no eligible parcel centroids are inside the selected radius.";
-      status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
+      scanComplete=true;status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
       if(scanAbort.signal.aborted) status("Search cancelled.","warning");
       else status("Public GIS lookup failed: "+errText(e)+". This is NOT a report of zero properties.","danger");
@@ -443,10 +444,10 @@
     return item;
   }
   window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
-    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:SOURCES[sourceState]?.name||null,count:countResult,ready:!!sourceTime}),
+    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(records[0]?.source||SOURCES[sourceState])?.name||null,sourceURL:(records[0]?.source||SOURCES[sourceState])?.url||null,count:countResult,complete:scanComplete,ready:!!sourceTime}),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
-    setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:SOURCES.FL.url,NJ:SOURCES.NJ.url})};
+    setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:(records[0]?.source||SOURCES.FL).url,NJ:SOURCES.NJ.url})};
   function initMap(){
     if(!window.L){status("Map library unavailable on this network. Browser cannot run parcel scans without it.","danger");return;}
     map=L.map("map",{zoomControl:true,preferCanvas:true}).setView([40.527,-74.363],12);
