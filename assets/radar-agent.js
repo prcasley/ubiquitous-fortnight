@@ -136,7 +136,7 @@
    const intent=parseIntent(raw);if(!intent.q)return;
    if(busy){putMessage("A public-source search is already in progress. Finish it before submitting another request.");return;}
    putMessage(intent.q,"user");
-   if(!intent.search){putMessage(explainFollowUp(intent),"bot",bridge()?.getSources()?.[bridge()?.getMeta()?.state]);return;}
+   if(!intent.search){if(window.PublicRadarLocalAI?.isReady()&&bridge()?.getMeta()?.ready){window.PublicRadarLocalAI.analyze();}else putMessage(explainFollowUp(intent),"bot",bridge()?.getSources()?.[bridge()?.getMeta()?.state]);return;}
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
      let state=intent.state||$ ("stateSelect").value;
@@ -192,6 +192,7 @@
      }
      putMessage(sourceSummary(rows).sentence+"\nRetrieved: "+meta.time+
        ". This does not indicate availability, title ownership or an investment recommendation.","bot",bridge().getSources()[meta.state]);
+     if(window.PublicRadarLocalAI?.isReady()&&meta.complete===true)window.PublicRadarLocalAI.analyze();
    }catch(e){putMessage("The public search could not complete: "+String(e?.message||e)+". No zero-result conclusion was made.");}
    finally{busy=false;if(btn)btn.disabled=false;}
  }
