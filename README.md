@@ -1,34 +1,36 @@
-# Capital Radar | Public GIS Research Preview
+# Capital Radar | Public GIS Research (No Transactions)
 
-**This repository is a public, browser-based parcel-research interface.** It does not include Woodmont proprietary application modules, internal properties or portfolios, contacts, comps, sales or lease transactions, business-development notes, private scoring, private documents, or API credentials. It is not the private Woodmont Capital Radar product.
+This public, static-browser interface performs **read-only queries to official state GIS layers**. It is not a private property-screening application, does not use any internal candidate lists, and does not include comparable sales, transaction amounts, contact dossiers, ownership-inference scores or confidential business records.
 
-## Live sources
-- **Florida**: [Florida Department of Revenue 2026 statewide parcel-centroid layer](https://services9.arcgis.com/Gh9awoU677aKree0/ArcGIS/rest/services/Florida_Statewide_Parcel_Centroid_Version/FeatureServer/0) via Florida geographic information services. Uses PARCEL_ID, OWN_NAME, PHY_ADDR1/PHY_CITY, LND_SQFOOT, DOR_UC, ASMNT_YR. GIS centroids are not legal boundary surveys. Source-level redactions are honored. Reported acreage = LND_SQFOOT / 43,560.
-- **New Jersey**: [NJGIN statewide parcel composite](https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0) via public NJGIS. Uses PAMS_PIN, PROP_LOC, MUN_NAME, PROP_CLASS, CALC_ACRE and parcel geometry. The statewide layer does not publish owner names.
+## Sources and coverage
 
-The app sends live, unauthenticated, read-only queries to the corresponding source's ArcGIS REST endpoint at the time of each scan. No private dataset is embedded in the repository. Basemap tiles are from OpenStreetMap or Esri. An ArcGIS world geocoder handles optional typed-location searches.
+- [Florida statewide parcel centroid layer, FDOR Cadastral Centroids 2026](https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Parcel_Centroid_Version/FeatureServer/0), a public ArcGIS service joined to DOR assessment attributes. **Only public records for Palm Beach (CO_NO 60), Martin (53), and St. Lucie (66)** are queried. Industrial assessment-use codes 040–049 and vacant land 010/040 are accepted in their three- and four-digit variants. Display acreage is LND_SQFOOT / 43,560. Point geometry is not legal parcel boundary evidence. Current service metadata identifies it as a **2026** layer; older service descriptions can still refer to August 2025 submission processing.
+- [New Jersey NJGIN statewide parcel/MOD-IV composite](https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/arcgis/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0). Public geometry, assessment class, acreage and published parcel ID only. NJ owner fields are redacted and not queried. Uses parcel polygon geometry for map display, not a legal survey.
+- [Leaflet 1.9.4](https://leafletjs.com/download) for map rendering, pinned with SRI for CSS and JS. OpenStreetMap and Esri provide basemap tiles; attribution is shown.
 
-## Functionality
-- Live radius scan for NJ and FL around a selected map point, saved market center, recognized street address, or user-permitted GPS coordinates.
-- Industrial assessment-use filter, minimum-acre filter and all-use filter.
-- Source-record acreage, parcel IDs, public assessor owner labels (FL only), source links and assessment vintage.
-- Public parcel maps and per-parcel detail cards with source/provenance labels.
-- Read-only owner-name grouping of returned Florida assessment records, not an assertion of beneficial ownership.
-- Local deterministic Ask Radar text summary of the last completed returned scan.
-- Responsive, mobile-usable interface.
+**Source retrieval date:** No bulk county source data has been downloaded or embedded as part of this build. Source data is queried **on demand** when a user scans. The acquisition timestamp for each successful scan is shown on screen. External downloads must record a real retrieval timestamp before any source-data files are published.
 
-## Important limitations
-- **No transaction or comparable-sales records whatsoever**. No internal comps, comps calculations or financial figures.
-- **Not nationwide**: this version has live source adapters for New Jersey and Florida only. Source-query network policy, CORS, service interruptions, tile access, and location permission affect availability.
-- This is a direct-source prototype. A 1,100-record guard refuses oversized searches rather than falsely reporting zero parcels. Increase filters or narrow radius.
-- The NJ layer intentionally redacts owner names, and only assessment names (not title-verified legal owners or LLC beneficial owners) are returned in Florida.
-- FL industrial classes use DOR_UC 0040-0049; NJ industrial uses PROP_CLASS 4B. These are assessment classes, **not zoning determinations**.
-- The Florida "Vacant" filter is intentionally unavailable pending a verified DOR use-code mapping. Select "All uses" instead.
-- No full nationwide live backend, secure executive sign-in, or internal SharePoint sync is provided by this public website.
-- Data use must follow the public source provider's applicable use terms and attribution requirements.
+## Privacy and architecture
 
-## Deployment
-Static files under `index.html` and `assets/` can be hosted on GitHub Pages using `main` / `(root)`. Because this repository is public, never add confidential Woodmont material or credentials.
+- **Florida raw owner fields are NOT requested from the browser.** The public GIS service includes names of individuals, so client-side regex hiding would not protect them from the browser network inspector. An offline-reviewed company-only export may be added separately, but none is included here.
+- No New Jersey owner-name harvesting and no data from county tax lists.
+- No transactions, sale/lease comps, price fields, contact records, private parcel shortlists, selected company leads, property value estimates or internal business notes. These fields are excluded from the ArcGIS query projections, UI and export functions.
+- No private API keys or SharePoint/Power BI/CRM connection.
 
-## Verification state
-The official source schemas and endpoints have been checked against public ArcGIS documentation. **End-to-end network requests, live CORS responses, on-device GPS, and rendered result accuracy have not yet passed a live device test**. Do not treat the site as production-validated until those are exercised on the deployed Pages site.
+## Current features
+
+- Mobile street/satellite map and GPS selection (browser permission required).
+- Industrial/vacant assessment-class and acreage filters; location-aware source search in selected Florida counties and NJ statewide.
+- Read-only parcel detail cards with source vintage, parcel ID and map precision notice.
+- Local deterministic search-summary assistant for the last completed scan.
+- Protective count cap of 1,100 features; oversized or clipped searches are reported as incomplete, not as zero properties.
+
+## Limits and testing
+
+A public ArcGIS service may be unavailable, rate-limited, or blocked by client network policy or CORS. GeoJSON and rendering behavior must be verified on the live deployed site. Assessors' use classes are NOT zoning confirmation. The map is not a survey, and it cannot prove ownership, availability or legal title.
+
+**Verification:** Code-level and offline simulated tests are possible. Live ArcGIS retrievals, browser CORS, on-device GPS and parcel-record accuracy have not been demonstrated by the package author. Do not claim success until verified on the actual deployed site.
+
+## Static deployment
+
+Deploy `index.html` and `assets/radar-live.css`, `assets/radar-live.js` to GitHub Pages from `main` and `/ (root)`. Never upload proprietary application code or internal/company-selected records to this public repository.

@@ -6,9 +6,9 @@
       name: "Florida DOR · statewide parcel centroids (2026)",
       url: "https://services9.arcgis.com/Gh9awoU677aKree0/ArcGIS/rest/services/Florida_Statewide_Parcel_Centroid_Version/FeatureServer/0",
       attribution: "Florida Geographic Information Office / Florida Department of Revenue",
-      date: "2026 assessment; service edited Oct 1, 2026",
+      date: "Assessment year shown per record; verify current source metadata",
       geometry: "point", bounds: [-87.75, 24.35, -79.78, 31.1],
-      fields: "PARCEL_ID,OWN_NAME,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR",
+      fields: "PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,TOT_LVG_AR",
       id: "PARCEL_ID"
     },
     NJ: {
@@ -84,7 +84,7 @@
     if(!rawId) return null;
     const address=state==="FL"?[a.PHY_ADDR1,a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
-    const owner=state==="FL"?String(a.OWN_NAME||"").trim():null;
+    const owner=null;
     const acres=numberAcres(a), cls=category(a,state);
     return {key:state+":"+rawId, id:rawId, state, address, owner, acres, type:cls,
       use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
@@ -102,13 +102,14 @@
   }
   function serverWhere(state,mode,min) {
     const terms=[];
+    if(state==="FL") terms.push("CO_NO IN (60,53,66)");
     if(state==="NJ") {
       if(mode==="industrial") terms.push("PROP_CLASS = '4B'");
       if(mode==="vacant") terms.push("PROP_CLASS = '1'");
       if(min>0) terms.push("CALC_ACRE >= "+Number(min));
     } else {
-      if(mode==="industrial") terms.push("DOR_UC IN ('0040','0041','0042','0043','0044','0045','0046','0047','0048','0049')");
-      if(mode==="vacant") terms.push("1=0");
+      if(mode==="industrial") terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
+      if(mode==="vacant") terms.push("DOR_UC IN ('010','0010','040','0040')");
       if(min>0) terms.push("LND_SQFOOT >= "+Math.ceil(min*43560));
     }
     return terms.join(" AND ")||"1=1";
