@@ -60,11 +60,8 @@
     $("scanStatus").className="scan-status "+kind;
   };
   const numberAcres = p => {
-    if(sourceState==="FL") {
-      const county=Number(p.ACRES);if(Number.isFinite(county)&&county>0)return county;
-      const sf=Number(p.LND_SQFOOT);
-      return sf > 0 ? sf/43560 : null;
-    }
+    if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);
+    if(p.LND_SQFOOT!=null&&Number(p.LND_SQFOOT)>0)return Number(p.LND_SQFOOT)/43560;
     const a=Number(p.CALC_ACRE);
     return Number.isFinite(a)&&a>0 ? a : null;
   };
@@ -124,20 +121,28 @@
     const dy=radius/69.0, dx=radius/(69.172*Math.max(.2,Math.cos(center.lat*Math.PI/180)));
     return {xmin:center.lon-dx,ymin:center.lat-dy,xmax:center.lon+dx,ymax:center.lat+dy,spatialReference:{wkid:4326}};
   }
-  function serverWhere(state,mode,min) {
-    const terms=[];
-    const activeCounty=window.PublicRadarCounty||"";
+  function serverWhere(state,mode,min,provider=SOURCES[state]) {
+    const terms=[],county=window.PublicRadarCounty||"";
     const op=window.PublicRadarStrictMin?">":">=";
-    if(state==="FL"){const allowed={PalmBeach:60,Martin:53,StLucie:66};if(allowed[activeCounty])terms.push("CO_NO = "+allowed[activeCounty]);else terms.push("CO_NO IN (60,53,66)");}
-    if(state==="NJ"&&/^[A-Za-z ]{3,12}$/.test(activeCounty))terms.push("UPPER(COUNTY) = '"+activeCounty.toUpperCase()+"'");
-    if(state==="NJ") {
-      if(mode==="industrial") terms.push("PROP_CLASS = '4B'");
-      if(mode==="vacant") terms.push("PROP_CLASS = '1'");if(mode==="multifamily")terms.push("PROP_CLASS = '4C'");
-      if(min>0) terms.push("CALC_ACRE "+op+" "+Number(min));
+    if(provider===SOURCES.PBC) {
+      // The county assessor class is descriptive text (not Florida DOR's numbered codes).
+      if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DIST%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
+      if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
+      if(mode==="vacant")terms.push("(PROPERTY_USE LIKE '%VACANT%' OR PROPERTY_USE LIKE '%UNDEVELOPED%')");
+      if(min>0)terms.push("ACRES "+op+" "+Number(min));
+    } else if(state==="NJ") {
+      if(/^[A-Za-z ]{3,12}$/.test(county))terms.push("UPPER(COUNTY) = '"+county.toUpperCase()+"'");
+      if(mode==="industrial")terms.push("PROP_CLASS = '4B'");
+      if(mode==="multifamily")terms.push("PROP_CLASS = '4C'");
+      if(mode==="vacant")terms.push("PROP_CLASS = '1'");
+      if(min>0)terms.push("CALC_ACRE "+op+" "+Number(min));
     } else {
-      if(mode==="industrial") terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
-      if(mode==="vacant") terms.push("DOR_UC IN ('010','0010','040','0040')");if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
-      if(min>0) terms.push("LND_SQFOOT "+op+" "+Number((min*43560).toFixed(2)));
+      const codes={PalmBeach:60,Martin:53,StLucie:66};
+      terms.push(codes[county]?"CO_NO = "+codes[county]:"CO_NO IN (60,53,66)");
+      if(mode==="industrial")terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
+      if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
+      if(mode==="vacant")terms.push("DOR_UC IN ('010','0010','040','0040')");
+      if(min>0)terms.push("LND_SQFOOT "+op+" "+Number((min*43560).toFixed(2)));
     }
     return terms.join(" AND ")||"1=1";
   }
