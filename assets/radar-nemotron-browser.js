@@ -116,5 +116,6 @@
     if(!navigator.gpu)tell("Free NVIDIA model available for opt-in local loading on WebGPU-capable desktops; this device may not support it.");
     else tell("Optional: download NVIDIA Nemotron once to answer questions using your GPU. Not enabled automatically.");
   }
+  window.PublicRadarLocalAI={isReady:()=>ready,analyze:ask};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
