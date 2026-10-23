@@ -18,4 +18,10 @@ jobs:
         with:
           node-version: '22'
       - name: Validate public data contracts and agent
-        run: node --test tests/public-gis.test.mjs
+        run: |
+          node --check assets/radar-live.js
+          node --check assets/radar-geo.js
+          node --check assets/radar-agent.js
+          node --check assets/radar-nemotron-browser.js
+          node --check assets/nemotron-local-worker.mjs
+          node --test tests/public-gis.test.mjs

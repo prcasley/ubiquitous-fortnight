@@ -29,7 +29,16 @@ test("no duplicate IDs or private-company references in public page",()=>{
  assert.match(html,/oz1Toggle/);
  assert.match(html,/oz2Toggle/);
  assert.doesNotMatch(html,/\bid="(?:comps|salesComps|saleCalculator|leaseComps)"/i);
- assert.doesNotMatch(core,/SALE_PRC|COMP_ID|OWN_NAME|OWN_ADDR|OWN_MAIL/i);
+ assert.doesNotMatch(core,/SALE_PRC|COMP_ID|OWN_ADDR|OWN_MAIL/i);
+ const projections=[...core.matchAll(/fields:\s*"([^"]+)"/g)].map(x=>x[1]);
+ assert.equal(projections.length>=3,true);
+ assert.equal(projections.some(x=>/OWN_NAME|OWNER_NAME|OWN_ADDR/i.test(x)),false,
+   "Bulk map data must not project owner or mailing fields");
+ assert.match(core,/OWNER_NAME1/,"Owner name is available only through explicit detail lookup");
+ assert.match(core,/SOURCES\.PBC/);
+ assert.match(html,/id="localNemotronLoad"/);
+ assert.match(html,/radar-nemotron-browser\.js/);
+ assert.match(html,/radar-nemotron\.css/);
 });
 test("strict and nonstrict natural language comparisons",()=>{
  const q=parse("Find industrial over 3 acres in Parsippany, NJ");

@@ -101,12 +101,27 @@
      "© OpenStreetMap contributors · SRTM | © OpenTopoMap (CC-BY-SA)";
    themeLayer=window.L.tileLayer(url,{maxZoom:value==="topo"?17:19,attribution:attr}).addTo(m);
  }
- async function identifyAt(lat,lng){
+ function pointInRing(ring,lon,lat){
+    let inside=false;
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const a=ring[i],b=ring[j];if(!a||!b)continue;
+      if(((a[1]>lat)!==(b[1]>lat))&&(lon<(b[0]-a[0])*(lat-a[1])/(b[1]-a[1])+a[0]))inside=!inside;
+    }
+    return inside;
+  }
+  function polygonContains(geometry,lon,lat){
+    const polygons=geometry?.type==="Polygon"?[geometry.coordinates]:
+      geometry?.type==="MultiPolygon"?geometry.coordinates:[];
+    return polygons.some(rings=>Array.isArray(rings)&&rings.length>0&&pointInRing(rings[0],lon,lat)&&
+      !rings.slice(1).some(hole=>pointInRing(hole,lon,lat)));
+  }
+  async function identifyAt(lat,lng){
    const b=source(),state=$("stateSelect")?.value,m=map();if(!b||!m||!state)return;
    const uri=b.getSources()?.[state];if(!uri){note("No public parcel service is available for this state.");return;}
-   const field=state==="FL"?"PARCEL_ID,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,ACT_YR_BLT,EFF_YR_BLT,TOT_LVG_AR,NO_RES_UNT":
+   const countyFL=state==="FL"&&uri.includes("Parcels_and_Property_Details_WebMercator");
+   const field=countyFL?"PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT":state==="FL"?"PARCEL_ID,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,ACT_YR_BLT,EFF_YR_BLT,TOT_LVG_AR,NO_RES_UNT":
      "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL";
-   const span=state==="FL"?.0007:.00002;
+   const span=countyFL?.0001:state==="FL"?.0007:.00002;
    const env={xmin:lng-span,ymin:lat-span,xmax:lng+span,ymax:lat+span,spatialReference:{wkid:4326}};
    const params={where:"1=1",geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",inSR:"4326",
      spatialRel:"esriSpatialRelIntersects",outSR:"4326",outFields:field,returnGeometry:"true",
@@ -119,7 +134,11 @@
        throw Error("No uniquely identifiable public parcel was returned at this location");
      const features=res.features.filter(f=>f.geometry);
      if(state==="NJ"&&features.length!==1)throw Error("Multiple parcel shapes intersect the tap. Zoom further in.");
-     const picked=state==="FL"?features.map(f=>{
+     if(countyFL){
+       const matched=features.filter(f=>polygonContains(f.geometry,lng,lat));
+       if(matched.length!==1)throw Error("No unique Palm Beach parcel polygon contains the map tap. Zoom closer and try again.");
+     }
+     const picked=countyFL?features.find(f=>polygonContains(f.geometry,lng,lat)):state==="FL"?features.map(f=>{
        const p=f.geometry?.coordinates||[];
        const d=Math.abs(Number(p[0])-lng)+Math.abs(Number(p[1])-lat);
        return {f,d};
@@ -128,7 +147,7 @@
      const rec=b.ingestOne(picked,state,{lat,lon:lng});
      if(!rec)throw Error("The returned feature lacks a stable parcel ID or coordinates");
      note(state==="FL"?
-       "Nearest published Florida centroid displayed, not a verified clicked lot or surveyed parcel boundary.":
+       (countyFL?"Clicked Palm Beach parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
        "One NJ source polygon identified. This is a planning boundary, not a title survey.","success");
    }catch(e){
      note("Parcel identification unavailable: "+String(e?.message||e)+". No parcel identity was guessed.","warning");

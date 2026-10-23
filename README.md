@@ -12,7 +12,7 @@ This public, static-browser interface performs **read-only queries to official s
 
 ## Privacy and architecture
 
-- **Florida raw owner fields are NOT requested from the browser.** The public GIS service includes names of individuals, so client-side regex hiding would not protect them from the browser network inspector. An offline-reviewed company-only export may be added separately, but none is included here.
+- **Florida owner names are NOT requested during bulk parcel searches.** One user-initiated parcel-detail lookup can retrieve that individual parcel's published assessment name directly from the Florida official source. Mailing addresses are never requested, and no owner-name index is stored or published in this repository.
 - No New Jersey owner-name harvesting and no data from county tax lists.
 - No transactions, sale/lease comps, price fields, contact records, private parcel shortlists, selected company leads, property value estimates or internal business notes. These fields are excluded from the ArcGIS query projections, UI and export functions.
 - No private API keys or SharePoint/Power BI/CRM connection.
@@ -51,3 +51,21 @@ This branch adds a natural-language **rule-driven** executive assistant: ask for
 See [public data coverage and state-source backlog](docs/PUBLIC_DATA_COVERAGE.md) and [NVIDIA agent research and deployment roadmap](docs/NVIDIA_AGENT_ROADMAP.md).
 
 **Verification state:** Local static checks and source schema inspections support the code paths. The new OZ reference layers, CORS responses, selected county filters and end-to-end phone behavior have **not** passed authoritative on-device live scans. Do not report them as production-verified until that happens. The pull request includes zero-network GitHub Actions checks to catch unsafe field projection and obvious regressions.
+
+
+## October 23 live scanner and NVIDIA improvements
+
+**Palm Beach County reliability:** A diagnostic GitHub Actions runner confirmed that Florida's 2026 statewide layer responds to metadata but timed out after 40 seconds on both a one-record and a small-area query. The new primary Palm Beach parcel service instead returned 10 county warehouse records in about 2 seconds, and a realistic five-mile industrial query returned 150 GIS features in about nine seconds, with permissive public CORS headers. These were real *network-source tests*, not a claim that the web UI has been validated on every phone.
+
+- **Palm Beach primary:** [Parcels and Property Details (county public GIS)](https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0), supports reported acreage, `PROPERTY_USE` text, `YRBLT`, public parcel geometry and on-demand `OWNER_NAME1`.
+- **Martin / St. Lucie:** the statewide fallback remains subject to documented query slowness. Do not treat those counties as performance-verified until suitable county or new state API sources are tested.
+- The Palm Beach scanner requests county parcels in numbered pages and shows returned records as they arrive. When its feature cap is reached, it shows a partial-results warning rather than saying no property was found.
+- The industrial assessment filter recognizes warehouse/distribution/manufacturing terms but excludes the unrelated `DISTRICTS` category. Assessors' descriptive land uses are not zoning approvals.
+- Each Florida property card provides an explicit **Look up published assessment name** action. It requests only a single parcel's official assessment-owner name, not mailing addresses, private contacts, or a bulk public person index. It does not establish deeded or beneficial ownership.
+- New Jersey's statewide service redacts names. Property cards link to New Jersey's own Property Tax/Property Explorer portal for independent source research; the app does not scrape protected persons' details.
+
+**NVIDIA open-weight model (optional):** A local model-worker implementation using [Nemotron 3 Nano 4B ONNX](https://huggingface.co/onnx-community/NVIDIA-Nemotron-3-Nano-4B-BF16-ONNX) and [Transformers.js 4.3.1](https://huggingface.co/docs/transformers.js/installation) has been added. On supported **WebGPU desktops**, a user can choose to download the approximately 2.5–3GB model and ask it to interpret the last retrieved public parcel scan. Questions and parcels remain on the local device during inference. No API key, hosted model or subscription is required; device computing resources and initial model download are required. GPU/browser-specific compatibility and end-to-end inference **have not yet been live-device validated**. This model is not silently loaded on phones. It cannot manufacture parcel records, legal title, leases, OZ status or investment evidence. The older private Radar's AI evidence-import ledger did not itself run a model.
+
+**Still excluded:** proprietary portfolio lists, internal business data, contact dossiers, comps, sale/lease transaction amounts, and property-value estimates.
+
+**Testing gate:** The repo includes automated static tests and official public source network probes. The latter are not a substitute for validating the published GitHub Pages interface on a physical iPhone or the local WebGPU model on a supported desktop.
