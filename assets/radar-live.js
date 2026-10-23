@@ -171,12 +171,47 @@
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
     scannerBusy=true; scanAbort=new AbortController(); $("scanButton").disabled=true;
+    records=[];sourceTime=null;countResult=null;
     $("scanButton").textContent="Scanning…";
     const source=(state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(center.lat,center.lon,"PBC"))?SOURCES.PBC:SOURCES[state], env=scanEnvelope(center,radius);
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
+      if(source===SOURCES.PBC){
+        // County layer is demonstrably fast. Page directly instead of asking FDOR for an
+        // expensive 10.8-million-parcel statewide count before drawing any result.
+        const batchSize=150,pages=6,seen=new Set();let finished=false;
+        for(let page=0;page<pages;page++){
+          status("Palm Beach County GIS: requesting page "+(page+1)+" · "+seen.size+" source features received…","info");
+          const response=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
+             returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
+             maxAllowableOffset:"0.00009",resultOffset:String(page*batchSize),
+             resultRecordCount:String(batchSize),orderByFields:source.orderField+" ASC"},scanAbort.signal);
+          if(!Array.isArray(response.features))throw Error("Palm Beach GIS did not return parcel geometries");
+          for(const feature of response.features){
+            const item=normalize(feature,state,center,source);
+            if(item&&item.distance<=radius+.03&&!seen.has(item.key)){
+              seen.add(item.key);records.push(item);
+            }
+          }
+          sourceState=state;sourceCenter=center;sourceTime=new Date();
+          records.sort((a,b)=>a.distance-b.distance);
+          selectedId=null;renderResults();renderMap();renderOwners();renderSource();
+          $("lastUpdated").textContent=sourceTime.toLocaleString();
+          if(response.features.length<batchSize&&!response.exceededTransferLimit){finished=true;break;}
+          if(response.features.length===0){finished=true;break;}
+        }
+        countResult=finished?records.length:null;
+        status(finished?
+          "Palm Beach live scan completed: "+records.length+" mapped parcels within "+radius+" miles. Assessor use is not zoning.":
+          "Showing "+records.length+" real Palm Beach parcels, but the "+(batchSize*pages)+
+          "-feature cap was reached. Results are PARTIAL; narrow radius or minimum acres.",
+          finished?"success":"warning");
+        document.dispatchEvent(new CustomEvent("radar:scan-complete",{
+          detail:{count:records.length,state,source:source.name,complete:finished}}));
+        return finished;
+      }
       const count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},scanAbort.signal);
       const total=Number(count.count);
       if(!Number.isFinite(total)) throw Error("The public source did not return a reliable record count. Search was not accepted as complete.");
