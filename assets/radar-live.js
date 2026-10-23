@@ -286,6 +286,34 @@
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. No comps or sale-price records are loaded.</p>';
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
+    if(p.state==="FL"){
+      const section=document.createElement("div");
+      section.className="public-owner-section";
+      const title=document.createElement("strong");title.textContent="Florida official assessment owner lookup";
+      const btn=document.createElement("button");btn.type="button";btn.className="secondary";
+      btn.textContent="Look up published assessment name";
+      const result=document.createElement("p");result.className="muted";
+      result.textContent="On demand only. Source owner name is NOT verified deed title or beneficial ownership. Mailing/contact fields are never requested.";
+      btn.addEventListener("click",async()=>{
+        btn.disabled=true;btn.textContent="Looking up source…";
+        const provider=p.source,idfield=provider.id;
+        const ownerField=provider===SOURCES.PBC?"OWNER_NAME1":"OWN_NAME";
+        try{
+          const id=p.id.replace(/'/g,"''");
+          const reply=await arcgisQuery(provider,{where:idfield+" = '"+id+"'",returnGeometry:"false"},
+             {f:"json",outFields:idfield+","+ownerField+",ASMNT_YR".replace(",ASMNT_YR",provider===SOURCES.PBC?"":",ASMNT_YR"),resultRecordCount:"2"},null);
+          const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
+          if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
+          const name=String(matches[0].attributes?.[ownerField]||"").trim();
+          result.textContent=name?"Published assessment owner: "+name+" | Source: "+provider.name+
+            ". This is NOT verified legal or beneficial ownership.":"The official record did not publish an owner name for this parcel.";
+        }catch(e){result.textContent="Owner source lookup unavailable: "+String(e?.message||e)+
+          ". Check the linked official county record; no owner has been inferred.";}
+        finally{btn.disabled=false;btn.textContent="Refresh published owner";}
+      });
+      section.append(title,btn,result);$("details").append(section);
+    }
+
     map.panTo([p.lat,p.lon],{animate:true});
     document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
