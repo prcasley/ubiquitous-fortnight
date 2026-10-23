@@ -302,18 +302,22 @@
       return true;
     }catch(e){status("Location lookup unavailable: "+errText(e),"warning");return false;}
   }
-  function useGPS(){
-    if(!navigator.geolocation){status("This browser does not support GPS.","warning");return;}
-    status("Requesting device location. It stays on your phone until a public parcel scan is requested.","info");
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const lat=pos.coords.latitude,lon=pos.coords.longitude;
-      const s=Object.keys(SOURCES).find(k=>stateInBounds(lat,lon,k));
-      if(!s){status("Your location is outside currently connected FL/NJ parcel services. No nationwide scan was performed.","warning");return;}
-      $("stateSelect").value=s;map.setView([lat,lon],14);
-      L.circleMarker([lat,lon],{radius:8,color:"#fff",weight:3,fillColor:"#1479f5",fillOpacity:1}).addTo(map);
-      status("Device position located in "+s+". Choose radius and run a public scan.","success");
-    },e=>status("GPS unavailable: "+e.message,"warning"),{timeout:10000,enableHighAccuracy:true});
+  function locateGPS(){
+    return new Promise(resolve=>{
+      if(!navigator.geolocation){status("This browser does not support GPS.","warning");resolve(null);return;}
+      status("Requesting device location. Location is used for public-source geographic screening only.","info");
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const lat=pos.coords.latitude,lon=pos.coords.longitude;
+        const state=Object.keys(SOURCES).find(k=>stateInBounds(lat,lon,k));
+        if(!state){status("Your location is outside currently connected FL/NJ sources. No nationwide result was claimed.","warning");resolve(null);return;}
+        $("stateSelect").value=state;map.setView([lat,lon],14);
+        L.circleMarker([lat,lon],{radius:8,color:"#fff",weight:3,fillColor:"#1479f5",fillOpacity:1}).addTo(map);
+        status("Device located in "+state+". County identity is not verified from GPS alone; countywide source filtering is disabled until selected.","warning");
+        resolve({lat,lon,state});
+      },e=>{status("GPS unavailable: "+e.message,"warning");resolve(null);},{timeout:10000,enableHighAccuracy:true});
+    });
   }
+  function useGPS(){void locateGPS();}
   function askQuestion(question){
     if(!records.length)return "I don't have loaded parcel records yet. Choose NJ or FL, set a search center and tap Scan public parcels.";
     const txt=question.toLowerCase();
@@ -352,7 +356,7 @@
     $("lastUpdated").textContent=sourceTime.toLocaleString();
     return item;
   }
-  window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+  window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:SOURCES[sourceState]?.name||null,count:countResult,ready:!!sourceTime}),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
