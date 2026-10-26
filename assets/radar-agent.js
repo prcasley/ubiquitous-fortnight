@@ -6,8 +6,10 @@
  const FL=[
    ["Palm Beach","PalmBeach",26.72,-80.13,true],
    ["Martin","Martin",27.16,-80.25,true],
+   ["Broward","Broward",26.12,-80.14,true],
+   ["Miami-Dade","MiamiDade",25.77,-80.19,true],
    ["St. Lucie","StLucie",27.32,-80.36,true],
-   ...["Alachua","Baker","Bay","Bradford","Brevard","Broward","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Miami-Dade","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Pasco","Pinellas","Polk","Putnam","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"].map(n=>[n,"",0,0,false])
+   ...["Alachua","Baker","Bay","Bradford","Brevard","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Pasco","Pinellas","Polk","Putnam","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"].map(n=>[n,"",0,0,false])
  ];
  const NJ=[
   ["Atlantic",39.45,-74.65],["Bergen",40.94,-74.07],["Burlington",39.92,-74.75],
