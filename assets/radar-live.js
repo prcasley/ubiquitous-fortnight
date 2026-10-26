@@ -148,21 +148,32 @@
     return terms.join(" AND ")||"1=1";
   }
   async function arcgisQuery(src,base,extra,signal) {
-    const params = new URLSearchParams(Object.assign({f:"json"},base,extra));
+    // Every request owns its own timeout. Aborts from another scan do not masquerade as zero parcels.
+    const params=new URLSearchParams(Object.assign({f:"json"},base,extra));
     const uri=src.url+"/query?"+params.toString();
-    const timer=new AbortController();
-    if(signal) signal.addEventListener("abort",()=>timer.abort(),{once:true});
-    const timeout=setTimeout(()=>timer.abort(new Error("GIS request exceeded 40 seconds; try a smaller scan area or county source")),40000);
-    try {
-      const response=await fetch(uri,{signal:timer.signal,credentials:"omit",mode:"cors"});
-      if(!response.ok) throw Error("Public GIS service returned HTTP "+response.status);
+    const controller=new AbortController();
+    let timedOut=false,manualAbort=false;
+    const onAbort=()=>{manualAbort=true;controller.abort(new Error("Search cancelled by user or location change"));};
+    if(signal?.aborted)throw Error("Search was cancelled before requesting GIS records");
+    signal?.addEventListener("abort",onAbort,{once:true});
+    const timeout=setTimeout(()=>{timedOut=true;controller.abort(new Error("GIS source exceeded request timeout"));},45000);
+    try{
+      const response=await fetch(uri,{signal:controller.signal,credentials:"omit",mode:"cors",cache:"no-store"});
+      if(!response.ok)throw Error("Public GIS source returned HTTP "+response.status);
       const data=await response.json();
-      if(data.error) throw Error("Public GIS: "+(data.error.message||"service error"));
+      if(data.error)throw Error("GIS service: "+(data.error.message||"unspecified server error"));
       return data;
-    } finally {clearTimeout(timeout);}
+    }catch(error){
+      if(manualAbort)throw Error("GIS scan cancelled because the selected location or search changed");
+      if(timedOut)throw Error("GIS source timed out after 45 seconds. Try a smaller radius, tighter acreage, or a connected county layer.");
+      if(error?.name==="AbortError"||/signal is aborted/i.test(String(error?.message||error)))
+        throw Error("The browser interrupted the public GIS request. Retry once; if it repeats, use a smaller area or county source.");
+      if(error instanceof TypeError)throw Error("Public GIS connection was blocked or unavailable (network/CORS). The request did not return a verified result.");
+      throw error;
+    }finally{clearTimeout(timeout);signal?.removeEventListener("abort",onAbort);}
   }
   async function scan() {
-    if(scannerBusy) { if(scanAbort) scanAbort.abort(); return; }
+    if(scannerBusy) { status("A parcel scan is already running. Wait for it to finish before starting another; no duplicate request was sent.","warning"); return false; }
     const state=$("stateSelect").value;
     const center={lat:map.getCenter().lat,lon:map.getCenter().lng};
     const radius=Number($("radiusSelect").value), min=Number($("minAcres").value)||0;
@@ -171,7 +182,7 @@
     if(!stateInBounds(center.lat,center.lon,state)){
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
-    scannerBusy=true; scanAbort=new AbortController(); $("scanButton").disabled=true;
+    scannerBusy=true; scanAbort=new AbortController(); const activeScan=scanAbort; $("scanButton").disabled=true;
     records=[];sourceTime=null;countResult=null;scanComplete=false;
     $("scanButton").textContent="Scanning…";
     const source=(state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(center.lat,center.lon,"PBC"))?SOURCES.PBC:SOURCES[state], env=scanEnvelope(center,radius);
@@ -188,7 +199,7 @@
           const response=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
              returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
              maxAllowableOffset:"0.00009",resultOffset:String(page*batchSize),
-             resultRecordCount:String(batchSize),orderByFields:source.orderField+" ASC"},scanAbort.signal);
+             resultRecordCount:String(batchSize),orderByFields:source.orderField+" ASC"},activeScan.signal);
           if(!Array.isArray(response.features))throw Error("Palm Beach GIS did not return parcel geometries");
           for(const feature of response.features){
             const item=normalize(feature,state,center,source);
@@ -213,7 +224,7 @@
           detail:{count:records.length,state,source:source.name,complete:finished}}));
         return finished;
       }
-      const count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},scanAbort.signal);
+      const count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},activeScan.signal);
       const total=Number(count.count);
       if(!Number.isFinite(total)) throw Error("The public source did not return a reliable record count. Search was not accepted as complete.");
       countResult=total;
@@ -225,7 +236,7 @@
       const data=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
         returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
         maxAllowableOffset:state==="NJ"?"0.00002":"0",
-        resultRecordCount:String(MAX_FEATURES)},scanAbort.signal);
+        resultRecordCount:String(MAX_FEATURES)},activeScan.signal);
       if(!Array.isArray(data.features)) throw Error("Unexpected GIS response. No results will be claimed.");
       if(data.exceededTransferLimit||data.features.length<total){
         status("The public service returned fewer features than its count. Results are incomplete; narrow this search. This is NOT a report of zero properties.","warning");
@@ -240,7 +251,7 @@
         "The source responded successfully but no eligible parcel centroids are inside the selected radius.";
       scanComplete=true;status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
-      if(scanAbort.signal.aborted) status("Search cancelled.","warning");
+      if(scanAbort?.signal.aborted) status("Scan cancelled after a location or search change; no zero-parcel result was inferred.","warning");
       else status("Public GIS lookup failed: "+errText(e)+". This is NOT a report of zero properties.","danger");
     } finally {scannerBusy=false;$("scanButton").disabled=false;$("scanButton").textContent="Scan public parcels";scanAbort=null;}
   }
@@ -351,8 +362,12 @@
           const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
           if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
-          result.textContent=name?"Published assessment owner: "+name+" | Source: "+provider.name+
-            ". This is NOT verified legal or beneficial ownership.":"The official record did not publish an owner name for this parcel.";
+          const isEntity=/(?:\\bLLC\\b|\\bL\\.?L\\.?C\\.?\\b|\\bINC\\.?\\b|\\bCORP\\.?\\b|\\bLTD\\.?\\b|\\bLLP\\b|\\bLP\\b)/i.test(name) &&
+            !/\\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\\s+TRUST\\b/i.test(name);
+          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
+            isEntity?"Published assessment entity: "+name+" | Source: "+provider.name+
+              ". This does not verify legal title, ultimate ownership or willingness to sell.":
+            "Published assessment record exists, but the owner name is withheld in this public interface. Open the official source record for further verification.";
         }catch(e){result.textContent="Owner source lookup unavailable: "+String(e?.message||e)+
           ". Check the linked official county record; no owner has been inferred.";}
         finally{btn.disabled=false;btn.textContent="Refresh published owner";}
