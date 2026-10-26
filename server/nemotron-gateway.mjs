@@ -11,8 +11,9 @@ const HOST="127.0.0.1";
 const ENABLED=process.env.RADAR_AGENT_ENABLED==="1";
 const ACCESS=process.env.RADAR_PROXY_SECRET||"";
 const ORIGIN=process.env.RADAR_ALLOWED_ORIGIN||"";
-const INFERENCE=process.env.NIM_BASE_URL||"http://127.0.0.1:8000";
-const MODEL=process.env.NIM_MODEL||"nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16";
+const ENGINE=process.env.RADAR_INFERENCE_ENGINE==="ollama"?"ollama":"openai-compatible";
+const INFERENCE=process.env.NIM_BASE_URL||(ENGINE==="ollama"?"http://127.0.0.1:11434":"http://127.0.0.1:8000");
+const MODEL=process.env.NIM_MODEL||(ENGINE==="ollama"?"nemotron-3-nano:4b":"nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16");
 const APIKEY=process.env.NIM_API_KEY||"";
 const limitByIP=new Map();
 function equal(a,b){const A=Buffer.from(String(a??"")),B=Buffer.from(String(b??""));return A.length>0&&A.length===B.length&&crypto.timingSafeEqual(A,B);}
@@ -69,15 +70,19 @@ async function handle(req,res){
  const user=JSON.stringify({question,sourceURL,records:rows});
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),18000);
  try{
-  const reply=await fetch(new URL("/v1/chat/completions",origin),{
+  const messages=[{role:"system",content:system},{role:"user",content:user}];
+  const endpoint=ENGINE==="ollama"?"/api/chat":"/v1/chat/completions";
+  const payload=ENGINE==="ollama"?{model:MODEL,messages,stream:false,options:{temperature:0,num_predict:380}}:
+     {model:MODEL,messages,temperature:0,max_tokens:380};
+  const reply=await fetch(new URL(endpoint,origin),{
    method:"POST",headers:{"content-type":"application/json",...(APIKEY?{"authorization":"Bearer "+APIKEY}:{})},
-   body:JSON.stringify({model:MODEL,messages:[{role:"system",content:system},{role:"user",content:user}],temperature:0,max_tokens:380}),
+   body:JSON.stringify(payload),
    signal:controller.signal
   });
   if(!reply.ok)return json(res,502,{error:"Inference service unavailable"});
-  const result=await reply.json(),answer=value(result?.choices?.[0]?.message?.content,3000);
+  const result=await reply.json(),answer=value(ENGINE==="ollama"?result?.message?.content:result?.choices?.[0]?.message?.content,3000);
   if(!answer)return json(res,502,{error:"No model output"});
-  return json(res,200,{answer,model:MODEL,modelGenerated:true,
+  return json(res,200,{answer,model:MODEL,engine:ENGINE,modelGenerated:true,
     caveat:"AI-generated explanation of provided public GIS records. Not independently verified; confirm at source.",
     sourceURL,recordCount:rows.length});
  }catch{return json(res,502,{error:"Inference failed; no conclusions produced"});}
