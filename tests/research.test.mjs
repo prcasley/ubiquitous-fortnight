@@ -89,6 +89,7 @@ test('private API authenticates, rejects cross-origin writes and hides files out
   const base='http://127.0.0.1:'+server.address().port;
   const authorization='Basic '+Buffer.from('radar:'+password).toString('base64');
   try{
+    const health=await fetch(base+'/healthz');assert.equal(health.status,200);assert.deepEqual(await health.json(),{status:'ok'});
     assert.equal((await fetch(base+'/api/providers')).status,401);
     const providers=await fetch(base+'/api/providers',{headers:{authorization}});assert.equal(providers.status,200);assert.equal((await providers.json()).every(p=>p.records===0),true);
     assert.equal((await fetch(base+'/api/lists',{method:'POST',headers:{authorization,origin:'https://other.example','content-type':'application/json'},body:'{}'})).status,403);

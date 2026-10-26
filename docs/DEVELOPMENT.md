@@ -53,7 +53,7 @@ npm run build
 npm start
 ```
 
-The server listens only on `127.0.0.1`, default port 8080 (`PORT` overrides it). Open the `/workspace.html` path using a supported local development browser; authenticate as username `radar` with the configured password. The server also serves the public scanner. In cloud onboarding, validate with internal requests; do not create localhost preview links.
+The server defaults to `127.0.0.1`, port 8080 (`PORT` overrides it). An approved hosted deployment can set `HOST=0.0.0.0` behind authenticated HTTPS ingress. Open the `/workspace.html` path using a supported local development browser; authenticate as username `radar` with the configured password. The server also serves the public scanner. In cloud onboarding, validate with internal requests; do not create localhost preview links.
 
 The default database is `.radar/research.sqlite`; `RADAR_DB_PATH` may point to a private location outside the static output and public source tree. Back up that database. It is excluded from Git and never served as a static file. Authentication is one shared local workspace identity, not multi-user SSO. For production, use an authenticated HTTPS reverse proxy and implement appropriate user/tenant permissions, operational monitoring and deployment controls. Do not expose the loopback service directly.
 
@@ -123,7 +123,7 @@ When an account is available, add a provider-specific adapter using that product
 
 ## Static deployment
 
-Deploy the built **`dist/` artifact**, rather than raw repository root. The included `pages-build.yml` workflow is manual-only; configure GitHub Pages to use GitHub Actions and explicitly run that workflow when ready to publish. No deployment was performed as part of this change. Static Pages does not run SQLite, authenticated API routes or hosted assistant requests. Licensed data stays in private server storage.
+Deploy the built **`dist/` artifact**, rather than raw repository root. The included `pages-build.yml` workflow runs on pushes to main and can also be dispatched manually; configure GitHub Pages to use GitHub Actions. No deployment was performed as part of this change. Static Pages does not run SQLite, authenticated API routes or hosted assistant requests. Licensed data stays in private server storage.
 
 ## Remaining work requiring external prerequisites
 

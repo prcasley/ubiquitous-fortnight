@@ -1,0 +1,2 @@
+# Preserve upstream package bytes for pinned integrity hashes; do not lint third-party whitespace.
+assets/vendor/** -text -whitespace

@@ -19,6 +19,7 @@ export function createWorkspace({store,password,staticDir=path.join(root,'dist')
   const expected=hash('radar:'+password);
   return http.createServer(async(req,res)=>{
     try{
+      if(req.url==='/healthz'&&req.method==='GET')return json(res,200,{status:'ok'});
       const authorization=String(req.headers.authorization||'');
       const decoded=authorization.startsWith('Basic ')?Buffer.from(authorization.slice(6),'base64').toString():'';
       if(!timingSafeEqual(hash(decoded),expected)){
@@ -59,6 +60,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const store=new ResearchStore(process.env.RADAR_DB_PATH||path.join(root,'.radar/research.sqlite'));
   const server=createWorkspace({store,password:process.env.RADAR_WORKSPACE_PASSWORD});
   const port=Number(process.env.PORT||8080);
-  server.listen(port,'127.0.0.1',()=>console.log('Authenticated research server listening on loopback port '+port));
+  const host=process.env.HOST||'127.0.0.1';
+  server.listen(port,host,()=>console.log('Authenticated research server listening on port '+port));
   const shutdown=()=>server.close(()=>{store.close();process.exit(0);});process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
 }

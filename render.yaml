@@ -1,0 +1,22 @@
+# Free, ephemeral test deployment. Configure the key securely in Render, never in this file.
+services:
+  - type: web
+    name: capital-radar
+    runtime: node
+    plan: free
+    buildCommand: npm ci --ignore-scripts && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: RADAR_WORKSPACE_PASSWORD
+        generateValue: true
+      - key: NIM_API_KEY
+        sync: false
+      - key: NIM_MODEL
+        value: nvidia/nemotron-3.5-lightning-30b-a3b
+      - key: RADAR_DB_PATH
+        value: /tmp/capital-radar/research.sqlite

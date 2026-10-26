@@ -20,6 +20,16 @@
       fields: "PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT",
       id: "PARID",orderField:"OBJECTID_1"
     },
+    BRO: {
+      name:"Broward County public taxroll",url:"https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0",
+      attribution:"Broward County Property Appraiser",date:"Live county source; verify per record",geometry:"polygon",bounds:[-80.92,25.94,-79.98,26.35],
+      fields:"FOLIO_NUMBER,USE_CODE,SITUS_STREET_NUMBER,SITUS_STREET_NAME,SITUS_STREET_TYPE",id:"FOLIO_NUMBER",orderField:"OBJECTID",ownerField:"NAME_LINE_1"
+    },
+    MDC: {
+      name:"Miami-Dade public parcel GIS",url:"https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0",
+      attribution:"Miami-Dade County",date:"Live county source; verify per record",geometry:"polygon",bounds:[-80.88,25.13,-80.11,25.98],
+      fields:"FOLIO,TRUE_SITE_ADDR,LOT_SIZE,DOR_CODE_CUR",id:"FOLIO",orderField:"OBJECTID",ownerField:"TRUE_OWNER1"
+    },
     NJ: {
       name: "NJGIN · statewide parcels and MOD-IV (2026)",
       url: "https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0",
@@ -63,6 +73,7 @@
   };
   const numberAcres = p => {
     if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);
+    if(p.LOT_SIZE!=null&&Number(p.LOT_SIZE)>0)return Number(p.LOT_SIZE)/43560;
     if(p.LND_SQFOOT!=null&&Number(p.LND_SQFOOT)>0)return Number(p.LND_SQFOOT)/43560;
     const a=Number(p.CALC_ACRE);
     return Number.isFinite(a)&&a>0 ? a : null;
@@ -70,7 +81,7 @@
   const useLabel = (p,state) => {
     if(state==="NJ") return {"1":"Vacant land","4B":"Industrial","4A":"Commercial","4C":"Apartment","2":"Residential"}[String(p.PROP_CLASS||"")]||"Other / unclassified";
     if(p.PROPERTY_USE!=null)return String(p.PROPERTY_USE).trim()||"Use class unavailable";
-    const s=String(p.DOR_UC??"").trim(), raw=parseInt(s,10);
+    const s=String(p.DOR_UC??p.DOR_CODE_CUR??p.USE_CODE??"").trim(), raw=parseInt(s,10);
     const code = raw>=4000 ? Math.floor(raw/100) : raw;
     if(code===3)return "Multifamily 10+ units (assessment)";if(code===8)return "Multifamily under 10 units (assessment)";if(code===10)return "Vacant commercial (assessment)";if(code===40)return "Vacant industrial (assessment)";if(code>=40&&code<=49) return code===48?"Warehousing / distribution":"Industrial assessment use code "+code;
     return s?"Florida use code "+s:"Unclassified";
@@ -80,7 +91,7 @@
     if(p.PROPERTY_USE!=null){
       return domain.pbcCategory(p.PROPERTY_USE);
     }
-    const code=parseInt(String(p.DOR_UC??""),10);
+    const code=parseInt(String(p.DOR_UC??p.DOR_CODE_CUR??p.USE_CODE??""),10);
     const c=code>=4000?Math.floor(code/100):code;
     return c===3||c===8?"Multifamily":c===10||c===40?"Vacant":c>=40&&c<=49?"Industrial":"Other";
   };
@@ -96,7 +107,7 @@
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
     const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
     if(!rawId) return null;
-    const address=state==="FL"?[a.SITE_ADDR_STR||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
+    const address=state==="FL"?[a.SITE_ADDR_STR||a.TRUE_SITE_ADDR||[a.SITUS_STREET_NUMBER,a.SITUS_STREET_NAME,a.SITUS_STREET_TYPE].filter(Boolean).join(" ")||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
     const owner=null;
     const acres=numberAcres(a), cls=category(a,state);
@@ -105,9 +116,10 @@
     const effectiveYear=state==="FL"?officialYear(a.EFF_YR_BLT):null;
     const buildingArea=state==="FL"&&Number(a.TOT_LVG_AR)>0?Number(a.TOT_LVG_AR):null;
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
-    const jurisdiction=publishedSource===SOURCES.PBC?"12099":state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN");
+    const countyProvider=publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
+    const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
-    const provider=publishedSource===SOURCES.PBC?"pbc":state==="FL"?"fdor":"njgin";
+    const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, acres, type:cls,
       use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
@@ -124,12 +136,15 @@
   }
   function readAcreageFilter(){return domain.acreageFilter($("minAcres").value,$("acreageComparison").value);}
   function providerFor(state,lat,lon){
-    return state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(lat,lon,"PBC")?SOURCES.PBC:SOURCES[state];
+    const countySource={PalmBeach:"PBC",Broward:"BRO",MiamiDade:"MDC"}[window.PublicRadarCounty];
+    return state==="FL"&&countySource&&stateInBounds(lat,lon,countySource)?SOURCES[countySource]:SOURCES[state];
   }
   function serverWhere(state,mode,min,provider=SOURCES[state]) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=readAcreageFilter().op;
-    if(provider===SOURCES.PBC) {
+    if(provider===SOURCES.BRO||provider===SOURCES.MDC){
+      // County schemas differ. Apply exact assessment/acreage filters after normalization.
+    } else if(provider===SOURCES.PBC) {
       // The county assessor class is descriptive text (not Florida DOR's numbered codes).
       if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
       if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
@@ -142,7 +157,7 @@
       if(mode==="vacant")terms.push("PROP_CLASS = '1'");
       if(min>0||op!==">=")terms.push("CALC_ACRE "+op+" "+Number(min));
     } else {
-      const codes={PalmBeach:60,Martin:53,StLucie:66};
+      const codes={PalmBeach:60,Martin:53,StLucie:66,Broward:6,MiamiDade:13};
       terms.push(codes[county]?"CO_NO = "+codes[county]:"CO_NO IN (60,53,66)");
       if(mode==="industrial")terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
       if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
@@ -152,7 +167,8 @@
     return terms.join(" AND ")||"1=1";
   }
   async function arcgisQuery(src,base,extra,signal) {
-    const params = new URLSearchParams(Object.assign({f:"json"},base,extra));
+    // Every request owns its own timeout. Aborts from another scan do not masquerade as zero parcels.
+    const params=new URLSearchParams(Object.assign({f:"json"},base,extra));
     const uri=src.url+"/query?"+params.toString();
     const timer=new AbortController();
     const onAbort=()=>timer.abort();
@@ -163,7 +179,7 @@
       const response=await fetch(uri,{signal:timer.signal,credentials:"omit",mode:"cors"});
       if(!response.ok) throw Error("Public GIS service returned HTTP "+response.status);
       const data=await response.json();
-      if(data.error) throw Error("Public GIS: "+(data.error.message||"service error"));
+      if(data.error)throw Error("GIS service: "+(data.error.message||"unspecified server error"));
       return data;
     } finally {clearTimeout(timeout);signal?.removeEventListener("abort",onAbort);}
   }
@@ -175,10 +191,14 @@
     const radius=Number($("radiusSelect").value);
     let acreFilter;try{acreFilter=readAcreageFilter();}catch(e){status(e.message,"warning");return;}
     const min=acreFilter.value;
+    const matchesMode=item=>mode==="all"||({industrial:"Industrial",multifamily:"Multifamily",vacant:"Vacant"}[mode]===item.type);
     const mode=$("typeSelect").value;
     
     if(!stateInBounds(center.lat,center.lon,state)){
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
+    }
+    if(providerFor(state,center.lat,center.lon)===SOURCES.BRO&&(min!==0||acreFilter.op!==">=")){
+      status("This county source does not publish acreage. Choose At least 0 acres to inspect records with unknown acreage, or use another source.","warning");return;
     }
     clearResults();
     const currentScan=scanId, controller=new AbortController();
@@ -193,22 +213,22 @@
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
-      if(source===SOURCES.PBC){
+      if([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
         // County layer is demonstrably fast. Page directly instead of asking FDOR for an
         // expensive 10.8-million-parcel statewide count before drawing any result.
         const batchSize=150,pages=6,seen=new Set();let finished=false;
         for(let page=0;page<pages;page++){
-          status("Palm Beach County GIS: requesting page "+(page+1)+" · "+seen.size+" source features received…","info");
+          status(source.name+": requesting page "+(page+1)+" · "+seen.size+" source features received…","info");
           const response=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
              returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
              maxAllowableOffset:"0.00009",resultOffset:String(page*batchSize),
              resultRecordCount:String(batchSize),orderByFields:source.orderField+" ASC"},controller.signal);
           checkCurrent();
-          if(!Array.isArray(response.features))throw Error("Palm Beach GIS did not return parcel geometries");
+          if(!Array.isArray(response.features))throw Error("County GIS did not return parcel geometries");
           for(const feature of response.features){
             const item=normalize(feature,state,center,source);
             if(!item)throw Error("Source returned a parcel without stable identity or geometry");
-            if(domain.matchesAcres(item.acres,acreFilter)&&domain.intersectsRadius(item.geometry.geometry,center,radius)&&!seen.has(item.key)){
+            if(matchesMode(item)&&domain.matchesAcres(item.acres,acreFilter)&&domain.intersectsRadius(item.geometry.geometry,center,radius)&&!seen.has(item.key)){
               seen.add(item.key);records.push(item);
             }
           }
@@ -221,8 +241,8 @@
         }
         countResult=finished?records.length:null;scanComplete=finished;scanState=finished?"complete":"partial";
         status(finished?
-          "Palm Beach live scan completed: "+records.length+" mapped parcels within "+radius+" miles. Assessor use is not zoning.":
-          "Showing "+records.length+" real Palm Beach parcels, but the "+(batchSize*pages)+
+          source.name+" scan completed: "+records.length+" mapped parcels within "+radius+" miles. Assessor use is not zoning.":
+          "Showing "+records.length+" real county parcels, but the "+(batchSize*pages)+
           "-feature cap was reached. Results are PARTIAL; narrow radius or minimum acres.",
           finished?"success":"warning");
         document.dispatchEvent(new CustomEvent("radar:scan-complete",{
@@ -254,7 +274,7 @@
       sourceState=state;sourceCenter=center;sourceTime=new Date();
       const normalized=data.features.map(f=>normalize(f,state,center,source));
       if(normalized.some(p=>!p))throw Error("Source returned parcels without stable identity or geometry");
-      records=normalized.filter(p=>domain.matchesAcres(p.acres,acreFilter)&&domain.intersectsRadius(p.geometry.geometry,center,radius)).sort((a,b)=>a.distance-b.distance);
+      records=normalized.filter(p=>matchesMode(p)&&domain.matchesAcres(p.acres,acreFilter)&&domain.intersectsRadius(p.geometry.geometry,center,radius)).sort((a,b)=>a.distance-b.distance);
       scanComplete=true;scanState="complete";
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
       const msg=records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search with source-backed attributes.") :
@@ -366,16 +386,21 @@
       btn.addEventListener("click",async()=>{
         btn.disabled=true;btn.textContent="Looking up source…";
         const provider=p.source,idfield=provider.id;
-        const ownerField=provider===SOURCES.PBC?"OWNER_NAME1":"OWN_NAME";
+        const ownerField=provider.ownerField||(provider===SOURCES.PBC?"OWNER_NAME1":"OWN_NAME");
         try{
           const id=p.id.replace(/'/g,"''");
           const reply=await arcgisQuery(provider,{where:idfield+" = '"+id+"'",returnGeometry:"false"},
-             {f:"json",outFields:idfield+","+ownerField+",ASMNT_YR".replace(",ASMNT_YR",provider===SOURCES.PBC?"":",ASMNT_YR"),resultRecordCount:"2"},null);
+             {f:"json",outFields:idfield+","+ownerField+(provider===SOURCES.FL?",ASMNT_YR":""),resultRecordCount:"2"},null);
           const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
           if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
-          result.textContent=name?"Published assessment owner: "+name+" | Source: "+provider.name+
-            ". This is NOT verified legal or beneficial ownership.":"The official record did not publish an owner name for this parcel.";
+          const isEntity=/\b(?:LLC|L\.?L\.?C\.?|INC\.?|CORP\.?|LTD\.?|LLP|LP)\b/i.test(name) &&
+            !/\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\s+TRUST\b/i.test(name);
+          if(isEntity){p.owner=name;p.ownerSource=provider.name;renderResults();renderOwners();}
+          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
+            isEntity?"Published assessment entity: "+name+" | Source: "+provider.name+
+              ". This does not verify legal title, ultimate ownership or willingness to sell.":
+            "Published assessment record exists, but the owner name is withheld in this public interface. Open the official source record for further verification.";
         }catch(e){result.textContent="Owner source lookup unavailable: "+String(e?.message||e)+
           ". Check the linked official county record; no owner has been inferred.";}
         finally{btn.disabled=false;btn.textContent="Refresh published owner";}
@@ -479,7 +504,8 @@
     renderResults();
   }
   function ingestOne(feature,state,center){
-    const provider=state==="FL"&&feature?.properties?.PARID?SOURCES.PBC:SOURCES[state];
+    const props=feature?.properties||{};
+    const provider=state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state];
     const item=normalize(feature,state,center,provider);if(!item)return null;
     clearResults();activeSource=provider;scanState="identified";scanComplete=false;
     records=[item];filtered=[item];sourceState=state;sourceCenter=center;sourceTime=new Date();countResult=1;

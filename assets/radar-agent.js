@@ -6,8 +6,10 @@
  const FL=[
    ["Palm Beach","PalmBeach",26.72,-80.13,true],
    ["Martin","Martin",27.16,-80.25,true],
+   ["Broward","Broward",26.12,-80.14,true],
+   ["Miami-Dade","MiamiDade",25.77,-80.19,true],
    ["St. Lucie","StLucie",27.32,-80.36,true],
-   ...["Alachua","Baker","Bay","Bradford","Brevard","Broward","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Miami-Dade","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Pasco","Pinellas","Polk","Putnam","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"].map(n=>[n,"",0,0,false])
+   ...["Alachua","Baker","Bay","Bradford","Brevard","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Pasco","Pinellas","Polk","Putnam","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"].map(n=>[n,"",0,0,false])
  ];
  const NJ=[
   ["Atlantic",39.45,-74.65],["Bergen",40.94,-74.07],["Burlington",39.92,-74.75],
@@ -79,7 +81,7 @@
    const active=rows.filter(x=>x.connected),planned=rows.filter(x=>!x.connected);
    const group=document.createElement("optgroup");group.label="Connected counties";
    for(const c of active){const op=new Option(c.label,c.key);group.append(op);}
-   const allOption=new Option(state==="NJ"?"Statewide source (GPS; county unverified)":"Three connected counties (GPS; county unverified)","");
+   const allOption=new Option(state==="NJ"?"Statewide source (GPS; county unverified)":"Supported statewide subset (GPS; county unverified)","");
    select.append(allOption);select.append(group);
    if(planned.length){
       const pending=document.createElement("optgroup");pending.label="Source research queued (not connected)";
@@ -145,7 +147,7 @@
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
      let state=intent.state||$ ("stateSelect").value;
-     if(!["FL","NJ"].includes(state)){putMessage("Currently connected public parcel sources are Florida (three counties) and New Jersey. Other states require a verified new source adapter.");return;}
+     if(!["FL","NJ"].includes(state)){putMessage("Currently connected public parcel sources are Florida (connected counties) and New Jersey. Other states require a verified new source adapter.");return;}
      $("stateSelect").value=state;
      let county=null;
      if(intent.countyLabel){
@@ -160,7 +162,7 @@
        state=location.state;$("stateSelect").value=state;
        applyCounty(state,null,{center:false});
        $("countySelect").value="";activeCounty="";window.PublicRadarCounty="";
-       putMessage("GPS centered in "+state+". County has not been independently identified, so this request searches the supported public statewide/three-county source within your radius.");
+       putMessage("GPS centered in "+state+". County has not been independently identified, so this request searches the supported public supported public source within your radius.");
      }
      if(intent.location){
        $("placeInput").value=intent.location+(intent.state&&!new RegExp("\\b"+intent.state+"\\b","i").test(intent.location)?", "+intent.state:"");

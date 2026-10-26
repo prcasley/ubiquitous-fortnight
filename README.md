@@ -4,7 +4,7 @@
 
 The public scanner now includes corrected search operators and source selection, explicit scan states, browser-saved research/notes/exports, and selected-parcel flood/wetlands screening adapters. A separate authenticated local workspace supports permitted licensed-data imports, parcel search/maps, supplied histories and import change alerts. No licensed dataset or live vendor account is bundled. Environmental source endpoints still need live validation; unavailable coverage is never a clearance.
 
-Run `npm ci`, `npm run build`, and `npm test`. Serve the generated `dist/` folder for the static app. Raw repository-root deployment no longer includes the generated local map libraries. See [development, testing, deployment and provider setup](docs/DEVELOPMENT.md) for the current workflow and limits. Historical feature/verification notes below describe the public scanner and do not establish new live-service validation.
+Run `npm ci`, `npm run build`, and `npm test`. Serve the generated `dist/` folder for the static app. Pinned runtime assets are also tracked for existing repository-root Pages deployments. See [development, testing, deployment and provider setup](docs/DEVELOPMENT.md) for the current workflow and limits. Historical feature/verification notes below describe the public scanner and do not establish new live-service validation.
 
 This public, static-browser interface performs **read-only queries to official state GIS layers**. It is not a private property-screening application, does not use any internal candidate lists, and does not include comparable sales, transaction amounts, contact dossiers, ownership-inference scores or confidential business records.
 
@@ -39,7 +39,7 @@ A public ArcGIS service may be unavailable, rate-limited, or blocked by client n
 
 ## Static deployment
 
-Run `npm ci` and `npm run build`, then deploy the generated `dist/` artifact. The manual GitHub Pages build workflow supports this; see `docs/DEVELOPMENT.md`. Raw root deployment omits generated dependencies. Never upload licensed datasets, internal/company-selected records or credentials to this public repository.
+Run `npm ci` and `npm run build`, then deploy the generated `dist/` artifact. The GitHub Pages build workflow supports this on pushes to main or a manual dispatch; see `docs/DEVELOPMENT.md`. Raw root deployment omits generated dependencies. Never upload licensed datasets, internal/company-selected records or credentials to this public repository.
 ## Next-generation public executive experience (feature branch)
 
 This branch adds a natural-language **rule-driven** executive assistant: ask for industrial parcels over a specified acreage near an NJ/FL municipality, filter industrial/vacant/multifamily classes, and interrogate source provenance. It does not invent parcels or perform cloud generative inference. The existing source scanner remains the system of record.

@@ -16,8 +16,8 @@ The outer archive and selected nested text/source files were inspected with ZIP 
 ## Pull requests and remote changes
 
 - [PR #5](https://github.com/prcasley/ubiquitous-fortnight/pull/5), head `75509b8acfbe45bc91fd467b318b685db44583f3`, adds an Ollama/self-hosted runner. Its defaults and local-download directions conflict with the active requirement and were not adopted.
-- [PR #7](https://github.com/prcasley/ubiquitous-fortnight/pull/7), head `1b0d4b945075377aa8acfa4af9e8fb70f638af09`, expands Florida county adapters. Remote main contains commit `0839bd7`, “Restore Florida county GIS coverage without public comps or internal data (#7).” Those distinct expansions are not claimed as integrated or live-validated in the local development changes.
-- Remote main also contains earlier runner/GIS repairs. The checkout already has substantial uncommitted search/research/backend improvements from this session. Refs were fetched for inspection; the checkout was not reset, replaced or blindly merged over that work.
+- [PR #7](https://github.com/prcasley/ubiquitous-fortnight/pull/7), head `1b0d4b945075377aa8acfa4af9e8fb70f638af09`, expands Florida county adapters. Remote main contains commit `0839bd7`, “Restore Florida county GIS coverage without public comps or internal data (#7).” Those county adapters were subsequently merged for deployment, retaining the tested scan/filter fixes. They still need live-source validation.
+- Remote main also contains earlier runner/GIS repairs. The checkout already has substantial uncommitted search/research/backend improvements from this session. Refs were fetched for inspection; the checkout was not reset or replaced. A later deployment merge resolved overlapping changes explicitly and reran validation.
 
 ## Implemented
 

@@ -117,10 +117,9 @@
   }
   async function identifyAt(lat,lng){
    const b=source(),state=$("stateSelect")?.value,m=map();if(!b||!m||!state)return;
-   const uri=b.getSource(state,lat,lng)?.url;if(!uri){note("No public parcel service is available for this state.");return;}
-   const countyFL=state==="FL"&&uri.includes("Parcels_and_Property_Details_WebMercator");
-   const field=countyFL?"PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT":state==="FL"?"PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,ACT_YR_BLT,EFF_YR_BLT,TOT_LVG_AR,NO_RES_UNT":
-     "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL";
+   const provider=b.getSource(state,lat,lng),uri=provider?.url;if(!uri){note("No public parcel service is available for this state.");return;}
+   const countyFL=state==="FL"&&provider.geometry==="polygon";
+   const field=provider.fields;
    const span=countyFL?.0001:state==="FL"?.0007:.00002;
    const env={xmin:lng-span,ymin:lat-span,xmax:lng+span,ymax:lat+span,spatialReference:{wkid:4326}};
    const params={where:"1=1",geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",inSR:"4326",
@@ -136,7 +135,7 @@
      if(state==="NJ"&&(features.length!==1||!polygonContains(features[0].geometry,lng,lat)))throw Error("Multiple parcel shapes intersect the tap. Zoom further in.");
      if(countyFL){
        const matched=features.filter(f=>polygonContains(f.geometry,lng,lat));
-       if(matched.length!==1)throw Error("No unique Palm Beach parcel polygon contains the map tap. Zoom closer and try again.");
+       if(matched.length!==1)throw Error("No unique county parcel polygon contains the map tap. Zoom closer and try again.");
      }
      const picked=countyFL?features.find(f=>polygonContains(f.geometry,lng,lat)):state==="FL"?features.map(f=>{
        const p=f.geometry?.coordinates||[];
@@ -147,7 +146,7 @@
      const rec=b.ingestOne(picked,state,{lat,lon:lng});
      if(!rec)throw Error("The returned feature lacks a stable parcel ID or coordinates");
      note(state==="FL"?
-       (countyFL?"Clicked Palm Beach parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
+       (countyFL?"Clicked county parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
        "One NJ source polygon identified. This is a planning boundary, not a title survey.","success");
    }catch(e){
      note("Parcel identification unavailable: "+String(e?.message||e)+". No parcel identity was guessed.","warning");

@@ -73,7 +73,7 @@ def network(route):
                 op, value = match.group(1), float(match.group(2))
                 if not {'>=': acres >= value, '>': acres > value, '<': acres < value, '<=': acres <= value}[op]:
                     continue
-            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL', 'YRBLT': 1990}
+            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
             geometry = polygon(-74.363,40.527) if nj else polygon(-80.13,26.72)
             if fdor:
                 props = {'PARCEL_ID': 'SAME-ID', 'CO_NO': 53 if i==0 else 66, 'LND_SQFOOT': acres*43560, 'DOR_UC': '048'}
@@ -135,6 +135,7 @@ try:
         assert not page.evaluate('window.PublicRadarBridge.getMeta().ready')
         mode['fail'] = False
         page.select_option('#market','njcentral')
+        page.select_option('#typeSelect','industrial')
         page.select_option('#acreageComparison','>=')
         page.fill('#minAcres','0')
         page.click('#scanButton')
@@ -157,6 +158,18 @@ try:
         keys = page.evaluate('window.PublicRadarBridge.getResults().map(r=>r.key)')
         assert len(keys) == 2 and len(set(keys)) == 2, keys
         mode['collision'] = False
+        page.select_option('#countySelect','Broward')
+        page.fill('#minAcres','5')
+        page.click('#scanButton')
+        assert 'does not publish acreage' in page.locator('#statusText').inner_text()
+        assert 'PARCEL_POLY_BCPA_TAXROLL' in page.evaluate('window.PublicRadarBridge.getSource("FL",26.12,-80.14).url')
+        broward=page.evaluate('''() => window.PublicRadarBridge.ingestOne({type:'Feature',properties:{FOLIO_NUMBER:'BRO-TEST',USE_CODE:'4800'},geometry:{type:'Point',coordinates:[-80.14,26.12]}},'FL',{lat:26.12,lon:-80.14})''')
+        assert broward['key'].startswith('broward:FL:12011:') and broward['acres'] is None
+        page.select_option('#countySelect','MiamiDade')
+        miami=page.evaluate('''() => window.PublicRadarBridge.ingestOne({type:'Feature',properties:{FOLIO:'MDC-TEST',DOR_CODE_CUR:'4800',LOT_SIZE:130680},geometry:{type:'Point',coordinates:[-80.19,25.77]}},'FL',{lat:25.77,lon:-80.19})''')
+        assert miami['key'].startswith('miamidade:FL:12086:') and miami['acres']==3
+        page.select_option('#countySelect','PalmBeach')
+        page.fill('#minAcres','0')
         page.evaluate('''() => {
           const original=window.fetch;window.__hold=true;
           window.fetch=async(...args)=>{
