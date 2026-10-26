@@ -91,4 +91,16 @@ test("NVIDIA remains disabled on Pages; public data is allowlisted",()=>{
  assert.equal(gateway.validSource("http://services6.arcgis.com"),false);
 });
 
-test("Florida on-demand entity lookup recognizes company suffixes rather than literal backslashes",()=>{\n const section=core.slice(core.indexOf("const isEntity="),core.indexOf("result.textContent=!name?"));\n assert.match(section,/const isEntity=/);\n assert.equal(section.includes(String.raw`\\bLLC\\b`),false);\n assert.equal(section.includes(String.raw`\\s+TRUST`),false);\n assert.match(section,/p\\.owner=name/);\n});\ntest("NVIDIA public prompt only receives explicitly retrieved assessment company evidence",()=>{\n const ai=read("assets/radar-nemotron-browser.js");\n assert.match(ai,/published_assessment_entity/);\n assert.match(ai,/assessment_entity_source/);\n assert.match(ai,/NOT verified legal title/);\n});\n
+test("Florida on-demand entity lookup recognizes company suffixes rather than literal backslashes",()=>{
+ const section=core.slice(core.indexOf("const isEntity="),core.indexOf("result.textContent=!name?"));
+ assert.match(section,/const isEntity=/);
+ assert.equal(section.includes(String.raw`\\bLLC\\b`),false);
+ assert.equal(section.includes(String.raw`\\s+TRUST`),false);
+ assert.match(section,/p\.owner=name/);
+});
+test("NVIDIA public prompt only receives explicitly retrieved assessment company evidence",()=>{
+ const ai=read("assets/radar-nemotron-browser.js");
+ assert.match(ai,/published_assessment_entity/);
+ assert.match(ai,/assessment_entity_source/);
+ assert.match(ai,/NOT verified legal title/);
+});
