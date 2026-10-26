@@ -362,8 +362,12 @@
           const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
           if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
-          result.textContent=name?"Published assessment owner: "+name+" | Source: "+provider.name+
-            ". This is NOT verified legal or beneficial ownership.":"The official record did not publish an owner name for this parcel.";
+          const isEntity=/(?:\\bLLC\\b|\\bL\\.?L\\.?C\\.?\\b|\\bINC\\.?\\b|\\bCORP\\.?\\b|\\bLTD\\.?\\b|\\bLLP\\b|\\bLP\\b)/i.test(name) &&
+            !/\\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\\s+TRUST\\b/i.test(name);
+          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
+            isEntity?"Published assessment entity: "+name+" | Source: "+provider.name+
+              ". This does not verify legal title, ultimate ownership or willingness to sell.":
+            "Published assessment record exists, but the owner name is withheld in this public interface. Open the official source record for further verification.";
         }catch(e){result.textContent="Owner source lookup unavailable: "+String(e?.message||e)+
           ". Check the linked official county record; no owner has been inferred.";}
         finally{btn.disabled=false;btn.textContent="Refresh published owner";}
