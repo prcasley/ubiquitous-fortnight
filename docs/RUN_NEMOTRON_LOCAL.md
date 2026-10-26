@@ -37,7 +37,7 @@ A private reverse proxy must authenticate the user, remove any client-supplied `
 - No comps or internal source files should be included in this public repository.
 
 ## Future verified deployment path
-1. Obtain an IT-approved host and separate service identity. Protect the site with Woodmont-managed SSO before real internal data is considered.
+1. Obtain an IT-approved host and separate service identity. Protect the site with organization-managed SSO before real internal data is considered.
 2. Run and benchmark Nemotron locally with synthetic/public fixtures.
 3. Place the gateway behind a trusted reverse proxy and enforce per-user access logging, rate limits, and CSP.
 4. Validate a source-backed inquiry and model answer from a different test user on an iPhone.
