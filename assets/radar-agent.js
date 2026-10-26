@@ -87,11 +87,11 @@
    const host=$("agentLog");if(!host)return;
    const box=document.createElement("div");box.className="agent-message "+role;box.textContent=message;
    if(sourceURL&&/^https:\/\/(?:services\d*\.arcgis\.com|www\.nj\.gov|nj\.gov|www\.irs\.gov|irs\.gov)\//.test(sourceURL)){
-     const a=document.createElement("a");a.href=sourceURL;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Source record layer ↗";
-     box.append(document.createTextNode("\n"),a);
+     const details=document.createElement("details"),label=document.createElement("summary"),a=document.createElement("a");label.textContent="Data source";a.href=sourceURL;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Official data layer (technical source)";details.append(label,a);box.append(details);
    }
    host.append(box);host.scrollTop=host.scrollHeight;
    while(host.children.length>16)host.firstChild.remove();
+   return box;
  }
  function chooseNearestCounty(state,coords){
    if(state==="FL"){
@@ -249,12 +249,17 @@
      if(intent.sort)bridge().sortResults(intent.sort);
      const meta=bridge().getMeta(),rows=bridge().getResults();
      if(!meta.ready||!meta.complete||meta.time===previous){
-       putMessage("The scanner did not complete a fresh verified retrieval. Read the source warning above; no result count is claimed.");return;
+       const warning=bridge().getStatus?.()?.message||"The parcel service did not finish this search.";
+       const failure=putMessage(warning+(rows.length?" These are partial results; more properties may exist.":" Try a smaller radius or retry the search. No zero-property conclusion was made."));
+       if(failure){const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='Retry this search';retry.addEventListener('click',()=>ask(intent.q));failure.append(document.createElement('br'),retry);}
+       if(rows.length)window.RadarChatProperties?.render(rows,meta);
+       return;
      }
      putMessage(sourceSummary(rows).sentence+(missing.length?"\nCandidates only: "+missing.join(", ")+" remain unverified.":"")+"\nRetrieved: "+meta.time+
        ". This does not indicate availability, title ownership or an investment recommendation.","bot",bridge().getSources()[meta.state]);
      if(!rows.length&&intent.comparison==='=')putMessage(`No accepted records matched exactly ${intent.acres} acres. Try “about ${intent.acres} acres” for a clearly labeled ±10% size range.`);
      if(intent.questionOwnership)putMessage("For a Florida candidate, open its parcel card and choose Look up published assessment name. New Jersey's connected statewide layer does not supply owner names; its official property-record link is available on the parcel card. Assessment names do not establish legal or beneficial ownership.");
+     window.RadarChatProperties?.render(rows,meta);
 
    }catch(e){putMessage("The public search could not complete: "+String(e?.message||e)+". No zero-result conclusion was made.");}
    finally{busy=false;if(btn)btn.disabled=false;}

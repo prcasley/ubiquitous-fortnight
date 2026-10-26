@@ -102,7 +102,7 @@
       [lon,lat]=feature.geometry.coordinates;
     } else if(type==="Polygon"||type==="MultiPolygon") {
       // The observed point is deliberately derived from the geometry bounds, not a surveyed centroid.
-      const g=L.geoJSON(feature), b=g.getBounds(); if(b.isValid()){lat=b.getCenter().lat;lon=b.getCenter().lng;}
+      const point=window.turf.pointOnFeature(feature).geometry.coordinates;[lon,lat]=point;
     }
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
     const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
@@ -123,7 +123,7 @@
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, acres, type:cls,
       use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
-      locationPrecision:type==="Point"?"Published parcel centroid":"Polygon bounds midpoint (map display)",
+      locationPrecision:type==="Point"?"Published parcel centroid":"Point on published parcel geometry (map reference)",
       original:a};
   };
   function stateInBounds(lat,lon,state) {
@@ -313,7 +313,7 @@
       if(feature.geometry.type==="Point"){
         l=L.circleMarker([p.lat,p.lon],{radius:6,color:"#065d60",weight:2,fillColor:"#32baa9",fillOpacity:.8});
       } else {
-        l=L.geoJSON(feature,{style:{weight:1,color:"#147c91",fillColor:p.type==="Industrial"?"#00aa93":"#54a9c3",fillOpacity:.16}});
+        l=L.geoJSON(feature,{style:{weight:selectedId===p.key?3:1,color:selectedId===p.key?"#ffd334":"#147c91",fillColor:p.type==="Industrial"?"#00aa93":"#54a9c3",fillOpacity:.16}});
       }
       l.addTo(layers);l.on("click",()=>choose(p.key));
     }
@@ -344,7 +344,7 @@
   }
   function choose(id){
     const p=records.find(x=>x.key===id);if(!p)return;
-    selectedId=id;renderResults();$("details").hidden=false;
+    selectedId=id;renderResults();renderMap();$("details").hidden=false;
     const owner="Not displayed in the public research app";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
       '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.id)+'</p>'+
@@ -408,7 +408,9 @@
       section.append(title,btn,result);$("details").append(section);
     }
 
-    map.panTo([p.lat,p.lon],{animate:true});
+    if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon')map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19});
+    else map.setView([p.lat,p.lon],17);
+    setTimeout(()=>map.invalidateSize(),0);
     document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
   function renderSource(){
@@ -515,7 +517,9 @@
     $("lastUpdated").textContent=sourceTime.toLocaleString();
     return item;
   }
-  window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+  window.PublicRadarBridge={scan,
+    getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
+    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");

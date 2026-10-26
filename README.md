@@ -2,6 +2,8 @@
 
 ## Development update
 
+Searches now return property cards inside the chat, with satellite parcel views, Google Maps/Street View links and field-trip actions. Ordered field trips support notes, photos, backups and printable HTML/PDF packs. See [property views and field packs](docs/FIELD_PACKS.md).
+
 For natural-language search examples and the distinction between asking prices and comparable sales, see [the chat guide](docs/CHAT_GUIDE.md).
 
 The public scanner now includes corrected search operators and source selection, explicit scan states, browser-saved research/notes/exports, and selected-parcel flood/wetlands screening adapters. A separate authenticated local workspace supports permitted licensed-data imports, parcel search/maps, supplied histories and import change alerts. No licensed dataset or live vendor account is bundled. Environmental source endpoints still need live validation; unavailable coverage is never a clearance.

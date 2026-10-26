@@ -9,6 +9,9 @@ import shutil
 import os
 import secrets
 import subprocess
+import base64
+import struct
+import zlib
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -27,7 +30,10 @@ threading.Thread(target=server.serve_forever, daemon=True).start()
 def polygon(lon, lat):
     return {'type': 'Polygon', 'coordinates': [[[lon-.0001, lat-.0001], [lon+.0001, lat-.0001], [lon+.0001, lat+.0001], [lon-.0001, lat+.0001], [lon-.0001, lat-.0001]]]}
 
-mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False}
+mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False, 'cards': False, 'imageryFail': False}
+def png_chunk(tag, data):
+    return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
+PNG=b'\x89PNG\r\n\x1a\n'+png_chunk(b'IHDR',struct.pack('>IIBBBBB',2,2,8,6,0,0,0))+png_chunk(b'IDAT',zlib.compress((b'\x00'+b'\x77\x99\x88\xff'*2)*2))+png_chunk(b'IEND',b'')
 queries = []
 external_requests = []
 
@@ -41,6 +47,10 @@ def network(route):
         return
     params = parse_qs(parsed.query)
     external_requests.append(route.request.url)
+    if parsed.hostname=='server.arcgisonline.com' and parsed.path.endswith('/export'):
+        if mode['imageryFail']: route.abort()
+        else: route.fulfill(status=200,content_type='image/png',headers={'access-control-allow-origin':'*'},body=PNG)
+        return
     if parsed.hostname == 'geocode.arcgis.com':
         nj_place=bool(re.search(r'\b(NJ|Edison|Parsippany)\b',params.get('SingleLine',[''])[0],re.I))
         respond(route, {'candidates': [{'score': 100, 'address': 'Edison, NJ' if nj_place else 'Palm Beach County, FL', 'location': {'x': -74.363 if nj_place else -80.13, 'y': 40.527 if nj_place else 26.72}, 'attributes': {'RegionAbbr': 'NJ' if nj_place else 'FL', 'Subregion': 'Middlesex County' if nj_place else 'Palm Beach County'}}]})
@@ -66,6 +76,7 @@ def network(route):
         fdor = parsed.hostname == 'services9.arcgis.com'
         features = []
         acres_values = ([3,4,5,6,6.4,7,10] if mode['chat'] else [3,4,5]) if not mode['partial'] else [3]*150
+        if mode['cards']: acres_values=[6]*49
         if mode['collision']:
             acres_values = [3,3]
         for i, acres in enumerate(acres_values):
@@ -241,6 +252,103 @@ try:
         natural.close()
         mode['chat']=False
         assert not natural_errors,natural_errors
+        mode['cards']=True
+        field=context.new_page()
+        field.route('**/*',network)
+        field_errors=[]
+        field.on('pageerror',lambda error: field_errors.append(str(error)))
+        field.goto(f'http://127.0.0.1:{server.server_port}/')
+        field.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
+        field.locator('#agentForm button[type=submit]').click()
+        field.wait_for_function('window.PublicRadarBridge.getMeta().complete && document.querySelectorAll(".chat-property-card").length===6')
+        assert field.locator('.chat-properties').get_by_text('49 properties',exact=False).count()>=1
+        field.locator('.chat-properties').get_by_text('Show more properties',exact=False).click()
+        assert field.locator('.chat-property-card').count()==12
+        card=field.locator('.chat-property-card').first
+        assert card.get_by_text('Google Maps / images',exact=True).get_attribute('href').startswith('https://www.google.com/maps/search/')
+        assert 'basemap=satellite' in card.get_by_text('Google satellite',exact=True).get_attribute('href')
+        assert card.locator('details').get_attribute('open') is None
+        card.get_by_text('View parcel on satellite',exact=True).click()
+        assert field.locator('#basemap').input_value()=='satellite'
+        assert field.evaluate('window.PublicRadarBridge.getMap().getZoom()')>=16
+        card.locator('[data-action=add-trip]').click()
+        field.locator('.chat-property-card').nth(1).locator('[data-action=add-trip]').click()
+        assert field.locator('.field-trip-stop').count()==2
+        field.locator('.field-trip-stop').nth(1).get_by_text('Move up',exact=True).click()
+        trip=field.locator('.field-trip-stop').first
+        trip.locator('textarea').fill('Check legal access <script>window.PACKET_INJECTION=true</script>')
+        trip.locator('textarea').blur()
+        trip.locator('input[placeholder="Next action"]').fill('Confirm source geometry and access')
+        trip.locator('input[placeholder="Next action"]').blur()
+        trip.locator('input[type=file]').set_input_files({'name':'field-photo.png','mimeType':'image/png','buffer':PNG})
+        field.wait_for_function('document.querySelectorAll(".field-photo-grid img").length===1')
+        field.locator('.radar-agent').screenshot(path='/tmp/capital-radar-property-cards.png')
+        mode['fail']=True
+        field.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
+        field.locator('#agentForm button[type=submit]').click()
+        field.wait_for_function('window.PublicRadarBridge.getMeta().status==="failed"')
+        assert '503' in field.locator('#agentLog .bot').last.inner_text()
+        assert 'warning above' not in field.locator('#agentLog .bot').last.inner_text()
+        mode['fail']=False
+        field.locator('#agentLog').get_by_text('Retry this search',exact=True).last.click()
+        field.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert field.locator('.chat-properties:not(.previous-search)').count()==1
+        phone_context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+        phone=phone_context.new_page()
+        phone.route('**/*',network)
+        phone.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
+        phone.wait_for_function('!!window.PublicRadarBridge?.getMap()')
+        phone.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
+        phone.locator('#agentForm button[type=submit]').click()
+        phone.wait_for_function('document.querySelectorAll(".chat-property-card").length===6')
+        assert phone.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2')
+        phone.locator('.radar-agent').screenshot(path='/tmp/capital-radar-chat-mobile.png')
+        phone_context.close()
+        field.reload()
+        field.wait_for_function('document.querySelectorAll(".field-trip-stop").length===2 && document.querySelectorAll(".field-photo-grid img").length===1')
+        assert field.locator('.field-trip-stop').first.get_attribute('data-parcel-key').endswith('NJ-1')
+        assert 'Check legal access' in field.locator('.field-trip-stop textarea').first.input_value()
+        with field.expect_download() as backup_download:
+            field.click('#exportFieldTrip')
+        backup=json.loads(Path(backup_download.value.path()).read_text())
+        assert len(backup['stops'])==2
+        assert backup['stops'][0]['photos'][0]['dataURL'].startswith('data:image/jpeg;base64,')
+        assert 'owner' not in backup['stops'][0]['property']
+        with field.expect_download() as pack_download:
+            field.click('#generateFieldPack')
+        packet_path=Path(pack_download.value.path())
+        packet=packet_path.read_text()
+        assert 'Satellite imagery: Esri' in packet and 'User photo added' in packet
+        assert '<script>' not in packet and '&lt;script&gt;' in packet
+        assert 'Confirm source geometry and access' in packet
+        packet_page=context.new_page()
+        packet_page.set_content(packet)
+        assert packet_page.locator('section.stop').count()==2
+        assert packet_page.locator('script').count()==0
+        assert not packet_page.evaluate('!!window.PACKET_INJECTION')
+        packet_page.pdf(path='/tmp/capital-radar-field-pack.pdf',format='Letter',print_background=True)
+        assert Path('/tmp/capital-radar-field-pack.pdf').read_bytes().startswith(b'%PDF')
+        packet_page.screenshot(path='/tmp/capital-radar-field-pack.png',full_page=True)
+        packet_page.close()
+        mode['imageryFail']=True
+        with field.expect_download() as missing_download:
+            field.click('#generateFieldPack')
+        assert 'SATELLITE IMAGERY UNAVAILABLE' in Path(missing_download.value.path()).read_text()
+        mode['imageryFail']=False
+        fresh=browser.new_context(accept_downloads=True)
+        restored=fresh.new_page()
+        restored.route('**/*',network)
+        restored.goto(f'http://127.0.0.1:{server.server_port}/')
+        restored.locator('#importFieldTrip').set_input_files({'name':'trip.json','mimeType':'application/json','buffer':json.dumps(backup).encode()})
+        restored.wait_for_function('document.querySelectorAll(".field-trip-stop").length===2 && document.querySelectorAll(".field-photo-grid img").length===1')
+        assert 'Check legal access' in restored.locator('.field-trip-stop textarea').first.input_value()
+        restored.locator('#importFieldTrip').set_input_files({'name':'trip.json','mimeType':'application/json','buffer':json.dumps(backup).encode()})
+        restored.wait_for_function('document.getElementById("fieldPackStatus").textContent.includes("0 stops imported")')
+        assert restored.locator('.field-trip-stop').count()==2
+        fresh.close()
+        assert not field_errors,field_errors
+        field.close()
+        mode['cards']=False
         password = secrets.token_hex(24)
         fixture = '''
           import {ResearchStore} from './server/research-store.mjs';

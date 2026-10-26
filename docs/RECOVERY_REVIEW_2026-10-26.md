@@ -23,4 +23,4 @@ The outer archive and selected nested text/source files were inspected with ZIP 
 
 Removed the browser worker, model-download/load controls, branded executive strings and old gateway. Added authenticated hosted inference, plain-language summaries, public-field filtering and tests. [HOSTED_ASSISTANT.md](HOSTED_ASSISTANT.md) covers activation.
 
-Pilot field trips, photos, field packets and private company/contact workflows were not migrated by this focused change. Future migration should use the private workspace and appropriate permissions, rather than embedding recovered datasets in the public scanner.
+The initial assistant change did not migrate pilot field trips or private workflows. A later update rebuilt a public-record field-trip/packet workflow with notes, photos, backups and parcel imagery; see FIELD_PACKS.md. Private company/contact data and old pilot backup formats were not imported. Any private workflow migration should use the authenticated workspace and appropriate permissions.

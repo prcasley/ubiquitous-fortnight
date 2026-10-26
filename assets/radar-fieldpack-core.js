@@ -1,0 +1,27 @@
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./radar-property.js'):root.RadarProperty);if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarFieldPackCore=api;})(globalThis,P=>{
+  'use strict';
+  const image=value=>typeof value==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value)&&value.length<4000000?value:'';
+  function packetHTML(stops,{imagery={},photos={},generatedAt=new Date().toISOString()}={}){
+    if(!Array.isArray(stops)||!stops.length||stops.length>25)throw Error('Choose 1–25 properties for the field pack');
+    const e=P.escape,date=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(generatedAt));
+    const sections=stops.map((stop,index)=>{
+      const item=P.snapshot(stop.property),links=P.links(item),satellite=image(imagery[item.key]);
+      const personal=(photos[item.key]||[]).slice(0,3).map(p=>({src:image(p.dataURL),addedAt:p.addedAt})).filter(p=>p.src);
+      const screen=(stop.screenings||[]).slice(0,10).map(s=>`<li>${e(s.kind)}: ${e(s.status)}${s.overlapPercent==null?'':` · ${e(Number(s.overlapPercent).toFixed(1))}% mapped overlap`} · ${e(s.retrievedAt||'date unavailable')}<br>${e(s.caveat||'Verify source and coverage before relying on this observation.')}</li>`).join('');
+      return `<section class="stop"><p class="eyebrow">STOP ${index+1} · ${e(item.state)} · PARCEL ${e(item.id)}</p><h1>${e(item.address||'Parcel '+item.id)}</h1>
+        <p>${e(item.type)} · ${item.acres==null?'Acreage unavailable':e(item.acres)+' reported acres'} · Built ${e(item.yearBuilt??'not published')}</p>
+        <div class="map">${P.svg(item,satellite)}</div><p class="caption">${satellite?'Satellite imagery: Esri / source providers. Retrieved for this pack '+e(date)+'. Imagery capture date not established. <a href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer">Imagery service and attribution</a>.':'SATELLITE IMAGERY UNAVAILABLE — geometry reference only; the grey background is not an aerial image.'}<br>${e(item.precision)}</p>
+        <p><a href="${e(links.maps)}">Google Maps / images</a> · <a href="${e(links.satellite)}">Google satellite</a> · <a href="${e(links.street)}">Street View, if available</a> · <a href="${e(links.directions)}">Directions to mapped location</a></p>
+        <h2>Visit notes</h2><p class="notes">${e(stop.notes||'No visit notes recorded.')}</p><h2>Next action</h2><p class="notes">${e(stop.nextAction||'Not recorded.')}</p>
+        <h2>Screening observations</h2>${screen?'<ul>'+screen+'</ul>':'<p>Flood, wetlands, zoning, access, power and fiber: not checked in this field pack.</p>'}
+        ${item.unverifiedCriteria.length?'<p class="warning">Requested conditions remain unverified: '+e(item.unverifiedCriteria.join(', '))+'.</p>':''}
+        <div class="photos">${personal.map(p=>`<figure><img src="${p.src}" alt="User-added field photo"><figcaption>User photo added ${e(p.addedAt||'date unavailable')}; capture date not verified.</figcaption></figure>`).join('')}</div>
+        <footer>Source: ${e(item.sourceName)} · ${e(item.sourceVintage)}<br>Parcel observation retrieved ${e(item.retrievedAt||'time unavailable')} · Scan status: ${e(item.scanStatus||'unknown')}${item.sourceURL?'<br><a href="'+e(item.sourceURL)+'">Official data layer</a>':''}<br>Planning reference only. Imagery and GIS do not establish surveyed boundaries, legal access, ownership, availability or development feasibility.</footer></section>`;
+    }).join('');
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Capital Radar field pack</title><style>
+      body{font:15px/1.55 system-ui,sans-serif;color:#183b49;background:#edf2f5;margin:0}main{max-width:950px;margin:auto}header,.stop{background:white;padding:32px;margin:20px 0;border-radius:12px}h1{font-size:25px}h2{font-size:17px;margin-bottom:5px}.eyebrow,.caption,footer,figcaption{font-size:12px}.map svg{width:100%;max-height:370px;border:1px solid #cbd9df}.caption{color:#4d6571}.notes{white-space:pre-wrap;overflow-wrap:anywhere}.photos{display:flex;gap:12px;flex-wrap:wrap}figure{margin:8px 0;flex:1;min-width:180px}figure img{width:100%;max-height:180px;object-fit:contain}footer{margin-top:20px;border-top:1px solid #cad9df;padding-top:12px;overflow-wrap:anywhere}.warning{background:#fff3d4;padding:10px}button{padding:10px 16px;background:#08675f;color:white;border:0;border-radius:6px}
+      @media print{body{background:white}header,.stop{margin:0;border:0;border-radius:0;padding:0}.stop{break-before:page}.map,.photos figure{break-inside:avoid}button{display:none}a{color:#163b55}@page{margin:14mm}}
+    </style></head><body><main><header><p>CAPITAL RADAR · FIELD RESEARCH</p><h1>Field visit pack</h1><p>Generated ${e(date)} (America/New_York) · ${stops.length} properties in visit order</p><button type="button" onclick="window.print()">Print / Save as PDF</button><p>This file includes notes, available map images, parcel geometry and stored photos. External map links need connectivity. A grey map is explicitly labeled when satellite imagery could not be retrieved.</p><ol>${stops.map(s=>'<li>'+e(s.property.address||s.property.id)+'</li>').join('')}</ol></header>${sections}</main></body></html>`;
+  }
+  return {packetHTML,image};
+});

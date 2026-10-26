@@ -46,6 +46,7 @@
       retrievedAt:meta.time,scanStatus:meta.status,unverifiedCriteria:meta.unverified||[],geometryPrecision:record.locationPrecision,
       geometry:record.geometry.geometry,screenings:results.get(record.key)||[],note:'',savedAt:new Date().toISOString()};
   }
+  window.PublicRadarResearch={getScreenings:parcelKey=>JSON.parse(JSON.stringify(results.get(parcelKey)||[]))};
   function init(){
     if(!$('savedResearch'))return;
     try{const data=JSON.parse(localStorage.getItem(key));

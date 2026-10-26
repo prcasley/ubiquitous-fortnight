@@ -6,12 +6,14 @@
   function tell(text){$('assistantStatus').textContent=text;}
   function buttons(){
     const button=$('explainResults');
+    button.hidden=!available;
+    if($('assistantDisclosure'))$('assistantDisclosure').hidden=!available;
     button.disabled=!available||busy||!bridge()?.getMeta()?.complete||!bridge()?.getVisible()?.length;
     button.textContent=busy?'Preparing summary…':'Explain these results';
   }
   function log(text,sourceURL){
     const row=document.createElement('div');row.className='agent-message bot';row.textContent=text;
-    if(sourceURL){const link=document.createElement('a');link.href=sourceURL;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Verify source records';row.append(document.createTextNode('\n'),link);}
+    if(sourceURL){const citation=document.createElement('details'),label=document.createElement('summary'),link=document.createElement('a');label.textContent='Data source';link.href=sourceURL;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Official data layer (technical source)';citation.append(label,link);row.append(citation);}
     const host=$('agentLog');host.append(row);host.scrollTop=host.scrollHeight;
   }
   async function explain(question='Summarize these public parcel results, their limitations, and the next source checks.'){
@@ -45,14 +47,14 @@
     $('explainResults').addEventListener('click',()=>explain());
     document.addEventListener('radar:scan-state',()=>{
       if(controller){controller.abort();controller=null;busy=false;}
-      tell(available?'Select Explain these results after a completed search.':'Search and source links are available. Result summaries are not available right now.');buttons();
+      tell(available?'Select Explain these results after a completed search.':'Search returns property cards here. Open satellite views or add properties to a field trip.');buttons();
     });
     $('textFilter').addEventListener('input',()=>{controller?.abort();buttons();});
     try{
       const response=await fetch('/api/radar-agent/status',{credentials:'same-origin',signal:AbortSignal.timeout(5000)});
       if(response.ok)available=(await response.json()).available===true;
     }catch{/* A static deployment still supports deterministic search. */}
-    tell(available?'Select Explain these results after a completed search.':'Search and source links are available. Result summaries are not available right now.');buttons();
+    tell(available?'Select Explain these results after a completed search.':'Search returns property cards here. Open satellite views or add properties to a field trip.');buttons();
   }
   window.PublicRadarAssistant={isAvailable:()=>available,explain};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
