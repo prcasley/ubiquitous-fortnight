@@ -34,7 +34,7 @@ test("no duplicate IDs or private-company references in public page",()=>{
  assert.equal(projections.length>=3,true);
  assert.equal(projections.some(x=>/OWN_NAME|OWNER_NAME|OWN_ADDR/i.test(x)),false,
    "Bulk map data must not project owner or mailing fields");
- assert.match(core,/OWNER_NAME1/,"Owner name is available only through explicit detail lookup");
+ assert.match(core+read("assets/radar-public-data.js"),/OWNER_NAME1/,"Owner name is available only through explicit detail lookup");
  assert.match(core,/SOURCES\.PBC/);
  assert.match(html,/id="explainResults"/);
  assert.match(html,/radar-assistant\.js/);

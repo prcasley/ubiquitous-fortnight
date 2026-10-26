@@ -24,3 +24,7 @@ The outer archive and selected nested text/source files were inspected with ZIP 
 Removed the browser worker, model-download/load controls, branded executive strings and old gateway. Added authenticated hosted inference, plain-language summaries, public-field filtering and tests. [HOSTED_ASSISTANT.md](HOSTED_ASSISTANT.md) covers activation.
 
 The initial assistant change did not migrate pilot field trips or private workflows. A later update rebuilt a public-record field-trip/packet workflow with notes, photos, backups and parcel imagery; see FIELD_PACKS.md. Private company/contact data and old pilot backup formats were not imported. Any private workflow migration should use the authenticated workspace and appropriate permissions.
+
+## Subsequent free-source workspace build
+
+The later map-first build added browser-local company dossiers and dated business-name observations, manual evidence/contact notes, persistent parcel assemblies, source-linked screening notes and read-only CSV comps. It did not import recovery-package companies, contacts, transactions or private portfolio records. The prior statement that private company workflows were not migrated refers to data/format compatibility, not absence of the newly implemented blank research tools. See FREE_SOURCES_AND_FEATURES.md for exact restored features and remaining Excel/SharePoint/scoring gaps.

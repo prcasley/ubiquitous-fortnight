@@ -1,18 +1,19 @@
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./radar-property.js'):root.RadarProperty);if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarFieldPackCore=api;})(globalThis,P=>{
   'use strict';
   const image=value=>typeof value==='string'&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value)&&value.length<4000000?value:'';
+  const sourceLink=(value,e)=>{try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?'<br><a href="'+e(u.href)+'">Observation source</a>':'';}catch{return '';}};
   function packetHTML(stops,{imagery={},photos={},generatedAt=new Date().toISOString()}={}){
     if(!Array.isArray(stops)||!stops.length||stops.length>25)throw Error('Choose 1–25 properties for the field pack');
     const e=P.escape,date=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'}).format(new Date(generatedAt));
     const sections=stops.map((stop,index)=>{
       const item=P.snapshot(stop.property),links=P.links(item),satellite=image(imagery[item.key]);
       const personal=(photos[item.key]||[]).slice(0,3).map(p=>({src:image(p.dataURL),addedAt:p.addedAt})).filter(p=>p.src);
-      const screen=(stop.screenings||[]).slice(0,10).map(s=>`<li>${e(s.kind)}: ${e(s.status)}${s.overlapPercent==null?'':` · ${e(Number(s.overlapPercent).toFixed(1))}% mapped overlap`} · ${e(s.retrievedAt||'date unavailable')}<br>${e(s.caveat||'Verify source and coverage before relying on this observation.')}</li>`).join('');
+      const screen=(stop.screenings||[]).slice(0,10).map(s=>`<li>${e(s.kind)}: ${e(s.status)}${s.overlapPercent==null?'':` · ${e(Number(s.overlapPercent).toFixed(1))}% mapped overlap`} · ${e(s.retrievedAt||'date unavailable')}<br>${e(s.caveat||'Verify source and coverage before relying on this observation.')}${sourceLink(s.sourceURL,e)}</li>`).join('');
       return `<section class="stop"><p class="eyebrow">STOP ${index+1} · ${e(item.state)} · PARCEL ${e(item.id)}</p><h1>${e(item.address||'Parcel '+item.id)}</h1>
         <p>${e(item.type)} · ${item.acres==null?'Acreage unavailable':e(item.acres)+' reported acres'} · Built ${e(item.yearBuilt??'not published')}</p>
         <div class="map">${P.svg(item,satellite)}</div><p class="caption">${satellite?'Satellite imagery: Esri / source providers. Retrieved for this pack '+e(date)+'. Imagery capture date not established. <a href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer">Imagery service and attribution</a>.':'SATELLITE IMAGERY UNAVAILABLE — geometry reference only; the grey background is not an aerial image.'}<br>${e(item.precision)}</p>
         <p><a href="${e(links.maps)}">Google Maps / images</a> · <a href="${e(links.satellite)}">Google satellite</a> · <a href="${e(links.street)}">Street View, if available</a> · <a href="${e(links.directions)}">Directions to mapped location</a></p>
-        <h2>Visit notes</h2><p class="notes">${e(stop.notes||'No visit notes recorded.')}</p><h2>Next action</h2><p class="notes">${e(stop.nextAction||'Not recorded.')}</p>
+        ${item.ownership?'<p>Published assessment entity: '+e(item.ownership.entityName)+' · retrieved '+e(item.ownership.retrievedAt)+'. Not independently verified title or control.</p>':''}<h2>Visit notes</h2><p class="notes">${e(stop.notes||'No visit notes recorded.')}</p><h2>Next action</h2><p class="notes">${e(stop.nextAction||'Not recorded.')}</p>
         <h2>Screening observations</h2>${screen?'<ul>'+screen+'</ul>':'<p>Flood, wetlands, zoning, access, power and fiber: not checked in this field pack.</p>'}
         ${item.unverifiedCriteria.length?'<p class="warning">Requested conditions remain unverified: '+e(item.unverifiedCriteria.join(', '))+'.</p>':''}
         <div class="photos">${personal.map(p=>`<figure><img src="${p.src}" alt="User-added field photo"><figcaption>User photo added ${e(p.addedAt||'date unavailable')}; capture date not verified.</figcaption></figure>`).join('')}</div>

@@ -20,7 +20,9 @@
     const lon=number(record.lon)??(bounds[0]+bounds[2])/2,lat=number(record.lat)??(bounds[1]+bounds[3])/2;
     if(!record.key||!record.id||!position(lon,lat))throw Error('Property needs a parcel identity and mapped location');
     const sourceURL=text(record.sourceURL||record.source?.url,1000);
-    return {key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
+    const observation=record.ownership;
+    const ownership=observation?.entityName&&(observation.classification==='organization-style'||observation.caveat==='Published assessment entity; not independently verified title or control.')?{entityName:text(observation.entityName,400),sourceURL:text(observation.sourceURL,1000),retrievedAt:text(observation.retrievedAt,80),assessmentYear:observation.assessmentYear??null,caveat:'Published assessment entity; not independently verified title or control.'}:null;
+    return {key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),provider:text(record.provider,40),jurisdiction:text(record.jurisdiction,20),ownership,address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
       acres:number(record.acres),yearBuilt:number(record.yearBuilt),lat,lon,geometry:g,
       sourceName:text(record.sourceName||record.source?.name,300),sourceURL:/^https:\/\//i.test(sourceURL)?sourceURL:'',
       sourceVintage:text(record.sourceVintage||record.source?.date,300),retrievedAt:text(record.retrievedAt||meta.time,80),

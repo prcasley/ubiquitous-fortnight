@@ -66,6 +66,14 @@ def network(route):
     if parsed.hostname in ('services1.arcgis.com','services2.arcgis.com','services9.arcgis.com'):
         where = params.get('where', [''])[0]
         queries.append((parsed.hostname, where))
+        ownerfields=params.get('outFields',[''])[0]
+        if any(name in ownerfields for name in ['OWNER_NAME1','NAME_LINE_1','TRUE_OWNER1','OWN_NAME']):
+            idfield='PARID' if 'OWNER_NAME1' in ownerfields else 'FOLIO_NUMBER' if 'NAME_LINE_1' in ownerfields else 'FOLIO' if 'TRUE_OWNER1' in ownerfields else 'PARCEL_ID'
+            ownerfield='OWNER_NAME1' if idfield=='PARID' else 'NAME_LINE_1' if idfield=='FOLIO_NUMBER' else 'TRUE_OWNER1' if idfield=='FOLIO' else 'OWN_NAME'
+            match=re.search(idfield+r" = '([^']+)'",where)
+            attributes={idfield:match.group(1) if match else 'unknown',ownerfield:'SYNTHETIC HOLDINGS LLC','ASMNT_YR':2026,'CO_NO':60}
+            respond(route,{'features':[{'attributes':attributes}]})
+            return
         if mode['fail']:
             respond(route, {'error': {'message': 'Synthetic outage'}}, 503)
             return
@@ -105,6 +113,7 @@ try:
         page.on('pageerror', lambda error: exceptions.append(str(error)))
         page.route('**/*', network)
         page.goto(f'http://127.0.0.1:{server.server_port}/')
+        page.locator('#filterDrawer').evaluate('e=>e.open=true')
         assert page.evaluate('!!window.L && !!window.turf && !!window.PublicRadarBridge.getMap()')
         assert not re.search(r'nvidia|nemotron|webgpu|download.*model',page.locator('body').inner_text(),re.I)
         assert page.locator('#explainResults').is_disabled()
@@ -116,6 +125,55 @@ try:
         assert page.evaluate('window.PublicRadarBridge.getResults()[0].type') == 'Vacant'
         assert 'Palm Beach County' in page.locator('#resultInfo').inner_text()
         page.locator('#results .parcel').first.click()
+        # Free-source ownership is explicit, dated and saved only as a business observation.
+        page.locator('#details .public-owner-section button').click()
+        page.wait_for_function('document.getElementById("ownerCompanies").textContent.includes("SYNTHETIC HOLDINGS LLC")')
+        assert 'Published assessment name' in page.locator('#details').inner_text()
+        page.locator('#ownerDossier textarea').fill('Synthetic organization research note')
+        page.locator('#ownerDossier textarea').blur()
+        evidence=page.locator('#ownerDossier form').first
+        evidence.locator('input[type=url]').fill('https://example.org/registry/synthetic')
+        evidence.locator('input[type=date]').fill('2026-10-26')
+        evidence.locator('button').click()
+        assert 'Evidence checklist: 2/4' in page.locator('#ownerDossier').inner_text()
+        page.click('#loadBusinessOwners')
+        page.wait_for_function('!document.getElementById("loadBusinessOwners").disabled')
+        with page.expect_download() as owners_download:
+            page.click('#exportOwnershipResearch')
+        owners=json.loads(Path(owners_download.value.path()).read_text())
+        assert len(owners['observations'])==1
+        assert list(owners['dossiers'].values())[0]['notes']=='Synthetic organization research note'
+        page.locator('#researchTools details').nth(0).evaluate('e=>e.open=true')
+        page.click('#addResearchAssembly')
+        with page.expect_download() as assembly_download:
+            page.click('#exportAssemblyGeoJSON')
+        assembly=json.loads(Path(assembly_download.value.path()).read_text())
+        assert assembly['features'][0]['properties']['parcel_id']=='PBC-0'
+        assert assembly['features'][0]['geometry']['type']=='Polygon'
+        page.locator('#researchTools details').nth(1).evaluate('e=>e.open=true')
+        page.select_option('[aria-label="flood screening status"]','source-observation')
+        page.fill('[aria-label="flood source URL"]','https://example.org/flood/synthetic')
+        page.fill('[aria-label="flood observation date"]','2026-10-26')
+        page.fill('[aria-label="flood observation"]','Check flood evidence at source')
+        page.locator('#manualScreening form').nth(1).locator('button').click()
+        assert 'Screening observation saved' in page.locator('#researchToolsStatus').inner_text()
+        page.locator('#researchTools details').nth(2).evaluate('e=>e.open=true')
+        page.locator('#localCompsImport').set_input_files({'name':'synthetic-comps.csv','mimeType':'text/csv','buffer':b'comp_id,address,transaction_type,sale_price,building_sqft,latitude,longitude\nS1,Synthetic comp,closed sale,2000000,10000,26.72,-80.13\nA1,Synthetic asking,asking,2000000,10000,26.72,-80.13'})
+        page.wait_for_function('document.getElementById("localCompResults").textContent.includes("$200.00/building SF")')
+        assert 'Closed-sale $/building SF unavailable' in page.locator('#localCompResults').inner_text()
+        page.locator('#localCompsImport').set_input_files({'name':'bad.csv','mimeType':'text/csv','buffer':b'comp_id,address,transaction_type\n1,A,sale\n1,B,sale'})
+        page.wait_for_function('document.getElementById("researchToolsStatus").textContent.includes("previous records preserved")')
+        assert '$200.00/building SF' in page.locator('#localCompResults').inner_text()
+        map_box=page.locator('#map').bounding_box()
+        assert map_box['width']>600 and map_box['height']>=500, map_box
+        page.click('#expandMap')
+        assert page.locator('#expandMap').get_attribute('aria-expanded')=='true'
+        page.keyboard.press('Escape')
+        assert page.locator('#expandMap').get_attribute('aria-expanded')=='false'
+        page.locator('#filterDrawer').evaluate('e=>e.open=false')
+        page.evaluate('window.scrollTo(0,0)')
+        page.screenshot(path='/tmp/capital-radar-map-workbench.png')
+        page.locator('#filterDrawer').evaluate('e=>e.open=true')
         page.click('#saveParcel')
         page.fill('#savedResearch textarea', 'Verify wetland delineation')
         page.locator('#savedResearch textarea').blur()
@@ -138,6 +196,7 @@ try:
         assert page.locator('#details').is_hidden()
         assert page.locator('#results .parcel').count() == 0
         page.reload()
+        page.locator('#filterDrawer').evaluate('e=>e.open=true')
         assert 'Verify wetland delineation' == page.locator('#savedResearch textarea').input_value()
         assert page.locator('#savedResearch').get_by_text('Load filters',exact=True).count() == 1
         page.locator('#savedResearch').get_by_text('Load filters',exact=True).click()
@@ -241,6 +300,7 @@ try:
         natural.locator('#agentForm button[type=submit]').click()
         natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getSearch().acreage.op==="between"')
         assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[6,6.4]
+        natural.locator('#filterDrawer').evaluate('e=>e.open=true')
         assert natural.locator('#maxAcresField').is_visible()
         assert natural.locator('#maxAcres').input_value()=='6.6'
         assert any('CALC_ACRE >= 5.4 AND CALC_ACRE <= 6.6' in where for host,where in queries)
@@ -272,6 +332,12 @@ try:
         assert field.locator('#basemap').input_value()=='satellite'
         assert field.evaluate('window.PublicRadarBridge.getMap().getZoom()')>=16
         card.locator('[data-action=add-trip]').click()
+        field.locator('#researchTools details').nth(1).evaluate('e=>e.open=true')
+        field.select_option('[aria-label="access screening status"]','source-observation')
+        field.fill('[aria-label="access source URL"]','https://example.org/synthetic-access-evidence')
+        field.fill('[aria-label="access observation date"]','2026-10-26')
+        field.fill('[aria-label="access observation"]','Manual access source recorded; legal access unverified')
+        field.locator('#manualScreening form').nth(3).locator('button').click()
         field.locator('.chat-property-card').nth(1).locator('[data-action=add-trip]').click()
         assert field.locator('.field-trip-stop').count()==2
         field.locator('.field-trip-stop').nth(1).get_by_text('Move up',exact=True).click()
@@ -321,6 +387,8 @@ try:
         assert 'Satellite imagery: Esri' in packet and 'User photo added' in packet
         assert '<script>' not in packet and '&lt;script&gt;' in packet
         assert 'Confirm source geometry and access' in packet
+        assert 'https://example.org/synthetic-access-evidence' in packet
+        assert 'legal access unverified' in packet
         packet_page=context.new_page()
         packet_page.set_content(packet)
         assert packet_page.locator('section.stop').count()==2
@@ -401,6 +469,7 @@ try:
             hosted.on('request',lambda request: sent.append(request.post_data_json) if request.url.endswith('/api/radar-agent') and request.method=='POST' else None)
             hosted.goto(f'http://127.0.0.1:{port}/')
             hosted.wait_for_function('window.PublicRadarAssistant.isAvailable()')
+            hosted.locator('#filterDrawer').evaluate('e=>e.open=true')
             hosted.fill('#minAcres','0')
             hosted.click('#scanButton')
             hosted.wait_for_function('window.PublicRadarBridge.getMeta().complete')

@@ -25,7 +25,7 @@
     try{if(working)throw Error('Finish preparing the pack before adding another stop');const property=P.snapshot(record,window.PublicRadarBridge.getMeta());
       if(stops.some(s=>s.property.key===property.key)){tell('That property is already in the field trip.');return true;}
       if(stops.length>=100)throw Error('The trip has 100 stops. Remove a stop before adding another.');
-      stops.push({property,notes:'',nextAction:'',photos:[],include:stops.filter(s=>s.include).length<25,screenings:window.PublicRadarResearch?.getScreenings(property.key)||[]});persist();render();tell('Property added to the field trip. Reorder stops and add notes below.');return true;
+      stops.push({property,notes:'',nextAction:'',photos:[],include:stops.filter(s=>s.include).length<25,screenings:[...(window.PublicRadarResearch?.getScreenings(property.key)||[]),...(window.RadarResearchTools?.getScreenings(property.key)||[])]});persist();render();tell('Property added to the field trip. Reorder stops and add notes below.');return true;
     }catch(error){tell(error.message);return false;}
   }
   function render(){
@@ -97,6 +97,7 @@
     try{const value=JSON.parse(localStorage.getItem(key));if(value?.version===1&&Array.isArray(value.stops)&&value.stops.length<=100)stops=value.stops.map(s=>({property:P.snapshot(s.property),notes:String(s.notes||'').slice(0,4000),nextAction:String(s.nextAction||'').slice(0,1000),photos:(s.photos||[]).filter(x=>typeof x==='string'&&/^[\w-]+$/.test(x)).slice(0,3),include:s.include===true,screenings:Array.isArray(s.screenings)?s.screenings.slice(0,10):[]}));}catch{tell('Stored trip could not be read. Existing storage was left intact; restore a trip backup if available.');}
     $('generateFieldPack').addEventListener('click',generate);$('exportFieldTrip').addEventListener('click',exportBackup);$('importFieldTrip').addEventListener('change',async e=>{await importBackup(e.target.files[0]);e.target.value='';});
     $('addSelectedTrip').addEventListener('click',()=>{const r=window.PublicRadarBridge.getResults().find(r=>r.key===selected);if(r)add(r);});
+    document.addEventListener('radar:research-updated',e=>{const stop=stops.find(s=>s.property.key===e.detail.key);if(stop){stop.screenings=[...(stop.screenings||[]).filter(s=>s.origin!=='manual'),...(window.RadarResearchTools?.getScreenings(e.detail.key)||[])];persist();}});
     document.addEventListener('radar:parcel-selected',e=>{selected=e.detail.key;$('addSelectedTrip').disabled=false;});
     document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='idle'){selected=null;$('addSelectedTrip').disabled=true;}});
     render();

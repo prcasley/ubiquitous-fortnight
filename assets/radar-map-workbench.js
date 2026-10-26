@@ -1,0 +1,15 @@
+/* Map expansion and source coverage. This code has no hosting or AI dependencies. */
+(() => {
+  const $=id=>document.getElementById(id);
+  function init(){
+    const button=$('expandMap'),panel=$('mapPanel');if(!button||!panel)return;
+    function expand(value){document.body.classList.toggle('map-expanded',value);button.setAttribute('aria-expanded',String(value));button.textContent=value?'Close expanded map':'Expand map';setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);if(!value)button.focus();}
+    button.addEventListener('click',()=>expand(!document.body.classList.contains('map-expanded')));
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('map-expanded'))expand(false);});
+    const host=$('freeSourceCoverage');if(host)for(const source of Object.values(window.RadarPublicData.sources)){
+      const row=document.createElement('p');row.textContent=source.name+' — '+source.status+'. No provider account/key required for the public service.';host.append(row);
+    }
+    setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
