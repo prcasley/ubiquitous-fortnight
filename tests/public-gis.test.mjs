@@ -90,3 +90,17 @@ test("NVIDIA remains disabled on Pages; public data is allowlisted",()=>{
  assert.equal(gateway.validSource("https://example.com/private"),false);
  assert.equal(gateway.validSource("http://services6.arcgis.com"),false);
 });
+
+test("Florida on-demand entity lookup recognizes company suffixes rather than literal backslashes",()=>{
+ const section=core.slice(core.indexOf("const isEntity="),core.indexOf("result.textContent=!name?"));
+ assert.match(section,/const isEntity=/);
+ assert.equal(section.includes(String.raw`\\bLLC\\b`),false);
+ assert.equal(section.includes(String.raw`\\s+TRUST`),false);
+ assert.match(section,/p\.owner=name/);
+});
+test("NVIDIA public prompt only receives explicitly retrieved assessment company evidence",()=>{
+ const ai=read("assets/radar-nemotron-browser.js");
+ assert.match(ai,/published_assessment_entity/);
+ assert.match(ai,/assessment_entity_source/);
+ assert.match(ai,/NOT verified legal title/);
+});

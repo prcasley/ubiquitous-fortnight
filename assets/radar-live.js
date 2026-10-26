@@ -362,9 +362,9 @@
           const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
           if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
-          const isEntity=/(?:\\bLLC\\b|\\bL\\.?L\\.?C\\.?\\b|\\bINC\\.?\\b|\\bCORP\\.?\\b|\\bLTD\\.?\\b|\\bLLP\\b|\\bLP\\b)/i.test(name) &&
-            !/\\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\\s+TRUST\\b/i.test(name);
-          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
+          const isEntity=/(?:\bLLC\b|\bL\.?L\.?C\.?\b|\bINC\.?\b|\bCORP\.?\b|\bLTD\.?\b|\bLLP\b|\bLP\b)/i.test(name) &&
+            !/\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\s+TRUST\b/i.test(name);
+          if(isEntity){p.owner=name;p.ownerSource=provider.name;p.ownerLookupTime=new Date().toISOString();}else{p.owner=null;p.ownerSource=null;}\n          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
             isEntity?"Published assessment entity: "+name+" | Source: "+provider.name+
               ". This does not verify legal title, ultimate ownership or willingness to sell.":
             "Published assessment record exists, but the owner name is withheld in this public interface. Open the official source record for further verification.";

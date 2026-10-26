@@ -36,7 +36,7 @@
       acreage:r.acres==null?null:Number(r.acres.toFixed(3)),
       year_built:r.yearBuilt??null,
       effective_year:r.effectiveYear??null,
-      geometry_precision:String(r.locationPrecision||"Unknown").slice(0,70)
+      geometry_precision:String(r.locationPrecision||"Unknown").slice(0,70),\n      published_assessment_entity:r.owner&&r.ownerSource?String(r.owner).slice(0,140):null,\n      assessment_entity_source:r.owner&&r.ownerSource?String(r.ownerSource).slice(0,140):null
     }));
     const q=String($("agentPrompt")?.value||"Summarize the largest source-confirmed parcels and what to verify next.").slice(0,500);
     const sourceUrl=window.PublicRadarBridge.getSources?.()?.[meta.state]||"";
@@ -44,7 +44,7 @@
       "/no_think",
       "You are Capital Radar's local AI research assistant.",
       "Analyze ONLY the supplied public GIS facts and no other parcel data.",
-      "Never fabricate owner names, legal title, lease terms, availability, zoning, income, sale values, or investment decisions.",
+      "Never fabricate owner names, legal title, lease terms, availability, zoning, income, sale values, or investment decisions.",\n      "A published assessment entity is NOT verified legal title, beneficial ownership, or a sale contact.",
       "Assessment classes are not zoning. Effective year built is not proof of remodeling.",
       "If data or geographic scan coverage is incomplete, state that explicitly.",
       "Refer to exact parcel IDs when relevant. Be succinct and useful.",
