@@ -20,6 +20,16 @@
       fields: "PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT",
       id: "PARID",orderField:"OBJECTID_1"
     },
+    BRO: {
+      name:"Broward County public taxroll",url:"https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0",
+      attribution:"Broward County Property Appraiser",date:"Live county source; verify per record",geometry:"polygon",bounds:[-80.92,25.94,-79.98,26.35],
+      fields:"FOLIO_NUMBER,USE_CODE,SITUS_STREET_NUMBER,SITUS_STREET_NAME,SITUS_STREET_TYPE",id:"FOLIO_NUMBER",orderField:"OBJECTID",ownerField:"NAME_LINE_1"
+    },
+    MDC: {
+      name:"Miami-Dade public parcel GIS",url:"https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0",
+      attribution:"Miami-Dade County",date:"Live county source; verify per record",geometry:"polygon",bounds:[-80.88,25.13,-80.11,25.98],
+      fields:"FOLIO,TRUE_SITE_ADDR,LOT_SIZE,DOR_CODE_CUR",id:"FOLIO",orderField:"OBJECTID",ownerField:"TRUE_OWNER1"
+    },
     NJ: {
       name: "NJGIN · statewide parcels and MOD-IV (2026)",
       url: "https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0",
@@ -61,7 +71,7 @@
     $("scanStatus").className="scan-status "+kind;
   };
   const numberAcres = p => {
-    if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);
+    if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);\n    if(p.LOT_SIZE!=null&&Number(p.LOT_SIZE)>0)return Number(p.LOT_SIZE)/43560;
     if(p.LND_SQFOOT!=null&&Number(p.LND_SQFOOT)>0)return Number(p.LND_SQFOOT)/43560;
     const a=Number(p.CALC_ACRE);
     return Number.isFinite(a)&&a>0 ? a : null;
@@ -83,7 +93,7 @@
       if(/VACANT|UNDEVELOPED/.test(use))return "Vacant";
       return "Other";
     }
-    const code=parseInt(String(p.DOR_UC??""),10);
+    const code=parseInt(String(p.DOR_UC??p.DOR_CODE_CUR??p.USE_CODE??""),10);
     const c=code>=4000?Math.floor(code/100):code;
     return c===3||c===8?"Multifamily":c===10||c===40?"Vacant":c>=40&&c<=49?"Industrial":"Other";
   };
@@ -99,7 +109,7 @@
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
     const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
     if(!rawId) return null;
-    const address=state==="FL"?[a.SITE_ADDR_STR||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
+    const address=state==="FL"?[a.SITE_ADDR_STR||a.TRUE_SITE_ADDR||[a.SITUS_STREET_NUMBER,a.SITUS_STREET_NAME,a.SITUS_STREET_TYPE].filter(Boolean).join(" ")||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
     const owner=null;
     const acres=numberAcres(a), cls=category(a,state);
