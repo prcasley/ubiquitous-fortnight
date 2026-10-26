@@ -117,9 +117,9 @@
   }
   async function identifyAt(lat,lng){
    const b=source(),state=$("stateSelect")?.value,m=map();if(!b||!m||!state)return;
-   const uri=b.getSources()?.[state];if(!uri){note("No public parcel service is available for this state.");return;}
+   const uri=b.getSource(state,lat,lng)?.url;if(!uri){note("No public parcel service is available for this state.");return;}
    const countyFL=state==="FL"&&uri.includes("Parcels_and_Property_Details_WebMercator");
-   const field=countyFL?"PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT":state==="FL"?"PARCEL_ID,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,ACT_YR_BLT,EFF_YR_BLT,TOT_LVG_AR,NO_RES_UNT":
+   const field=countyFL?"PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT":state==="FL"?"PARCEL_ID,CO_NO,PHY_ADDR1,PHY_CITY,LND_SQFOOT,DOR_UC,ASMNT_YR,ACT_YR_BLT,EFF_YR_BLT,TOT_LVG_AR,NO_RES_UNT":
      "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL";
    const span=countyFL?.0001:state==="FL"?.0007:.00002;
    const env={xmin:lng-span,ymin:lat-span,xmax:lng+span,ymax:lat+span,spatialReference:{wkid:4326}};
@@ -133,7 +133,7 @@
      if(!Array.isArray(res.features)||res.exceededTransferLimit||!res.features.length)
        throw Error("No uniquely identifiable public parcel was returned at this location");
      const features=res.features.filter(f=>f.geometry);
-     if(state==="NJ"&&features.length!==1)throw Error("Multiple parcel shapes intersect the tap. Zoom further in.");
+     if(state==="NJ"&&(features.length!==1||!polygonContains(features[0].geometry,lng,lat)))throw Error("Multiple parcel shapes intersect the tap. Zoom further in.");
      if(countyFL){
        const matched=features.filter(f=>polygonContains(f.geometry,lng,lat));
        if(matched.length!==1)throw Error("No unique Palm Beach parcel polygon contains the map tap. Zoom closer and try again.");

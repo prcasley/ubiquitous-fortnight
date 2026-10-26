@@ -1,0 +1,7 @@
+node_modules/
+assets/vendor/
+dist/
+.radar/
+*.sqlite*
+.env
+__pycache__/

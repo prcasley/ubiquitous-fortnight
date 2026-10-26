@@ -17,11 +17,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm ci
+      - run: npm run build
       - name: Validate public data contracts and agent
         run: |
           node --check assets/radar-live.js
           node --check assets/radar-geo.js
           node --check assets/radar-agent.js
-          node --check assets/radar-nemotron-browser.js
-          node --check assets/nemotron-local-worker.mjs
-          node --test tests/public-gis.test.mjs
+          node --check assets/radar-assistant.js
+          node --check server/hosted-assistant.mjs
+          npm test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python tests/browser-smoke.py

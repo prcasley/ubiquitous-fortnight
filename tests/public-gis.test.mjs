@@ -9,7 +9,7 @@ const read=name=>readFileSync(path.join(ROOT,name),"utf8");
 const html=read("index.html"),core=read("assets/radar-live.js");
 const agent=read("assets/radar-agent.js"),geo=read("assets/radar-geo.js");
 const doc=read("docs/PUBLIC_DATA_COVERAGE.md");
-const gateway=await import(pathToFileURL(path.join(ROOT,"server/nemotron-gateway.mjs")).href);
+const gateway=await import(pathToFileURL(path.join(ROOT,"server/hosted-assistant.mjs")).href);
 function parse(input) {
  const w={};
  const ctx={window:w,document:{readyState:"loading",addEventListener(){},getElementById(){return null}}};
@@ -36,9 +36,9 @@ test("no duplicate IDs or private-company references in public page",()=>{
    "Bulk map data must not project owner or mailing fields");
  assert.match(core,/OWNER_NAME1/,"Owner name is available only through explicit detail lookup");
  assert.match(core,/SOURCES\.PBC/);
- assert.match(html,/id="localNemotronLoad"/);
- assert.match(html,/radar-nemotron-browser\.js/);
- assert.match(html,/radar-nemotron\.css/);
+ assert.match(html,/id="explainResults"/);
+ assert.match(html,/radar-assistant\.js/);
+ assert.match(html,/radar-assistant\.css/);
 });
 test("strict and nonstrict natural language comparisons",()=>{
  const q=parse("Find industrial over 3 acres in Parsippany, NJ");
@@ -50,6 +50,8 @@ test("strict and nonstrict natural language comparisons",()=>{
  const u=parse("Find vacant land under 4 acres in Palm Beach County FL");
  assert.equal(u.state,"FL");assert.equal(u.type,"vacant");
  assert.equal(u.acres,4);assert.equal(u.comparison,"under");
+ const upper=parse("Find industrial at most 4 acres in Edison NJ");
+ assert.equal(upper.comparison,"<=");assert.equal(upper.acres,4);
 });
 test("a question about ownership or leasing is an evidence-limited followup",()=>{
  const p=parse("Who owns these parcels?");
@@ -74,9 +76,8 @@ test("OZ 1 federal reference and nationwide OZ 2 research reference are distingu
  assert.match(geo,/NOT Treasury certification/);
  assert.match(geo,/refusing to classify tracts/);
 });
-test("NVIDIA remains disabled on Pages; public data is allowlisted",()=>{
- assert.match(agent,/hostname\.endsWith\("\.github\.io"\)/);
- assert.match(agent,/RADAR_NIM_GATEWAY_ACTIVE===true/);
+test("executive interface has no vendor branding or local model flow; public summary data is allowlisted",()=>{
+ assert.doesNotMatch(html+agent+read("assets/radar-assistant.js"),/nvidia|nemotron|webgpu|huggingface|new Worker|navigator\.gpu/i);
  const rows=gateway.sanitizedRecords([
   {id:"p-1",address:"123 SAMPLE ROAD",state:"FL",type:"Industrial",acres:null,yearBuilt:null,
    owner:"PERSONAL NAME",phone:"555-0123",mailingAddress:"HOME",price:999999},

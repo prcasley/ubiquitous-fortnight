@@ -1,0 +1,58 @@
+/* Executive-facing hosted summaries. Authentication and provider credentials stay on the server. */
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id),bridge=()=>window.PublicRadarBridge;
+  let available=false,busy=false,controller=null;
+  function tell(text){$('assistantStatus').textContent=text;}
+  function buttons(){
+    const button=$('explainResults');
+    button.disabled=!available||busy||!bridge()?.getMeta()?.complete||!bridge()?.getVisible()?.length;
+    button.textContent=busy?'Preparing summary…':'Explain these results';
+  }
+  function log(text,sourceURL){
+    const row=document.createElement('div');row.className='agent-message bot';row.textContent=text;
+    if(sourceURL){const link=document.createElement('a');link.href=sourceURL;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Verify source records';row.append(document.createTextNode('\n'),link);}
+    const host=$('agentLog');host.append(row);host.scrollTop=host.scrollHeight;
+  }
+  async function explain(question='Summarize these public parcel results, their limitations, and the next source checks.'){
+    if(busy)return;
+    const meta=bridge()?.getMeta(),rows=bridge()?.getVisible()||[];
+    if(!available){tell('Result summaries are not available right now. Search and source links remain available.');return;}
+    if(!meta?.complete||!meta.ready||!rows.length){tell('Complete a parcel search before requesting a summary.');return;}
+    busy=true;controller=new AbortController();const current=controller;
+    const snapshotId=meta.scanId;
+    buttons();tell('Preparing a summary from the current public records…');
+    const timer=setTimeout(()=>current.abort(),25000);
+    try{
+      const response=await fetch('/api/radar-agent',{method:'POST',credentials:'same-origin',signal:current.signal,
+        headers:{'content-type':'application/json'},body:JSON.stringify({question,sourceURL:meta.sourceURL,
+          retrievedAt:meta.time,scanComplete:true,totalCount:rows.length,
+          records:rows.slice(0,25).map(row=>({id:row.id,key:row.key,jurisdiction:row.jurisdiction,address:row.address,state:row.state,type:row.type,acres:row.acres,yearBuilt:row.yearBuilt}))})});
+      if(!response.ok)throw Error('summary-unavailable');
+      const result=await response.json();
+      if(current.signal.aborted||snapshotId!==bridge().getMeta().scanId)return;
+      if(result.generated!==true||typeof result.answer!=='string'||result.sourceURL!==meta.sourceURL)throw Error('invalid-summary');
+      const sampling=result.sampleCount<result.recordCount?` Summary uses ${result.sampleCount} of ${result.recordCount} visible records; it is not an exhaustive ranking.`:'';
+      log('Radar summary\n'+result.answer+'\n'+result.caveat+sampling+'\nSource records retrieved '+meta.time+'.',meta.sourceURL);
+      tell('Summary ready. Verify facts using the linked source records.'+sampling);
+    }catch{
+      if(snapshotId===bridge().getMeta().scanId)tell('A summary could not be prepared. Your search results and source links remain available.');
+    }finally{clearTimeout(timer);if(controller===current){busy=false;controller=null;buttons();}}
+  }
+  async function init(){
+    if(!$('explainResults'))return;
+    $('explainResults').addEventListener('click',()=>explain());
+    document.addEventListener('radar:scan-state',()=>{
+      if(controller){controller.abort();controller=null;busy=false;}
+      tell(available?'Select Explain these results after a completed search.':'Search and source links are available. Result summaries are not available right now.');buttons();
+    });
+    $('textFilter').addEventListener('input',()=>{controller?.abort();buttons();});
+    try{
+      const response=await fetch('/api/radar-agent/status',{credentials:'same-origin',signal:AbortSignal.timeout(5000)});
+      if(response.ok)available=(await response.json()).available===true;
+    }catch{/* A static deployment still supports deterministic search. */}
+    tell(available?'Select Explain these results after a completed search.':'Search and source links are available. Result summaries are not available right now.');buttons();
+  }
+  window.PublicRadarAssistant={isAvailable:()=>available,explain};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();

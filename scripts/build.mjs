@@ -1,0 +1,15 @@
+import {mkdir, cp, copyFile, rm} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const vendor=root+'assets/vendor/';
+await mkdir(vendor,{recursive:true});
+await cp(root+'node_modules/leaflet/dist',vendor+'leaflet',{recursive:true});
+await copyFile(root+'node_modules/@turf/turf/turf.min.js',vendor+'turf.min.js');
+await copyFile(root+'node_modules/leaflet/LICENSE',vendor+'LEAFLET-LICENSE.txt');
+await copyFile(root+'node_modules/@turf/turf/LICENSE',vendor+'TURF-LICENSE.txt');
+await rm(root+'dist',{recursive:true,force:true});
+await mkdir(root+'dist',{recursive:true});
+await copyFile(root+'index.html',root+'dist/index.html');
+await copyFile(root+'workspace.html',root+'dist/workspace.html');
+await cp(root+'assets',root+'dist/assets',{recursive:true});
+console.log('Static site built in dist/; local libraries prepared in assets/vendor/.');

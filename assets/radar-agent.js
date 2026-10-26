@@ -25,7 +25,7 @@
  const stateFrom=q=>/\b(NJ|new jersey)\b/i.test(q)?"NJ":/\b(FL|florida)\b/i.test(q)?"FL":null;
  function parseIntent(raw){
    const q=clean(raw), l=lower(q);
-   const area=l.match(/\b(over|above|greater than|more than|at least|minimum|under)\s+(\d+(?:\.\d+)?)\s*(?:acres?|ac\b)/);
+   const area=l.match(/\b(over|above|greater than|more than|at least|minimum|under|less than|below|at most|no more than|up to)\s+(\d+(?:\.\d+)?)\s*(?:acres?|ac\b)/);
    const radius=l.match(/\b(?:within|radius(?: of)?|in a)\s+(\d+(?:\.\d+)?)\s*(?:miles?|mi\b)/);
    const type=/\b(multifamily|multi.family|apartment|apartments)\b/.test(l)?"multifamily":
      /\b(vacant|undeveloped|empty lots?)\b/.test(l)?"vacant":
@@ -38,7 +38,7 @@
    if(/^(florida|new jersey|nj|fl|me|my location)$/i.test(location))location="";
    const search=/\b(find|show|scan|search|look for|locate)\b/i.test(q)&&
       (type||area||location||radius||/\b(parcel|properties|near me)\b/i.test(q));
-   return {q,search:!!search,nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres:area?Number(area[2]):null,comparison:area?(area[1]==="under"?"under":/^(over|above|greater than|more than)$/.test(area[1])?">":">="):null,
+   return {q,search:!!search,nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres:area?Number(area[2]):null,comparison:area?(/^(under|less than|below)$/.test(area[1])?"under":/^(at most|no more than|up to)$/.test(area[1])?"<=":/^(over|above|greater than|more than)$/.test(area[1])?">":">="):null,
       radius:radius?Math.min(100,Math.max(.5,Number(radius[1]))):null,
       state:stateFrom(q),countyLabel:countyLabel||null,location,
       sort:/\b(biggest|largest|most acreage)\b/.test(l)?"largest":/\b(nearest|closest)\b/.test(l)?"nearest":null,
@@ -117,7 +117,7 @@
  }
  function explainFollowUp(intent){
    const rows=bridge()?.getResults()||[],meta=bridge()?.getMeta()||{};
-   if(!meta.ready)return "No completed public scan is loaded. Search for a county or property type first.";
+   if(!meta.ready||!meta.complete)return "No completed public scan is loaded. Search for a county or property type first.";
    if(intent.questionOwnership)return "For a Florida parcel, open its detail card and choose Look up published assessment name. This queries the official record for that parcel when requested, without mailing addresses. New Jersey statewide GIS redacts owner names; open the official county tax-record lookup for independent research. Assessment names are NOT deed or beneficial-ownership verification.";
    if(intent.questionLease)return "Connected parcel/assessment sources do not provide verified lease start, tenant, rental terms or expiration. Those fields are unavailable here, not zero or unleased.";
    if(intent.questionOZ)return "OZ 1 means tracts designated in the older round. OZ 2 map data currently concerns eligibility or nominations for a later designation round. Turn on the appropriate reference layers; eligibility is NOT designation. Check the IRS source notice before relying on status.";
@@ -125,7 +125,7 @@
      ". The GIS source is not a title report, a boundary survey, or a leasing database. Geographic coverage varies by state and county. Incomplete source results are never interpreted as zero properties.";
    if(!rows.length)return "The last completed search returned no accepted records under its available-source filters; it is not proof that no property exists.";
    let matches=rows.filter(r=>intent.type==null||r.type===({multifamily:"Multifamily",industrial:"Industrial",vacant:"Vacant"}[intent.type]));
-   if(intent.acres!=null)matches=matches.filter(r=>r.acres!=null&&(intent.comparison===">"?r.acres>intent.acres:intent.comparison==="under"?r.acres<intent.acres:r.acres>=intent.acres));
+   if(intent.acres!=null)matches=matches.filter(r=>r.acres!=null&&(window.RadarDomain.matchesAcres(r.acres,{value:intent.acres,op:intent.comparison==="under"?"<":intent.comparison||">="})));
    if(intent.sort==="largest")matches.sort((a,b)=>(b.acres??-1)-(a.acres??-1));
    if(intent.sort==="nearest")matches.sort((a,b)=>a.distance-b.distance);
    const list=matches.slice(0,5).map(r=>"• "+(r.address||r.id)+" · "+(r.acres==null?"acreage unavailable":r.acres.toFixed(2)+" acres")+" · parcel "+r.id).join("\n");
@@ -136,7 +136,12 @@
    const intent=parseIntent(raw);if(!intent.q)return;
    if(busy){putMessage("A public-source search is already in progress. Finish it before submitting another request.");return;}
    putMessage(intent.q,"user");
-   if(!intent.search){if(window.PublicRadarLocalAI?.isReady()&&bridge()?.getMeta()?.ready){window.PublicRadarLocalAI.analyze();}else putMessage(explainFollowUp(intent),"bot",bridge()?.getSources()?.[bridge()?.getMeta()?.state]);return;}
+   if(!intent.search){
+     if(!intent.questionOwnership&&!intent.questionLease&&!intent.questionOZ&&window.PublicRadarAssistant?.isAvailable()&&bridge()?.getMeta()?.complete)
+       await window.PublicRadarAssistant.explain(intent.q);
+     else putMessage(explainFollowUp(intent),"bot",bridge()?.getMeta()?.sourceURL);
+     return;
+   }
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
      let state=intent.state||$ ("stateSelect").value;
@@ -176,23 +181,18 @@
        applyCounty(state,recognized.key,{center:false});
      }
      if(intent.type)$("typeSelect").value=intent.type;
-     if(intent.acres!=null){$("minAcres").value=String(intent.acres);window.PublicRadarStrictMin=intent.comparison===">";}
-     else window.PublicRadarStrictMin=false;
-     if(intent.radius!=null){
-       const r=$("radiusSelect");
-       const options=[...r.options].map(o=>Number(o.value)).filter(x=>Number.isFinite(x));
-       r.value=String(options.find(x=>x>=intent.radius)||options[options.length-1]||5);
-     }
+     if(intent.acres!=null)bridge().setAcreageFilter(intent.acres,intent.comparison==="under"?"<":intent.comparison||">=");
+     if(intent.radius!=null)bridge().setRadius(intent.radius);
      const previous=bridge().getMeta().time;
      putMessage("Searching the selected public source now. I will not replace failed or truncated results with invented answers.");
      await bridge().scan();
      const meta=bridge().getMeta(),rows=bridge().getResults();
-     if(!meta.ready||meta.time===previous){
+     if(!meta.ready||!meta.complete||meta.time===previous){
        putMessage("The scanner did not complete a fresh verified retrieval. Read the source warning above; no result count is claimed.");return;
      }
      putMessage(sourceSummary(rows).sentence+"\nRetrieved: "+meta.time+
        ". This does not indicate availability, title ownership or an investment recommendation.","bot",bridge().getSources()[meta.state]);
-     if(window.PublicRadarLocalAI?.isReady()&&meta.complete===true)window.PublicRadarLocalAI.analyze();
+
    }catch(e){putMessage("The public search could not complete: "+String(e?.message||e)+". No zero-result conclusion was made.");}
    finally{busy=false;if(btn)btn.disabled=false;}
  }
@@ -243,29 +243,6 @@
      r.start();
    });
  }
- async function modelExplain(){
-   const rows=bridge()?.getResults()||[],meta=bridge()?.getMeta()||{};
-   if(!rows.length||!meta.ready){putMessage("A completed public parcel scan is needed before requesting an AI explanation.");return;}
-   if(!window.RADAR_NIM_GATEWAY_ACTIVE||location.hostname.endsWith(".github.io")){
-     putMessage("NVIDIA Nemotron is not deployed on this public static site. Use the grounded search agent here; GPU inference requires an approved authenticated host.");return;
-   }
-   const payload={
-     question:$("agentPrompt")?.value.trim()||"Summarize these public assessor records with uncertainties.",
-     sourceURL:bridge()?.getSources()?.[meta.state],
-     records:rows.slice(0,25).map(p=>({id:p.id,address:p.address,state:p.state,acres:p.acres,type:p.type,yearBuilt:p.yearBuilt}))
-   };
-   const btn=$("nemotronExplain");btn.disabled=true;
-   try{
-     const r=await fetch("/api/radar-agent",{method:"POST",credentials:"same-origin",
-       headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
-     if(!r.ok)throw Error("Authenticated NVIDIA gateway unavailable (HTTP "+r.status+")");
-     const json=await r.json();
-     if(!json.modelGenerated||typeof json.answer!=="string")throw Error("Unverified model response envelope");
-     putMessage("NVIDIA AI interpretation (NOT an independently verified finding):\n"+json.answer+
-       "\nSource: "+json.sourceURL+"\nPlease verify underlying records before decisions.");
-   }catch(e){putMessage("NVIDIA inference not available: "+String(e.message||e)+". The verified-rule agent remains usable.");}
-   finally{btn.disabled=false;}
- }
  function init(){
    if(!bridge()||!$("agentForm"))return;
    $("agentForm").addEventListener("submit",e=>{e.preventDefault();ask($("agentPrompt").value);});
@@ -273,8 +250,10 @@
    $("stateSelect").addEventListener("change",applyNewLocation);
    $("countySelect").addEventListener("change",()=>{
       const state=$("stateSelect").value;
+      if(!$("countySelect").value){activeCounty="";window.PublicRadarCounty="";clearOldResults();return;}
       const row=countyEntries(state).find(c=>c.key===$("countySelect").value);
-      if(!row||!row.connected)return;
+      if(!row){activeCounty="";window.PublicRadarCounty="";clearOldResults();return;}
+      if(!row.connected)return;
       activeCounty=row.key;window.PublicRadarCounty=activeCounty;
       bridge().setCenter(row.lat,row.lon,12);clearOldResults();
       bridge().setStatus("Centered on "+row.label+" County. Searches are public-source, bounded by radius and selected county.","info");
@@ -286,14 +265,14 @@
      if(m){applyCounty(m[0],m[1],{center:false});clearOldResults();}
    });
    applyCounty($("stateSelect").value,"Middlesex",{center:false});
-   const nim=$("nemotronExplain");
-   if(nim){const enabled=window.RADAR_NIM_GATEWAY_ACTIVE===true&&!location.hostname.endsWith(".github.io");
-     nim.disabled=!enabled;
-     nim.title=enabled?"Explain the current public scan through an authenticated NVIDIA host":
-       "Available only after secure NVIDIA inference deployment (never directly on GitHub Pages)";
-     nim.addEventListener("click",modelExplain);}
+   document.addEventListener("radar:location",e=>{
+     const {state,county}=e.detail;
+     const row=countyEntries(state).find(c=>c.connected&&c.label.toLowerCase()===String(county||"").toLowerCase());
+     applyCounty(state,row?.key,{center:false});
+     if(!row){$("countySelect").value="";activeCounty="";window.PublicRadarCounty="";}
+   });
    bindVoice();showAssembly();document.addEventListener("radar:parcel-selected",parcelAction);
-   document.addEventListener("radar:scan-complete",()=>assembly.clear());
+   document.addEventListener("radar:scan-complete",()=>{assembly.clear();showAssembly();});
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

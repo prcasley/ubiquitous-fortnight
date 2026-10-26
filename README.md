@@ -1,5 +1,11 @@
 # Capital Radar | Public GIS Research (No Transactions)
 
+## Development update
+
+The public scanner now includes corrected search operators and source selection, explicit scan states, browser-saved research/notes/exports, and selected-parcel flood/wetlands screening adapters. A separate authenticated local workspace supports permitted licensed-data imports, parcel search/maps, supplied histories and import change alerts. No licensed dataset or live vendor account is bundled. Environmental source endpoints still need live validation; unavailable coverage is never a clearance.
+
+Run `npm ci`, `npm run build`, and `npm test`. Serve the generated `dist/` folder for the static app. Raw repository-root deployment no longer includes the generated local map libraries. See [development, testing, deployment and provider setup](docs/DEVELOPMENT.md) for the current workflow and limits. Historical feature/verification notes below describe the public scanner and do not establish new live-service validation.
+
 This public, static-browser interface performs **read-only queries to official state GIS layers**. It is not a private property-screening application, does not use any internal candidate lists, and does not include comparable sales, transaction amounts, contact dossiers, ownership-inference scores or confidential business records.
 
 ## Sources and coverage
@@ -33,7 +39,7 @@ A public ArcGIS service may be unavailable, rate-limited, or blocked by client n
 
 ## Static deployment
 
-Deploy `index.html` and `assets/radar-live.css`, `assets/radar-live.js` to GitHub Pages from `main` and `/ (root)`. Never upload proprietary application code or internal/company-selected records to this public repository.
+Run `npm ci` and `npm run build`, then deploy the generated `dist/` artifact. The manual GitHub Pages build workflow supports this; see `docs/DEVELOPMENT.md`. Raw root deployment omits generated dependencies. Never upload licensed datasets, internal/company-selected records or credentials to this public repository.
 ## Next-generation public executive experience (feature branch)
 
 This branch adds a natural-language **rule-driven** executive assistant: ask for industrial parcels over a specified acreage near an NJ/FL municipality, filter industrial/vacant/multifamily classes, and interrogate source provenance. It does not invent parcels or perform cloud generative inference. The existing source scanner remains the system of record.
@@ -46,14 +52,14 @@ This branch adds a natural-language **rule-driven** executive assistant: ask for
 - OZ 1 reference layer based on a federal spatial service and OZ 2 **third-party eligibility reference** with tract GEOIDs. OZ 2 reference polygons do NOT establish official Treasury designation or certification.
 - A session-only parcel grouping tray for observed acreage sums. Selecting neighboring map parcels does not prove adjacency, unified title or assemblage feasibility.
 - Optional voice dictation with explicit browser/service warning; text input remains the accessible default.
-- An optional NVIDIA Nemotron inference gateway lives in `server/` but is disabled and **does not run on GitHub Pages**. It needs approved private infrastructure, inference compute, authenticated reverse proxy and source-validation QA. No model keys are bundled.
+- Hosted result summaries run through the authenticated application server. The executive UI has no provider/model controls, downloads or GPU setup. GitHub Pages cannot run those server routes. See [hosted assistant setup](docs/HOSTED_ASSISTANT.md); live hosted inference has passed a synthetic backend check; production deployment remains outstanding.
 
-See [public data coverage and state-source backlog](docs/PUBLIC_DATA_COVERAGE.md) and [NVIDIA agent research and deployment roadmap](docs/NVIDIA_AGENT_ROADMAP.md).
+See [public data coverage and state-source backlog](docs/PUBLIC_DATA_COVERAGE.md) and [hosted research assistant setup](docs/HOSTED_ASSISTANT.md).
 
 **Verification state:** Local static checks and source schema inspections support the code paths. The new OZ reference layers, CORS responses, selected county filters and end-to-end phone behavior have **not** passed authoritative on-device live scans. Do not report them as production-verified until that happens. The pull request includes zero-network GitHub Actions checks to catch unsafe field projection and obvious regressions.
 
 
-## October 23 live scanner and NVIDIA improvements
+## Live scanner and hosted research summaries
 
 **Palm Beach County reliability:** A diagnostic GitHub Actions runner confirmed that Florida's 2026 statewide layer responds to metadata but timed out after 40 seconds on both a one-record and a small-area query. The new primary Palm Beach parcel service instead returned 10 county warehouse records in about 2 seconds, and a realistic five-mile industrial query returned 150 GIS features in about nine seconds, with permissive public CORS headers. These were real *network-source tests*, not a claim that the web UI has been validated on every phone.
 
@@ -64,8 +70,8 @@ See [public data coverage and state-source backlog](docs/PUBLIC_DATA_COVERAGE.md
 - Each Florida property card provides an explicit **Look up published assessment name** action. It requests only a single parcel's official assessment-owner name, not mailing addresses, private contacts, or a bulk public person index. It does not establish deeded or beneficial ownership.
 - New Jersey's statewide service redacts names. Property cards link to New Jersey's own Property Tax/Property Explorer portal for independent source research; the app does not scrape protected persons' details.
 
-**NVIDIA open-weight model (optional):** A local model-worker implementation using [Nemotron 3 Nano 4B ONNX](https://huggingface.co/onnx-community/NVIDIA-Nemotron-3-Nano-4B-BF16-ONNX) and [Transformers.js 4.3.1](https://huggingface.co/docs/transformers.js/installation) has been added. On supported **WebGPU desktops**, a user can choose to download the approximately 2.5–3GB model and ask it to interpret the last retrieved public parcel scan. Questions and parcels remain on the local device during inference. No API key, hosted model or subscription is required; device computing resources and initial model download are required. GPU/browser-specific compatibility and end-to-end inference **have not yet been live-device validated**. This model is not silently loaded on phones. It cannot manufacture parcel records, legal title, leases, OZ status or investment evidence. The older private Radar's AI evidence-import ledger did not itself run a model.
+**Hosted assistant:** Executives select **Explain these results** after a completed search. A server-side integration sends a limited public-record sample and returns an advisory summary with source provenance. No model is downloaded to the laptop. Administrator configuration, a valid hosted API key/model and an approved persistent authenticated host are required; live inference passed a synthetic authenticated backend check on October 26, 2026; no production deployment is claimed.
 
 **Still excluded:** proprietary portfolio lists, internal business data, contact dossiers, comps, sale/lease transaction amounts, and property-value estimates.
 
-**Testing gate:** The repo includes automated static tests and official public source network probes. The latter are not a substitute for validating the published GitHub Pages interface on a physical iPhone or the local WebGPU model on a supported desktop.
+**Testing gate:** The repo includes automated static tests and official public source network probes. The latter are not a substitute for validating the published GitHub Pages interface on a physical iPhone or a configured live hosted summary service.
