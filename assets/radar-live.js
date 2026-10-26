@@ -136,7 +136,8 @@
   function serverWhere(state,mode,min,provider=SOURCES[state]) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=window.PublicRadarStrictMin?">":">=";
-    if(provider===SOURCES.BRO||provider===SOURCES.MDC){\n      // County use codes vary; query spatially and validate normalized records.
+    if(provider===SOURCES.BRO||provider===SOURCES.MDC){
+      // County use codes vary; query spatially and validate normalized records.
     } else if(provider===SOURCES.PBC) {
       // The county assessor class is descriptive text (not Florida DOR's numbered codes).
       if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
