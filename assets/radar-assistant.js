@@ -26,14 +26,15 @@
     try{
       const response=await fetch('/api/radar-agent',{method:'POST',credentials:'same-origin',signal:current.signal,
         headers:{'content-type':'application/json'},body:JSON.stringify({question,sourceURL:meta.sourceURL,
-          retrievedAt:meta.time,scanComplete:true,totalCount:rows.length,
+          retrievedAt:meta.time,scanComplete:true,totalCount:rows.length,unverifiedCriteria:meta.unverified||[],
           records:rows.slice(0,25).map(row=>({id:row.id,key:row.key,jurisdiction:row.jurisdiction,address:row.address,state:row.state,type:row.type,acres:row.acres,yearBuilt:row.yearBuilt}))})});
       if(!response.ok)throw Error('summary-unavailable');
       const result=await response.json();
       if(current.signal.aborted||snapshotId!==bridge().getMeta().scanId)return;
       if(result.generated!==true||typeof result.answer!=='string'||result.sourceURL!==meta.sourceURL)throw Error('invalid-summary');
       const sampling=result.sampleCount<result.recordCount?` Summary uses ${result.sampleCount} of ${result.recordCount} visible records; it is not an exhaustive ranking.`:'';
-      log('Radar summary\n'+result.answer+'\n'+result.caveat+sampling+'\nSource records retrieved '+meta.time+'.',meta.sourceURL);
+      const qualification=meta.unverified?.length?'\nCandidates only: '+meta.unverified.join(', ')+' remain unverified.':'';
+      log('Radar summary\n'+result.answer+'\n'+result.caveat+sampling+qualification+'\nSource records retrieved '+meta.time+'.',meta.sourceURL);
       tell('Summary ready. Verify facts using the linked source records.'+sampling);
     }catch{
       if(snapshotId===bridge().getMeta().scanId)tell('A summary could not be prepared. Your search results and source links remain available.');

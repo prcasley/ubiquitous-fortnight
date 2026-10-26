@@ -22,6 +22,15 @@ test('parcel identity includes provider and county; distribution class matches w
   assert.equal(domain.pbcCategory('DISTRIBUTION'),'Industrial');assert.equal(domain.pbcCategory('SPECIAL DISTRICTS'),'Other');
   assert.equal(domain.pbcCategory('VACANT INDUSTRIAL'),'Vacant');
 });
+test('exact and approximate acreage filters generate matching county/state query predicates',()=>{
+  const exact=domain.acreageFilter(6,'=');assert.equal(domain.acreageSQL('CALC_ACRE',exact),'CALC_ACRE = 6');
+  assert.equal(domain.matchesAcres(6,exact),true);assert.equal(domain.matchesAcres(6.01,exact),false);
+  const range=domain.acreageFilter(5.4,'between',6.6);
+  assert.equal(domain.acreageSQL('ACRES',range),'ACRES >= 5.4 AND ACRES <= 6.6');
+  assert.equal(domain.acreageSQL('LND_SQFOOT',range,43560),'LND_SQFOOT >= 235224 AND LND_SQFOOT <= 287496');
+  assert.deepEqual([5,5.4,6,6.6,7].filter(n=>domain.matchesAcres(n,range)),[5.4,6,6.6]);
+  assert.equal(domain.matchesAcres(null,range),false);assert.throws(()=>domain.acreageFilter(10,'between',5));
+});
 test('radius selection includes parcels crossing circle even when midpoint is outside',()=>{
   const parcel=rectangle(0.01,-0.01,0.1,0.01);
   assert.equal(domain.intersectsRadius(parcel.geometry,{lon:0,lat:0},1,turf),true);

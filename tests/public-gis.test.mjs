@@ -59,6 +59,22 @@ test("a question about ownership or leasing is an evidence-limited followup",()=
  const l=parse("When is the lease term up?");
  assert.equal(l.questionLease,true);assert.equal(l.search,false);
 });
+test("executive shorthand preserves acreage, missing facts and pricing meaning",()=>{
+ const nearest=parse('find me the nearest parcels with 5 acres and for industrial');
+ assert.equal(nearest.search,true);assert.equal(nearest.acres,5);assert.equal(nearest.comparison,'>=');assert.equal(nearest.type,'industrial');assert.equal(nearest.sort,'nearest');assert.equal(nearest.location,'');
+ const renewal=parse('find me a 6 acre parcel which is up for renewal and has the owner name');
+ assert.equal(renewal.acres,6);assert.equal(renewal.comparison,'=');assert.equal(renewal.questionLease,true);assert.equal(renewal.questionOwnership,true);
+ const sale=parse('find me a NJ property up for sale that has approx $200 per sq foot');
+ assert.equal(sale.state,'NJ');assert.equal(sale.forSale,true);assert.equal(sale.pricePsf.amount,200);assert.equal(sale.pricePsf.basis,'asking-sale');assert.equal(sale.pricePsf.unit,'building-square-foot');assert.equal(sale.pricePsf.approximate,true);assert.equal(sale.acres,null);
+ const comps=parse('Show recent industrial sale comps near Edison NJ around $200/SF');
+ assert.equal(comps.pricePsf.basis,'closed-sale');assert.equal(comps.comps,true);assert.equal(comps.location,'Edison NJ');
+ const approximate=parse('Find warehouses about 6 acres near Edison, NJ');
+ assert.equal(approximate.type,'industrial');assert.equal(approximate.acres,5.4);assert.equal(approximate.maxAcres,6.6);assert.equal(approximate.comparison,'between');
+ const range=parse('show industrial between 5 and 10 acres in Edison NJ');
+ assert.equal(range.acres,5);assert.equal(range.maxAcres,10);assert.equal(range.comparison,'between');
+ assert.equal(parse('Find a six-acre parcel in Palm Beach County FL').acres,6);
+ assert.equal(parse('Find 5+ acre industrial sites near Edison NJ').comparison,'>=');
+});
 test("only supported county IDs are used for Florida public scans",()=>{
  assert.match(core,/CO_NO IN \(60,53,66\)/);
  assert.match(core,/ACT_YR_BLT/);assert.match(core,/EFF_YR_BLT/);

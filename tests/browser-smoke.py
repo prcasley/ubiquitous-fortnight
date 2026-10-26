@@ -27,7 +27,7 @@ threading.Thread(target=server.serve_forever, daemon=True).start()
 def polygon(lon, lat):
     return {'type': 'Polygon', 'coordinates': [[[lon-.0001, lat-.0001], [lon+.0001, lat-.0001], [lon+.0001, lat+.0001], [lon-.0001, lat+.0001], [lon-.0001, lat-.0001]]]}
 
-mode = {'fail': False, 'partial': False, 'collision': False}
+mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False}
 queries = []
 external_requests = []
 
@@ -42,7 +42,8 @@ def network(route):
     params = parse_qs(parsed.query)
     external_requests.append(route.request.url)
     if parsed.hostname == 'geocode.arcgis.com':
-        respond(route, {'candidates': [{'score': 100, 'address': 'Palm Beach County, FL', 'location': {'x': -80.13, 'y': 26.72}, 'attributes': {'RegionAbbr': 'FL', 'Subregion': 'Palm Beach County'}}]})
+        nj_place=bool(re.search(r'\b(NJ|Edison|Parsippany)\b',params.get('SingleLine',[''])[0],re.I))
+        respond(route, {'candidates': [{'score': 100, 'address': 'Edison, NJ' if nj_place else 'Palm Beach County, FL', 'location': {'x': -74.363 if nj_place else -80.13, 'y': 40.527 if nj_place else 26.72}, 'attributes': {'RegionAbbr': 'NJ' if nj_place else 'FL', 'Subregion': 'Middlesex County' if nj_place else 'Palm Beach County'}}]})
         return
     if parsed.hostname in ('hazards.fema.gov', 'fwspublicservices.wim.usgs.gov'):
         if not parsed.path.endswith('/query'):
@@ -64,15 +65,13 @@ def network(route):
         nj = parsed.hostname == 'services2.arcgis.com'
         fdor = parsed.hostname == 'services9.arcgis.com'
         features = []
-        acres_values = [3,4,5] if not mode['partial'] else [3]*150
+        acres_values = ([3,4,5,6,6.4,7,10] if mode['chat'] else [3,4,5]) if not mode['partial'] else [3]*150
         if mode['collision']:
             acres_values = [3,3]
         for i, acres in enumerate(acres_values):
-            match = re.search(r'(?:ACRES|CALC_ACRE) (>=|<=|>|<) ([\d.]+)', where)
-            if match:
-                op, value = match.group(1), float(match.group(2))
-                if not {'>=': acres >= value, '>': acres > value, '<': acres < value, '<=': acres <= value}[op]:
-                    continue
+            conditions = re.findall(r'(?:ACRES|CALC_ACRE) (>=|<=|>|<|=) ([\d.]+)', where)
+            if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
+                continue
             props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
             geometry = polygon(-74.363,40.527) if nj else polygon(-80.13,26.72)
             if fdor:
@@ -196,6 +195,52 @@ try:
         assert 'Map library unavailable' in missing.locator('#statusText').inner_text()
         missing.close()
         assert not exceptions, exceptions
+        mode['chat']=True
+        natural=context.new_page()
+        natural.route('**/*',network)
+        natural_errors=[]
+        natural.on('pageerror',lambda error: natural_errors.append(str(error)))
+        natural.goto(f'http://127.0.0.1:{server.server_port}/')
+        before=len(queries)
+        natural.fill('#agentPrompt','find me the nearest parcels with 5 acres and for industrial')
+        natural.locator('#agentForm button[type=submit]').click()
+        assert 'Which city or address' in natural.locator('#agentLog .bot').last.inner_text()
+        assert len(queries)==before,'A missing location must not trigger a guessed search'
+        natural.fill('#agentPrompt','Edison NJ')
+        natural.locator('#agentForm button[type=submit]').click()
+        natural.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[5,6,6.4,7,10]
+        assert any(host=='services2.arcgis.com' and 'CALC_ACRE >= 5' in where for host,where in queries[before:])
+        assert 'at least 5 acres' in natural.locator('#agentLog').inner_text()
+        natural.fill('#agentPrompt','find me a 6 acre parcel which is up for renewal and has the owner name')
+        natural.locator('#agentForm button[type=submit]').click()
+        natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getSearch().acreage.op==="="')
+        assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[6]
+        assert natural.evaluate('window.PublicRadarBridge.getMeta().unverified')==['lease renewal dates','verified owner names']
+        assert 'Candidates only' in natural.locator('#resultInfo').inner_text()
+        assert any('CALC_ACRE = 6' in where for host,where in queries)
+        natural.fill('#agentPrompt','find me a NJ property up for sale that has approx $200 per sq foot')
+        natural.locator('#agentForm button[type=submit]').click()
+        natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getMeta().unverified.includes("current sale availability")')
+        assert natural.evaluate('window.PublicRadarBridge.getResults().length')==7
+        assert 'asking sale price per building square foot' in natural.locator('#agentLog').inner_text()
+        assert 'current sale availability' in natural.locator('#resultInfo').inner_text()
+        assert 'remain unverified' in natural.locator('#agentLog .bot').last.inner_text()
+        natural.fill('#agentPrompt','Find warehouses about 6 acres near Edison NJ')
+        natural.locator('#agentForm button[type=submit]').click()
+        natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getSearch().acreage.op==="between"')
+        assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[6,6.4]
+        assert natural.locator('#maxAcresField').is_visible()
+        assert natural.locator('#maxAcres').input_value()=='6.6'
+        assert any('CALC_ACRE >= 5.4 AND CALC_ACRE <= 6.6' in where for host,where in queries)
+        natural.fill('#agentPrompt','actually exactly 7 acres')
+        natural.locator('#agentForm button[type=submit]').click()
+        natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getSearch().acreage.value===7')
+        assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[7]
+        assert natural.locator('#typeSelect').input_value()=='industrial'
+        natural.close()
+        mode['chat']=False
+        assert not natural_errors,natural_errors
         password = secrets.token_hex(24)
         fixture = '''
           import {ResearchStore} from './server/research-store.mjs';

@@ -2,6 +2,8 @@
 
 ## Development update
 
+For natural-language search examples and the distinction between asking prices and comparable sales, see [the chat guide](docs/CHAT_GUIDE.md).
+
 The public scanner now includes corrected search operators and source selection, explicit scan states, browser-saved research/notes/exports, and selected-parcel flood/wetlands screening adapters. A separate authenticated local workspace supports permitted licensed-data imports, parcel search/maps, supplied histories and import change alerts. No licensed dataset or live vendor account is bundled. Environmental source endpoints still need live validation; unavailable coverage is never a clearance.
 
 Run `npm ci`, `npm run build`, and `npm test`. Serve the generated `dist/` folder for the static app. Pinned runtime assets are also tracked for existing repository-root Pages deployments. See [development, testing, deployment and provider setup](docs/DEVELOPMENT.md) for the current workflow and limits. Historical feature/verification notes below describe the public scanner and do not establish new live-service validation.

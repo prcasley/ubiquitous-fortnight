@@ -22,7 +22,7 @@
         document.dispatchEvent(new CustomEvent('radar:location',{detail:{state:s.state,county:item.countyLabel}}));
         $('countySelect').value=s.county;window.PublicRadarCounty=s.county;
         bridge().setCenter(s.center.lat,s.center.lon);bridge().setRadius(s.radius);
-        $('typeSelect').value=s.type;bridge().setAcreageFilter(s.acreage.value,s.acreage.op);
+        $('typeSelect').value=s.type;bridge().setAcreageFilter(s.acreage.value,s.acreage.op,s.acreage.max);
         message('Saved filters loaded. Run a new scan to retrieve current source records.');
       }),button('Remove',()=>{saved.searches=saved.searches.filter(x=>x.id!==item.id);persist();}));
       host.append(row);
@@ -43,7 +43,7 @@
     return {key:record.key,id:record.id,state:record.state,jurisdiction:record.jurisdiction,provider:record.provider,
       address:record.address,acres:record.acres,assessmentClass:record.use,yearBuilt:record.yearBuilt,
       sourceURL:record.source.url,sourceName:record.source.name,sourceVintage:record.source.date,
-      retrievedAt:meta.time,scanStatus:meta.status,geometryPrecision:record.locationPrecision,
+      retrievedAt:meta.time,scanStatus:meta.status,unverifiedCriteria:meta.unverified||[],geometryPrecision:record.locationPrecision,
       geometry:record.geometry.geometry,screenings:results.get(record.key)||[],note:'',savedAt:new Date().toISOString()};
   }
   function init(){

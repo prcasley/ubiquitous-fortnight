@@ -5,15 +5,25 @@
   else root.RadarDomain=api;
 })(globalThis,()=>{
   'use strict';
-  function acreageFilter(value,op='>='){
+  function acreageFilter(value,op='>=',upper){
     const v=Number(value);
     if(!Number.isFinite(v)||v<0||v>99999)throw Error('Acreage must be between 0 and 99,999');
-    if(!['>=','>','<','<='].includes(op))throw Error('Unsupported acreage comparison');
+    if(!['>=','>','<','<=','=','between'].includes(op))throw Error('Unsupported acreage comparison');
+    if(op==='between'){
+      const max=Number(upper);
+      if(upper==null||upper===''||!Number.isFinite(max)||max<v||max>99999)throw Error('Enter an upper acreage at least as large as the lower acreage');
+      return {value:v,op,max};
+    }
     return {value:v,op};
   }
   function matchesAcres(acres,filter){
     if(acres==null||!Number.isFinite(Number(acres)))return filter.value===0&&filter.op==='>=';
-    return {'>':acres>filter.value,'>=':acres>=filter.value,'<':acres<filter.value,'<=':acres<=filter.value}[filter.op];
+    return {'>':acres>filter.value,'>=':acres>=filter.value,'<':acres<filter.value,'<=':acres<=filter.value,'=':Number(acres)===filter.value,between:acres>=filter.value&&acres<=filter.max}[filter.op];
+  }
+  function acreageSQL(field,filter,scale=1){
+    if(!/^[A-Z_]+$/.test(field))throw Error('Invalid acreage field');
+    const valid=acreageFilter(filter.value,filter.op,filter.max),number=v=>Number((v*scale).toFixed(4));
+    return valid.op==='between'?`${field} >= ${number(valid.value)} AND ${field} <= ${number(valid.max)}`:`${field} ${valid.op} ${number(valid.value)}`;
   }
   function parcelKey(provider,state,county,id){
     if(!provider||!state||!county||!id)throw Error('Parcel identity requires provider, state, jurisdiction and local ID');
@@ -54,5 +64,5 @@
       precision:pointOnly?'point-only':'parcel-polygon',overlapPercent:percent,
       labels:[...new Set(hits.map(f=>String(f.properties?.FLD_ZONE||f.properties?.WETLAND_TYPE||f.properties?.ATTRIBUTE||'Mapped feature')))]};
   }
-  return {acreageFilter,matchesAcres,parcelKey,pbcCategory,intersectsRadius,summarizeScreen};
+  return {acreageFilter,matchesAcres,acreageSQL,parcelKey,pbcCategory,intersectsRadius,summarizeScreen};
 });

@@ -31,6 +31,7 @@ const system=[
   'Assessment classes are not zoning; missing attributes remain unknown.',
   'Cite parcel IDs when discussing specific parcels. The source link and retrieval time are supplied separately by the application.',
   'A sample is not the whole scan: do not derive whole-scan counts, totals or rankings from a partial sample.',
+  'Any unverifiedCriteria describe requested conditions the application cannot check. Explicitly keep them unknown; do not describe these candidates as meeting them.',
   'Use short plain-text paragraphs. Do not output HTML, hidden reasoning, or instructions to download software.',
   'If asked to go beyond the supplied observations, explain what source evidence is missing.'
 ].join(' ');
@@ -52,6 +53,8 @@ export function createHostedAssistant({apiKey=process.env.NIM_API_KEY,model=proc
     async answer(input,{identity='workspace',signal}={}){
       if(!configured)return {status:503,body:{error:'Result summaries are not available right now. Search and source links remain available.'}};
       const question=clean(input?.question,600),rows=sanitizedRecords(input?.records);
+      const allowedCriteria=new Set(['lease renewal dates','current sale availability','closed-sale comparables','asking price per building square foot','verified owner names']);
+      const unverifiedCriteria=Array.isArray(input?.unverifiedCriteria)?input.unverifiedCriteria.filter(value=>allowedCriteria.has(value)).slice(0,5):[];
       const total=Number(input?.totalCount),retrievedAt=clean(input?.retrievedAt,60);
       if(!question||!rows.length||!validSource(input?.sourceURL)||input?.scanComplete!==true||
         !Number.isInteger(total)||total<rows.length||total>1100||!Number.isFinite(Date.parse(retrievedAt)))
@@ -70,7 +73,7 @@ export function createHostedAssistant({apiKey=process.env.NIM_API_KEY,model=proc
           method:'POST',redirect:'error',signal:controller.signal,
           headers:{'content-type':'application/json',authorization:'Bearer '+apiKey},
           body:JSON.stringify({model:selectedModel.trim(),messages:[{role:'system',content:system},{role:'user',content:JSON.stringify({
-            question,sourceURL:input.sourceURL,retrievedAt,totalCount:total,sampleCount:rows.length,records:rows
+            question,sourceURL:input.sourceURL,retrievedAt,totalCount:total,sampleCount:rows.length,unverifiedCriteria,records:rows
           })}],temperature:0,max_tokens:600,stream:false,
             ...(selectedModel===DEFAULT_HOSTED_MODEL?{chat_template_kwargs:{enable_thinking:false}}:{})})
         });

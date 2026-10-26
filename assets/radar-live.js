@@ -134,7 +134,7 @@
     const dy=radius/69.0, dx=radius/(69.172*Math.max(.2,Math.cos(center.lat*Math.PI/180)));
     return {xmin:center.lon-dx,ymin:center.lat-dy,xmax:center.lon+dx,ymax:center.lat+dy,spatialReference:{wkid:4326}};
   }
-  function readAcreageFilter(){return domain.acreageFilter($("minAcres").value,$("acreageComparison").value);}
+  function readAcreageFilter(){return domain.acreageFilter($("minAcres").value,$("acreageComparison").value,$("maxAcres").value);}
   function providerFor(state,lat,lon){
     const countySource={PalmBeach:"PBC",Broward:"BRO",MiamiDade:"MDC"}[window.PublicRadarCounty];
     return state==="FL"&&countySource&&stateInBounds(lat,lon,countySource)?SOURCES[countySource]:SOURCES[state];
@@ -149,20 +149,20 @@
       if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
       if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
       if(mode==="vacant")terms.push("(PROPERTY_USE LIKE '%VACANT%' OR PROPERTY_USE LIKE '%UNDEVELOPED%')");
-      if(min>0||op!==">=")terms.push("ACRES "+op+" "+Number(min));
+      if(min>0||op!==">=")terms.push(domain.acreageSQL("ACRES",readAcreageFilter()));
     } else if(state==="NJ") {
       if(/^[A-Za-z ]{3,12}$/.test(county))terms.push("UPPER(COUNTY) = '"+county.toUpperCase()+"'");
       if(mode==="industrial")terms.push("PROP_CLASS = '4B'");
       if(mode==="multifamily")terms.push("PROP_CLASS = '4C'");
       if(mode==="vacant")terms.push("PROP_CLASS = '1'");
-      if(min>0||op!==">=")terms.push("CALC_ACRE "+op+" "+Number(min));
+      if(min>0||op!==">=")terms.push(domain.acreageSQL("CALC_ACRE",readAcreageFilter()));
     } else {
       const codes={PalmBeach:60,Martin:53,StLucie:66,Broward:6,MiamiDade:13};
       terms.push(codes[county]?"CO_NO = "+codes[county]:"CO_NO IN (60,53,66)");
       if(mode==="industrial")terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
       if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
       if(mode==="vacant")terms.push("DOR_UC IN ('010','0010','040','0040')");
-      if(min>0||op!==">=")terms.push("LND_SQFOOT "+op+" "+Number((min*43560).toFixed(2)));
+      if(min>0||op!==">=")terms.push(domain.acreageSQL("LND_SQFOOT",readAcreageFilter(),43560));
     }
     return terms.join(" AND ")||"1=1";
   }
@@ -183,7 +183,7 @@
       return data;
     } finally {clearTimeout(timeout);signal?.removeEventListener("abort",onAbort);}
   }
-  async function scan() {
+  async function scan(request={}) {
     if(scannerBusy) { clearResults();scanState="cancelled";status("Search cancelled.","warning");return; }
     if(!map||!domain||!window.turf){status("Map or spatial library unavailable. Reload after dependencies are available.","danger");return;}
     const state=$("stateSelect").value;
@@ -208,7 +208,7 @@
     $("scanButton").textContent="Cancel scan";
     const source=providerFor(state,center.lat,center.lon), env=scanEnvelope(center,radius);
     activeSource=source;sourceState=state;sourceCenter=center;
-    searchSnapshot={state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter};
+    searchSnapshot={state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,5):[]};
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
@@ -293,7 +293,7 @@
   }
   function renderResults(){
     filtered=currentFilters();$("resultInfo").textContent=records.length?
-      fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+scanState:
+      fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+scanState+(searchSnapshot?.unverified?.length?" · Candidates only: "+searchSnapshot.unverified.join(", ")+" unverified":""):
       "No completed parcel results loaded";
     const node=$("results");
     if(!filtered.length) {node.innerHTML='<div class="empty">No records to show. Choose a market and run a public parcel scan.</div>';return;}
@@ -467,12 +467,14 @@
   }
   function useGPS(){void locateGPS();}
   function askQuestion(question){
+    const intent=window.PublicRadarAgent.parseIntent(question);
+    if(intent.forSale||intent.pricePsf||intent.comps)return "Active sale listings, asking prices and comparable sales are not connected. A public parcel scan cannot confirm those conditions. Asking price per building square foot is different from a closed-sale comp.";
+    if(intent.questionLease)return "Lease renewal and expiration dates require a lease schedule or other dated evidence. They are not connected to this public parcel scan.";
     if(!scanComplete)return "The latest scan is "+scanState+". Complete a public-source scan before requesting a result summary.";
     if(!records.length)return "I don't have loaded parcel records yet. Choose NJ or FL, set a search center and tap Scan public parcels.";
     const txt=question.toLowerCase();
-    const intent=window.PublicRadarAgent.parseIntent(question);
     const type={industrial:"Industrial",vacant:"Vacant",multifamily:"Multifamily"}[intent.type]||null;
-    const rr=records.filter(p=>(intent.acres==null||domain.matchesAcres(p.acres,{value:intent.acres,op:intent.comparison==="under"?"<":intent.comparison||">="}))&&(!type||p.type===type));
+    const rr=records.filter(p=>(intent.acres==null||domain.matchesAcres(p.acres,{value:intent.acres,op:intent.comparison==="under"?"<":intent.comparison||">=",max:intent.maxAcres}))&&(!type||p.type===type));
     if(/all|anywhere|nationwide|every parcel/.test(txt))return "This app only queries selected public GIS areas in Florida and New Jersey. Its current scan contains "+records.length+" returned parcels. It cannot claim nationwide coverage.";
     if(/who owns|owner/.test(txt)){
       const withOwner=rr.filter(p=>p.owner);
@@ -514,14 +516,15 @@
     return item;
   }
   window.PublicRadarBridge={scan,findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
-    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete}),
+    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");
       const select=$("radiusSelect");if(![...select.options].some(o=>Number(o.value)===radius))select.add(new Option(radius+" miles",String(radius)));
       select.value=String(radius);
     },
     getSearch:()=>searchSnapshot?JSON.parse(JSON.stringify(searchSnapshot)):null,
-    setAcreageFilter:(value,op)=>{const f=domain.acreageFilter(value,op);$("minAcres").value=f.value;$("acreageComparison").value=f.op;},
+    setAcreageFilter:(value,op,upper)=>{const f=domain.acreageFilter(value,op,upper);$("minAcres").value=f.value;$("acreageComparison").value=f.op;$("maxAcres").value=f.max??"";$("maxAcresField").hidden=f.op!=="between";},
+    sortResults:sort=>{records.sort(sort==="largest"?(a,b)=>(b.acres??-1)-(a.acres??-1):(a,b)=>a.distance-b.distance);renderResults();},
     getSource:(state,lat,lon)=>providerFor(state,lat,lon),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
@@ -535,7 +538,7 @@
     street=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap contributors"});
     satellite=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri imagery; source providers"});
     street.addTo(map);layers=L.layerGroup().addTo(map);
-    map.on("click",e=>{map.panTo(e.latlng);status("Center selected by map tap: "+e.latlng.lat.toFixed(5)+", "+e.latlng.lng.toFixed(5)+". Click Scan public parcels.","info");});
+    map.on("click",e=>{map.panTo(e.latlng);document.dispatchEvent(new CustomEvent("radar:center-selected"));status("Center selected by map tap: "+e.latlng.lat.toFixed(5)+", "+e.latlng.lng.toFixed(5)+". Click Scan public parcels.","info");});
     $("basemap").addEventListener("change",()=>{if($("basemap").value==="satellite"){map.removeLayer(street);satellite.addTo(map);}else{map.removeLayer(satellite);street.addTo(map);}});
     $("fitResults").addEventListener("click",()=>{
       if(!records.length)return;
@@ -544,6 +547,7 @@
     setMarket("njcentral");
   }
   function init(){
+    $("acreageComparison").addEventListener("change",()=>{$("maxAcresField").hidden=$("acreageComparison").value!=="between";});
     initMap();$("market").addEventListener("change",e=>setMarket(e.target.value));
     $("stateSelect").addEventListener("change",e=>{status("Source changed to "+e.target.value+". Move to that state before scanning.","info");});
     $("placeForm").addEventListener("submit",e=>{e.preventDefault();findPlace();});
