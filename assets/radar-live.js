@@ -71,7 +71,8 @@
     $("scanStatus").className="scan-status "+kind;
   };
   const numberAcres = p => {
-    if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);\n    if(p.LOT_SIZE!=null&&Number(p.LOT_SIZE)>0)return Number(p.LOT_SIZE)/43560;
+    if(p.ACRES!=null&&Number(p.ACRES)>0)return Number(p.ACRES);
+    if(p.LOT_SIZE!=null&&Number(p.LOT_SIZE)>0)return Number(p.LOT_SIZE)/43560;
     if(p.LND_SQFOOT!=null&&Number(p.LND_SQFOOT)>0)return Number(p.LND_SQFOOT)/43560;
     const a=Number(p.CALC_ACRE);
     return Number.isFinite(a)&&a>0 ? a : null;
@@ -135,7 +136,8 @@
   function serverWhere(state,mode,min,provider=SOURCES[state]) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=window.PublicRadarStrictMin?">":">=";
-    if(provider===SOURCES.BRO||provider===SOURCES.MDC){\n      // County use codes vary; query spatially and validate normalized records.\n    } else if(provider===SOURCES.PBC) {
+    if(provider===SOURCES.BRO||provider===SOURCES.MDC){\n      // County use codes vary; query spatially and validate normalized records.
+    } else if(provider===SOURCES.PBC) {
       // The county assessor class is descriptive text (not Florida DOR's numbered codes).
       if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
       if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
@@ -374,7 +376,8 @@
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
           const isEntity=/\b(?:LLC|L\.?L\.?C\.?|INC\.?|CORP\.?|LTD\.?|LLP|LP)\b/i.test(name) &&
             !/\\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\\s+TRUST\\b/i.test(name);
-          if(isEntity){p.owner=name;p.ownerSource=provider.name;renderResults();renderOwners();}\n          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
+          if(isEntity){p.owner=name;p.ownerSource=provider.name;renderResults();renderOwners();}
+          result.textContent=!name?"The official record did not publish an owner name for this parcel.":
             isEntity?"Published assessment entity: "+name+" | Source: "+provider.name+
               ". This does not verify legal title, ultimate ownership or willingness to sell.":
             "Published assessment record exists, but the owner name is withheld in this public interface. Open the official source record for further verification.";
