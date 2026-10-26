@@ -135,7 +135,7 @@
   function serverWhere(state,mode,min,provider=SOURCES[state]) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=window.PublicRadarStrictMin?">":">=";
-    if(provider===SOURCES.PBC) {
+    if(provider===SOURCES.BRO||provider===SOURCES.MDC){\n      // County use codes vary; query spatially and validate normalized records.\n    } else if(provider===SOURCES.PBC) {
       // The county assessor class is descriptive text (not Florida DOR's numbered codes).
       if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
       if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
@@ -148,7 +148,7 @@
       if(mode==="vacant")terms.push("PROP_CLASS = '1'");
       if(min>0)terms.push("CALC_ACRE "+op+" "+Number(min));
     } else {
-      const codes={PalmBeach:60,Martin:53,StLucie:66};
+      const codes={PalmBeach:60,Martin:53,StLucie:66,Broward:6,MiamiDade:13};
       terms.push(codes[county]?"CO_NO = "+codes[county]:"CO_NO IN (60,53,66)");
       if(mode==="industrial")terms.push("DOR_UC IN ('040','0040','041','0041','042','0042','043','0043','044','0044','045','0045','046','0046','047','0047','048','0048','049','0049')");
       if(mode==="multifamily")terms.push("DOR_UC IN ('003','0003','008','0008')");
@@ -195,12 +195,12 @@
     scannerBusy=true; scanAbort=new AbortController(); const activeScan=scanAbort; $("scanButton").disabled=true;
     records=[];sourceTime=null;countResult=null;scanComplete=false;
     $("scanButton").textContent="Scanning…";
-    const source=(state==="FL"&&window.PublicRadarCounty==="PalmBeach"&&stateInBounds(center.lat,center.lon,"PBC"))?SOURCES.PBC:SOURCES[state], env=scanEnvelope(center,radius);
+    const source=state==="FL"?([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].find(src=>center.lat>=src.bounds[1]&&center.lat<=src.bounds[3]&&center.lon>=src.bounds[0]&&center.lon<=src.bounds[2])||SOURCES.FL):SOURCES[state], env=scanEnvelope(center,radius);
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
-      if(source===SOURCES.PBC){
+      if([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
         // County layer is demonstrably fast. Page directly instead of asking FDOR for an
         // expensive 10.8-million-parcel statewide count before drawing any result.
         const batchSize=150,pages=6,seen=new Set();let finished=false;
@@ -364,11 +364,11 @@
       btn.addEventListener("click",async()=>{
         btn.disabled=true;btn.textContent="Looking up source…";
         const provider=p.source,idfield=provider.id;
-        const ownerField=provider===SOURCES.PBC?"OWNER_NAME1":"OWN_NAME";
+        const ownerField=provider.ownerField||(provider===SOURCES.PBC?"OWNER_NAME1":"OWN_NAME");
         try{
           const id=p.id.replace(/'/g,"''");
           const reply=await arcgisQuery(provider,{where:idfield+" = '"+id+"'",returnGeometry:"false"},
-             {f:"json",outFields:idfield+","+ownerField+",ASMNT_YR".replace(",ASMNT_YR",provider===SOURCES.PBC?"":",ASMNT_YR"),resultRecordCount:"2"},null);
+             {f:"json",outFields:idfield+","+ownerField+(provider===SOURCES.FL?",ASMNT_YR":""),resultRecordCount:"2"},null);
           const matches=(reply.features||[]).filter(x=>String(x?.attributes?.[idfield]??"")===p.id);
           if(matches.length!==1)throw Error(matches.length?"Multiple conflicting matches":"No matching owner field returned");
           const name=String(matches[0].attributes?.[ownerField]||"").trim();
