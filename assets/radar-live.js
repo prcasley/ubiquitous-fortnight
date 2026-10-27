@@ -241,7 +241,7 @@
         }
         countResult=finished?records.length:null;scanComplete=finished;scanState=finished?"complete":"partial";
         status(finished?
-          source.name+" scan completed: "+records.length+" mapped parcels within "+radius+" miles. Assessor use is not zoning.":
+          source.name+" scan completed: "+records.length+" mapped parcels touching the "+radius+"-mile search area. Distances use a map reference point and may exceed the radius for edge parcels. Assessor use is not zoning.":
           "Showing "+records.length+" real county parcels, but the "+(batchSize*pages)+
           "-feature cap was reached. Results are PARTIAL; narrow radius or minimum acres.",
           finished?"success":"warning");
@@ -260,24 +260,42 @@
         $("resultInfo").textContent=fmt(total)+" matching public-source parcels · refine search";
         return;
       }
-      const data=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
-        returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
-        maxAllowableOffset:state==="NJ"?"0.00002":"0",
-        resultRecordCount:String(MAX_FEATURES)},controller.signal);
-      checkCurrent();
-      if(!Array.isArray(data.features)) throw Error("Unexpected GIS response. No results will be claimed.");
-      if(data.exceededTransferLimit||data.features.length!==total){
+      // Verify each ordered page against the source count. Never treat a short or
+      // repeated page as proof that a capped service exhausted its results.
+      const batchSize=150,objectIds=new Set();let received=0,finished=false;
+      while(received<MAX_FEATURES){
+        status(source.name+": received "+received+" of "+total+" source features…","info");
+        const data=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields+","+source.orderField,
+          returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
+          maxAllowableOffset:state==="NJ"?"0.00002":"0",
+          resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
+          orderByFields:source.orderField+" ASC"},controller.signal);
+        checkCurrent();
+        if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
+        if(!data.features.length){finished=received===total&&!data.exceededTransferLimit;break;}
+        for(const feature of data.features){
+          const objectId=feature.properties?.[source.orderField]??feature.id;
+          if(objectId==null||objectIds.has(String(objectId)))throw Error("Source paging repeated or omitted record identities; results remain incomplete");
+          objectIds.add(String(objectId));
+          const item=normalize(feature,state,center,source);
+          if(!item)throw Error("Source returned parcels without stable identity or geometry");
+          if(matchesMode(item)&&domain.matchesAcres(item.acres,acreFilter)&&domain.intersectsRadius(item.geometry.geometry,center,radius))records.push(item);
+        }
+        received+=data.features.length;
+        scanState="partial";sourceTime=new Date();records.sort((a,b)=>a.distance-b.distance);
+        renderResults();renderMap();renderOwners();renderSource();
+        if(received>total)break;
+        if(received===total&&!data.exceededTransferLimit){finished=true;break;}
+      }
+      if(!finished){
         scanState="partial";
-        status("The public service returned fewer features than its count. Results are incomplete; narrow this search. This is NOT a report of zero properties.","warning");
+        status("Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
         return;
       }
       sourceState=state;sourceCenter=center;sourceTime=new Date();
-      const normalized=data.features.map(f=>normalize(f,state,center,source));
-      if(normalized.some(p=>!p))throw Error("Source returned parcels without stable identity or geometry");
-      records=normalized.filter(p=>matchesMode(p)&&domain.matchesAcres(p.acres,acreFilter)&&domain.intersectsRadius(p.geometry.geometry,center,radius)).sort((a,b)=>a.distance-b.distance);
       scanComplete=true;scanState="complete";
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
-      const msg=records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search with source-backed attributes.") :
+      const msg=records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search. Distances use a map reference point and may exceed the radius for edge parcels.") :
         "The source responded successfully but no accepted parcel geometries intersect the selected radius.";
       status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
@@ -291,17 +309,22 @@
     const q=$("textFilter").value.trim().toLowerCase();
     return records.filter(p=> !q || [p.id,p.address,p.owner||"",p.use].join(" ").toLowerCase().includes(q));
   }
+  let listLimit=300;
   function renderResults(){
     filtered=currentFilters();$("resultInfo").textContent=records.length?
       fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+scanState+(searchSnapshot?.unverified?.length?" · Candidates only: "+searchSnapshot.unverified.join(", ")+" unverified":""):
       "No completed parcel results loaded";
     const node=$("results");
     if(!filtered.length) {node.innerHTML='<div class="empty">No records to show. Choose a market and run a public parcel scan.</div>';return;}
-    node.innerHTML=filtered.slice(0,300).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
+    node.innerHTML=filtered.slice(0,listLimit).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":"NJ statewide owner name redacted"))+'</span></button>').join("");
-    if(filtered.length>300) node.innerHTML+='<div class="empty">Showing the nearest 300 records in this list. Narrow the text filter to find others.</div>';
+       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":"NJ statewide owner name redacted"))+'</span></button>').join("");
+    if(filtered.length>listLimit){
+      const more=document.createElement('button');more.type='button';more.className='secondary';
+      more.textContent='Show more parcels ('+listLimit+' of '+filtered.length+' displayed)';
+      more.addEventListener('click',()=>{listLimit+=300;renderResults();});node.append(more);
+    }
     node.querySelectorAll("[data-pid]").forEach(btn=>btn.addEventListener("click",()=>choose(btn.dataset.pid)));
   }
   function renderMap(){
@@ -452,7 +475,7 @@
     scanId++;if(scanAbort)scanAbort.abort();
     scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;
     $("scanButton").disabled=!map;$("scanButton").textContent="Scan public parcels";
-    records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
+    listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
     $("details").hidden=true;
     if(layers)layers.clearLayers();
     if(circle&&map){map.removeLayer(circle);circle=null;}

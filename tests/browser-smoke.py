@@ -31,6 +31,7 @@ def polygon(lon, lat):
     return {'type': 'Polygon', 'coordinates': [[[lon-.0001, lat-.0001], [lon+.0001, lat-.0001], [lon+.0001, lat+.0001], [lon-.0001, lat+.0001], [lon-.0001, lat-.0001]]]}
 
 mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False, 'cards': False, 'imageryFail': False}
+mode.update({'njPaging':False,'repeatPage':False,'countDrift':False,'njCap':False})
 def png_chunk(tag, data):
     return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
 PNG=b'\x89PNG\r\n\x1a\n'+png_chunk(b'IHDR',struct.pack('>IIBBBBB',2,2,8,6,0,0,0))+png_chunk(b'IDAT',zlib.compress((b'\x00'+b'\x77\x99\x88\xff'*2)*2))+png_chunk(b'IEND',b'')
@@ -85,6 +86,8 @@ def network(route):
         features = []
         acres_values = ([3,4,5,6,6.4,7,10] if mode['chat'] else [3,4,5]) if not mode['partial'] else [3]*150
         if mode['cards']: acres_values=[6]*49
+        if nj and mode['njPaging']: acres_values=[6]*350
+        if nj and mode['njCap']: acres_values=[6]*1101
         if mode['collision']:
             acres_values = [3,3]
         for i, acres in enumerate(acres_values):
@@ -92,13 +95,21 @@ def network(route):
             if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
                 continue
             props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
+            props['OBJECTID']=i
+            if nj: props['YR_CONSTR']=1974 if i%2==0 else 0
             geometry = polygon(-74.363,40.527) if nj else polygon(-80.13,26.72)
             if fdor:
                 props = {'PARCEL_ID': 'SAME-ID', 'CO_NO': 53 if i==0 else 66, 'LND_SQFOOT': acres*43560, 'DOR_UC': '048'}
+                props['OBJECTID']=i
                 geometry = {'type':'Point','coordinates':[-80.13,26.72]}
             features.append({'type':'Feature','properties':props,'geometry':geometry})
         if params.get('returnCountOnly') == ['true']:
-            respond(route, {'count': len(features)})
+            respond(route, {'count': len(features)+(1 if nj and mode['countDrift'] else 0)})
+        elif nj or fdor:
+            offset=0 if mode['repeatPage'] else int(params.get('resultOffset',['0'])[0])
+            limit=min(100,int(params.get('resultRecordCount',['150'])[0]))
+            rows=features[offset:offset+limit]
+            respond(route, {'type':'FeatureCollection','features':rows,'exceededTransferLimit':offset+len(rows)<len(features)})
         else:
             respond(route, {'type':'FeatureCollection','features':features,'exceededTransferLimit':mode['partial']})
         return
@@ -209,6 +220,33 @@ try:
         page.fill('#minAcres','0')
         page.click('#scanButton')
         page.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert page.evaluate('window.PublicRadarBridge.getResults()[0].yearBuilt')==1974
+        assert page.evaluate('window.PublicRadarBridge.getResults()[1].yearBuilt') is None
+        mode['njPaging']=True
+        page.click('#scanButton')
+        page.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert page.evaluate('window.PublicRadarBridge.getResults().length')==350
+        assert page.locator('#results .parcel').count()==300
+        page.locator('#results').get_by_text('Show more parcels',exact=False).click()
+        assert page.locator('#results .parcel').count()==350
+        assert 'map reference point' in page.locator('#statusText').inner_text()
+        mode['repeatPage']=True
+        page.click('#scanButton')
+        page.wait_for_function('window.PublicRadarBridge.getMeta().status==="partial" && !document.getElementById("scanButton").textContent.includes("Cancel")')
+        assert not page.evaluate('window.PublicRadarBridge.getMeta().complete')
+        assert 'repeated or omitted' in page.locator('#statusText').inner_text()
+        mode['repeatPage']=False
+        mode['countDrift']=True
+        page.click('#scanButton')
+        page.wait_for_function('window.PublicRadarBridge.getMeta().status==="partial" && !document.getElementById("scanButton").textContent.includes("Cancel")')
+        assert 'did not reconcile' in page.locator('#statusText').inner_text()
+        mode['countDrift']=False
+        mode['njPaging']=False
+        mode['njCap']=True
+        page.click('#scanButton')
+        page.wait_for_function('window.PublicRadarBridge.getMeta().status==="partial" && !document.getElementById("scanButton").textContent.includes("Cancel")')
+        assert 'safety cap' in page.locator('#statusText').inner_text()
+        mode['njCap']=False
         page.select_option('#stateSelect','FL')
         assert 'services1.arcgis.com' in page.evaluate('window.PublicRadarBridge.getSources().FL')
         mode['partial'] = True
@@ -321,6 +359,9 @@ try:
         field.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
         field.locator('#agentForm button[type=submit]').click()
         field.wait_for_function('window.PublicRadarBridge.getMeta().complete && document.querySelectorAll(".chat-property-card").length===6')
+        assert 'Built 1974' in field.locator('.chat-property-card').first.inner_text()
+        assert 'Year built not published in source' in field.locator('.chat-property-card').nth(1).inner_text()
+        assert 'Parcels touching the search circle qualify' in field.locator('.chat-properties').inner_text()
         assert field.locator('.chat-properties').get_by_text('49 properties',exact=False).count()>=1
         field.locator('.chat-properties').get_by_text('Show more properties',exact=False).click()
         assert field.locator('.chat-property-card').count()==12

@@ -10,6 +10,7 @@
     section.dataset.scan=String(meta.scanId);
     const heading=document.createElement('strong');heading.textContent=`${rows.length} ${meta.complete?'properties':'partial results'} · ${meta.complete?'select a property below':'search incomplete; more properties may exist'}`;
     section.append(heading);
+    const radiusNote=document.createElement('p');radiusNote.textContent='Parcels touching the search circle qualify. Distances are to a map reference point, so edge parcels can show a distance beyond the radius.';section.append(radiusNote);
     if(meta.unverified?.length){const note=document.createElement('p');note.textContent='Candidates only: '+meta.unverified.join(', ')+' remain unverified.';section.append(note);}
     const grid=document.createElement('div');grid.className='chat-property-grid';section.append(grid);
     let shown=0;
@@ -20,7 +21,7 @@
         let item;try{item=P.snapshot(record,meta);}catch{continue;}
         const article=document.createElement('article');article.className='chat-property-card';article.dataset.parcelKey=item.key;
         const title=document.createElement('h3');title.textContent=item.address||'Parcel '+item.id;
-        const details=document.createElement('p');details.textContent=`${item.type} · ${item.acres==null?'Acreage unavailable':item.acres.toLocaleString()+' acres'}${Number.isFinite(record.distance)?' · '+record.distance.toFixed(2)+' miles':''} · Built ${item.yearBuilt??'unknown'}`;
+        const details=document.createElement('p');details.textContent=`${item.type} · ${item.acres==null?'Acreage unavailable':item.acres.toLocaleString()+' acres'}${Number.isFinite(record.distance)?' · '+record.distance.toFixed(2)+' miles to map point':''}${item.yearBuilt==null?' · Year built not published in source':' · Built '+item.yearBuilt}`;
         const picture=document.createElement('a');picture.className='property-picture';picture.href=P.links(item).satellite;picture.target='_blank';picture.rel='noopener noreferrer';picture.setAttribute('aria-label','Open Google satellite imagery for '+(item.address||item.id));
         const v=P.view(item),image=document.createElement('img');image.src=v.imageURL;image.alt='Satellite imagery near '+(item.address||item.id);image.loading='lazy';
         const overlay=document.createElement('div');overlay.className='property-outline';overlay.innerHTML=P.svg(item);overlay.querySelector('rect')?.remove();
