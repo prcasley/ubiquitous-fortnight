@@ -53,8 +53,33 @@ def network(route):
         else: route.fulfill(status=200,content_type='image/png',headers={'access-control-allow-origin':'*'},body=PNG)
         return
     if parsed.hostname == 'geocode.arcgis.com':
+        query=params.get('SingleLine',[''])[0]
+        if re.search(r'\b(PA|Pennsylvania|Allentown|Easton|Erie)\b',query,re.I):
+            easton='Easton' in query
+            county='Erie' if 'Erie' in query else 'Northampton' if easton else 'Lehigh'
+            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-75.22 if easton else -75.49,'y':40.69 if easton else 40.602},'attributes':{'RegionAbbr':'PA','Subregion':county+' County'}}]})
+            return
+        if 'Albany' in query:
+            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-73.75,'y':42.65},'attributes':{'RegionAbbr':'NY','Subregion':'Albany County'}}]})
+            return
         nj_place=bool(re.search(r'\b(NJ|Edison|Parsippany)\b',params.get('SingleLine',[''])[0],re.I))
         respond(route, {'candidates': [{'score': 100, 'address': 'Edison, NJ' if nj_place else 'Palm Beach County, FL', 'location': {'x': -74.363 if nj_place else -80.13, 'y': 40.527 if nj_place else 26.72}, 'attributes': {'RegionAbbr': 'NJ' if nj_place else 'FL', 'Subregion': 'Middlesex County' if nj_place else 'Palm Beach County'}}]})
+        return
+    if parsed.hostname in ('gis.lehighcounty.org','gis.northamptoncounty.org'):
+        if mode.get('paFail'):
+            respond(route,{'error':{'message':'Synthetic PA outage'}},503)
+            return
+        north=parsed.hostname=='gis.northamptoncounty.org'
+        idfield='PARCEL_ID' if north else 'PIN'
+        if not parsed.path.endswith('/query'):
+            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':'ACREAGE','type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':'YEAR_BUILT','type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]
+            if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
+            respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
+        elif params.get('returnCountOnly')==['true']: respond(route,{'count':2})
+        else:
+            assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),'ACREAGE':6,'USE_DESC':'Industrial warehouse','YEAR_BUILT':1984,'SITE_ADDRESS':'Synthetic PA property'},'geometry':polygon(-75.22 if north else -75.49,40.69 if north else 40.602)} for i in range(2)]
+            respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return
     if parsed.hostname in ('hazards.fema.gov', 'fwspublicservices.wim.usgs.gov'):
         if not parsed.path.endswith('/query'):
@@ -405,10 +430,18 @@ try:
         phone.route('**/*',network)
         phone.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
         phone.wait_for_function('!!window.PublicRadarBridge?.getMap()')
+        assert phone.locator('#agentPrompt').bounding_box()['y']<400
+        assert phone.locator('#agentPrompt').bounding_box()['y']<phone.locator('#map').bounding_box()['y']
+        phone.locator('#mobileNav summary').click()
+        assert phone.locator('#mobileNav nav').is_visible()
+        phone.locator('#mobileNav').get_by_text('Field trips & packs',exact=True).click()
+        assert not phone.locator('#mobileNav nav').is_visible()
         phone.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
         phone.locator('#agentForm button[type=submit]').click()
         phone.wait_for_function('document.querySelectorAll(".chat-property-card").length===6')
         assert phone.evaluate('document.documentElement.scrollWidth <= window.innerWidth+2')
+        small=phone.evaluate('''[...document.querySelectorAll('button')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().height<43.5).map(e=>({text:e.textContent,height:e.getBoundingClientRect().height}))''')
+        assert not small,small
         phone.locator('.radar-agent').screenshot(path='/tmp/capital-radar-chat-mobile.png')
         phone_context.close()
         field.reload()
@@ -457,6 +490,55 @@ try:
         fresh.close()
         assert not field_errors,field_errors
         field.close()
+        mode['cards']=False
+        pa=context.new_page()
+        pa_errors=[]
+        pa.on('pageerror',lambda error:pa_errors.append(str(error)))
+        pa.route('**/*',network)
+        pa.goto(f'http://127.0.0.1:{server.server_port}/')
+        trip_before=pa.evaluate('localStorage.getItem("capital-radar-field-trip-v1")')
+        pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert pa.locator('#stateSelect').input_value()=='PA'
+        assert pa.locator('#market').input_value()=='lehigh'
+        assert pa.locator('#countySelect').input_value()=='Lehigh'
+        assert pa.evaluate('window.PublicRadarBridge.getResults()[0].key').startswith('lehigh:PA:42077:')
+        assert 'Built 1984' in pa.locator('.chat-property-card').first.inner_text()
+        pa.fill('#agentPrompt','Find industrial over 5 acres near Easton PA')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getResults()[0]?.provider==="northampton"')
+        assert pa.locator('#market').input_value()=='northampton'
+        pa.fill('#agentPrompt','Find industrial near Erie PA')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('document.getElementById("agentLog").textContent.includes("Pennsylvania county Erie is not connected")')
+        assert pa.evaluate('window.PublicRadarBridge.getResults().length')==0
+        assert 'Previous search' in pa.locator('.chat-properties').first.inner_text()
+        pa.fill('#agentPrompt','Find industrial near Albany NY')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('document.getElementById("agentLog").textContent.includes("Address located in NY")')
+        assert "Couldn't verify the requested location" not in pa.locator('#agentLog').inner_text()
+        mode['paFail']=True
+        pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('window.PublicRadarBridge.getMeta().status==="failed"')
+        assert 'Pennsylvania coverage could not be verified' in pa.locator('#agentLog').inner_text()
+        mode['paFail']=False
+        mode['paNoClass']=True
+        pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('document.getElementById("statusText").textContent.includes("verified descriptive assessment classification")')
+        assert not pa.evaluate('window.PublicRadarBridge.getMeta().complete')
+        mode['paNoClass']=False
+        pa.fill('#agentPrompt','Find industrial over 5 acres in West Palm Beach FL')
+        pa.locator('#agentPrompt').press('Enter')
+        pa.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        assert pa.locator('#market').input_value()=='palm'
+        assert pa.locator('#stateSelect').input_value()=='FL'
+        assert pa.locator('#countySelect').input_value()=='PalmBeach'
+        assert pa.evaluate('localStorage.getItem("capital-radar-field-trip-v1")')==trip_before
+        assert not pa_errors,pa_errors
+        pa.close()
         mode['cards']=False
         password = secrets.token_hex(24)
         fixture = '''

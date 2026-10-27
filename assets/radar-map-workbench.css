@@ -10,3 +10,13 @@
 @media(max-width:900px){.map-column .map-wrap{height:60vh;min-height:350px;max-height:650px}.map-expanded #mapPanel .map-wrap{height:auto;max-height:none;min-height:0}}
 
 .intro .eyebrow{display:none}.intro h1{font-size:23px}.top{min-height:56px;padding:10px 20px}.map-column #mapPanel .panel-head{display:block;padding:10px 14px}.map-column #mapPanel .panel-head>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.map-column #mapPanel .panel-head h2{margin:0}.map-column #mapPanel .map-actions{justify-content:flex-start}.map-column #mapPanel .panel-sub{font-size:10px}
+
+.mobile-nav{display:none}
+@media(max-width:900px){
+ .mobile-nav{display:block;margin:8px 12px;border:1px solid #bfd4dc;border-radius:9px;background:white}.mobile-nav>summary{padding:12px;font-weight:700;cursor:pointer}.mobile-nav nav{display:grid;grid-template-columns:1fr 1fr;padding:6px}.mobile-nav nav a{padding:12px;min-height:44px}
+ #scanner>.radar-agent{margin:8px 0 12px;padding:14px}#scanner>.radar-agent .agent-top h2{font-size:21px}#scanner>.radar-agent .agent-form{display:flex;flex-wrap:wrap}#scanner>.radar-agent .agent-form input{width:100%;flex-basis:100%;font-size:16px}#scanner>.radar-agent .agent-form button{flex:1}#scanner>.radar-agent .agent-log{max-height:42vh}#scanner>.radar-agent .agent-suggestions,#scanner>.radar-agent .agent-tag{display:none}.intro{display:none}
+ body button,body .secondary,body .primary,body select,body input:not([type=checkbox]):not([type=radio]),body summary{min-height:44px}body button{min-width:44px}.map-column .map-actions button,.map-column #expandMap,.workbench-sidebar .agent-form button{min-height:44px}
+ .chat-property-actions a,.detail-actions a,.field-trip-panel a{display:inline-flex;align-items:center;min-height:44px}.layer-toggle{display:inline-flex;align-items:center;min-height:44px}.leaflet-control-zoom a{width:44px!important;height:44px!important;line-height:44px!important}.round{height:44px;width:44px}
+}
+@media(max-width:900px){.property-card-actions a,.legal a,.source-facts a,.research-tools a{display:inline-flex;align-items:center;min-height:44px}#basemap{min-height:44px}}
+@media(max-width:900px){.radar-agent .property-card-actions .secondary,.map-column .map-actions #identifyParcel{min-height:44px}}

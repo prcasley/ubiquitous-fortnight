@@ -51,6 +51,7 @@
   document.addEventListener('radar:scan-state',()=>{
     const current=String(bridge().getMeta().scanId);
     for(const group of document.querySelectorAll('.chat-properties'))if(group.dataset.scan!==current){
+      if(!group.classList.contains('previous-search')){const heading=group.querySelector(':scope > strong');if(heading)heading.textContent='Previous search — '+heading.textContent;}
       group.classList.add('previous-search');for(const b of group.querySelectorAll('[data-action=focus-parcel]'))b.disabled=true;
     }
   });

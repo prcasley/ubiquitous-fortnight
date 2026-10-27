@@ -10,7 +10,7 @@ export function validSource(value){
   try{
     const url=new URL(value);
     return typeof value==='string'&&value.length<=400&&url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&!url.hash&&(!url.port||url.port==='443')&&
-      /^(?:services\d*\.arcgis\.com|nj\.gov|www\.nj\.gov|irs\.gov|www\.irs\.gov)$/i.test(url.hostname);
+      /^(?:services\d*\.arcgis\.com|nj\.gov|www\.nj\.gov|gis\.lehighcounty\.org|gis\.northamptoncounty\.org|irs\.gov|www\.irs\.gov)$/i.test(url.hostname);
   }catch{return false;}
 }
 export function sanitizedRecords(input){
@@ -20,7 +20,7 @@ export function sanitizedRecords(input){
     return {id:clean(row.id,100),key:clean(row.key,300),jurisdiction:clean(row.jurisdiction,60),address:clean(row.address,160),state:clean(row.state,2),assessmentClass:clean(row.type,80),
       acres:Number.isFinite(acreage)&&acreage>=0&&acreage<1e7?Math.round(acreage*1000)/1000:null,
       yearBuilt:Number.isInteger(year)&&year>=1800&&year<=2035?year:null};
-  }).filter(row=>row.id&&['NJ','FL'].includes(row.state));
+  }).filter(row=>row.id&&['NJ','FL','PA'].includes(row.state));
 }
 const system=[
   'You are Radar, a concise property research assistant for executives.',

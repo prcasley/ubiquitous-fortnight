@@ -2,7 +2,7 @@
 
 ## Implemented in this build
 
-The static app now uses a wide map with a compact chat/results sidebar, collapsed filters and an Expand map action (Escape closes it). Mobile places the map above the chat. These changes work in the Pages build without an application host.
+The static app now uses a wide map with a compact chat/results sidebar, collapsed filters and an Expand map action (Escape closes it). Mobile places chat first and provides a navigation menu. Visible buttons have a 44-pixel minimum target height. These changes work in the Pages build without an application host.
 
 Public parcel searches remain separate from assessment-name research. A selected parcel can request its published name from the official source. An explicit batch action checks up to 25 visible Florida records, two requests at a time, with Stop control. Organization-style names become local company observations; selected-record individual names are not added to the saved directory. Mailing addresses are not requested. There is no contact-enrichment API or person-search scraper.
 
@@ -61,3 +61,14 @@ Browser-local data is tied to this site origin/browser and can be lost when site
 ## Validation
 
 Automated unit checks cover official ID matching, SQL escaping, county collisions, redacted-name behavior, source ambiguity/errors, comp types/units, spreadsheet-safe CSV exports and assembly geometry. Browser checks exercise owner lookup/dossier persistence/export, batch research, assembly export, screening notes, valid/invalid comp imports, map expansion, mobile overflow, existing field packs and hosted-summary privacy. Public-source live checks and mocked UI checks are recorded separately; neither establishes all-county production reliability.
+
+
+## October 27 mobile and Lehigh Valley follow-up
+
+Fixed preset/county/market synchronization, direct coverage/error messages, and archival labels on old chat result groups after a new search. Search moves above the map on mobile without duplicating its form or losing chat state. Mobile navigation links cover search, map, companies, research tools, field trips and sources. Visible button heights are checked at 390px viewport width; browser microphone permission was not requested automatically.
+
+PA is now selectable with Lehigh/Allentown and Northampton/Easton presets. County endpoint references came from the [OpenAddresses Lehigh catalog](https://raw.githubusercontent.com/openaddresses/openaddresses/master/sources/us/pa/lehigh.json) and [Northampton catalog](https://raw.githubusercontent.com/openaddresses/openaddresses/master/sources/us/pa/northampton.json). Catalogs identify candidate official endpoints; they do not validate current service schemas, uptime, CORS or redistribution terms. The Lehigh reference is cataloged as an address source; its geometry must verify as parcel polygons at runtime before the adapter proceeds.
+
+The PA adapters request live metadata before every scan and require polygon geometry, the cataloged parcel ID, source object ID, and ordered pagination. Only recognized public address, acreage, assessment-class and year fields are projected. Numeric class codes need source-provided coded-value meanings; zoning or acreage is not inferred. Missing acreage blocks acreage-filtered searches; missing classification blocks Industrial/Multifamily/Vacant searches and directs the user to All assessment types. Large searches retain the source-count safety cap. PA owner enrichment is not connected. GPS does not automatically infer PA counties; use a county preset or geocoded city/address.
+
+Both county hosts returned proxy tunnel HTTP 403 from this execution environment, including an escalated read-only attempt. **No live PA parcel search or current schema has been verified.** Schema and end-to-end adapter behavior passed synthetic tests for both counties, unavailable services, missing class fields and unsupported PA counties. Production availability requires live validation from a browser/network able to reach those services. Source failures produce an explanation and never substitute a guessed NJ/FL location. Existing field-trip storage is retained unchanged.

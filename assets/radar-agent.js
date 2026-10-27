@@ -11,6 +11,7 @@
    ["St. Lucie","StLucie",27.32,-80.36,true],
    ...["Alachua","Baker","Bay","Bradford","Brevard","Calhoun","Charlotte","Citrus","Clay","Collier","Columbia","DeSoto","Dixie","Duval","Escambia","Flagler","Franklin","Gadsden","Gilchrist","Glades","Gulf","Hamilton","Hardee","Hendry","Hernando","Highlands","Hillsborough","Holmes","Indian River","Jackson","Jefferson","Lafayette","Lake","Lee","Leon","Levy","Liberty","Madison","Manatee","Marion","Monroe","Nassau","Okaloosa","Okeechobee","Orange","Osceola","Pasco","Pinellas","Polk","Putnam","Santa Rosa","Sarasota","Seminole","Sumter","Suwannee","Taylor","Union","Volusia","Wakulla","Walton","Washington"].map(n=>[n,"",0,0,false])
  ];
+ const PA=[["Lehigh",40.602,-75.49],["Northampton",40.69,-75.22]];
  const NJ=[
   ["Atlantic",39.45,-74.65],["Bergen",40.94,-74.07],["Burlington",39.92,-74.75],
   ["Camden",39.81,-75.00],["Cape May",39.11,-74.83],["Cumberland",39.36,-75.06],
@@ -24,7 +25,7 @@
  const assembly=new Map();
  const clean=s=>String(s??"").trim();
  const lower=s=>clean(s).toLowerCase();
- const stateFrom=q=>/\b(NJ|new jersey)\b/i.test(q)?"NJ":/\b(FL|florida)\b/i.test(q)?"FL":null;
+ const stateFrom=q=>/\b(NJ|new jersey)\b/i.test(q)?"NJ":/\b(FL|florida)\b/i.test(q)?"FL":/\b(PA|pennsylvania)\b/i.test(q)?"PA":null;
  function parseIntent(raw){
    const q=clean(raw);
    const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20};
@@ -86,7 +87,7 @@
  function putMessage(message,role="bot",sourceURL){
    const host=$("agentLog");if(!host)return;
    const box=document.createElement("div");box.className="agent-message "+role;box.textContent=message;
-   if(sourceURL&&/^https:\/\/(?:services\d*\.arcgis\.com|www\.nj\.gov|nj\.gov|www\.irs\.gov|irs\.gov)\//.test(sourceURL)){
+   if(sourceURL&&/^https:\/\/(?:services\d*\.arcgis\.com|gis\.lehighcounty\.org|gis\.northamptoncounty\.org|www\.nj\.gov|nj\.gov|www\.irs\.gov|irs\.gov)\//.test(sourceURL)){
      const details=document.createElement("details"),label=document.createElement("summary"),a=document.createElement("a");label.textContent="Data source";a.href=sourceURL;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Official data layer (technical source)";details.append(label,a);box.append(details);
    }
    host.append(box);host.scrollTop=host.scrollHeight;
@@ -103,6 +104,7 @@
      .sort((a,b)=>a.d-b.d)[0]?.key||"Middlesex";
  }
  function countyEntries(state){
+   if(state==="PA")return PA.map(x=>({label:x[0],key:x[0],lat:x[1],lon:x[2],connected:true}));
    return state==="NJ"?NJ.map(x=>({label:x[0],key:x[0],lat:x[1],lon:x[2],connected:true})):
      FL.map(x=>({label:x[0],key:x[1],lat:x[2],lon:x[3],connected:x[4]}));
  }
@@ -111,9 +113,9 @@
    const rows=countyEntries(state);
    select.textContent="";
    const active=rows.filter(x=>x.connected),planned=rows.filter(x=>!x.connected);
-   const group=document.createElement("optgroup");group.label="Connected counties";
+   const group=document.createElement("optgroup");group.label=state==="PA"?"County adapters · live validation required":"Connected counties";
    for(const c of active){const op=new Option(c.label,c.key);group.append(op);}
-   const allOption=new Option(state==="NJ"?"Statewide source (GPS; county unverified)":"Supported statewide subset (GPS; county unverified)","");
+   const allOption=new Option(state==="PA"?"Choose a supported county (no statewide PA source)":state==="NJ"?"Statewide source (GPS; county unverified)":"Supported statewide subset (GPS; county unverified)","");
    select.append(allOption);select.append(group);
    if(planned.length){
       const pending=document.createElement("optgroup");pending.label="Source research queued (not connected)";
@@ -125,6 +127,8 @@
      select.value=found.key;activeCounty=found.key;window.PublicRadarCounty=activeCounty;
      if(center)bridge()?.setCenter(found.lat,found.lon,state==="NJ"?12:12);
    }
+   const market=state==="PA"?{Lehigh:'lehigh',Northampton:'northampton'}[found?.key]:state==="FL"?{PalmBeach:'palm',Martin:'treasure',StLucie:'stlucie',Broward:'broward',MiamiDade:'miami'}[found?.key]:{Middlesex:'njcentral',Monmouth:'njshore',Passaic:'njnorth'}[found?.key];
+   if(market)$("market").value=market;else $("market").value='custom';
    return found;
  }
  function clearOldResults(){
@@ -134,7 +138,7 @@
  function applyNewLocation(){
    locationKnown=false;pendingSearch=null;
    const state=$("stateSelect").value;
-   applyCounty(state,state==="FL"?"PalmBeach":"Middlesex");
+   applyCounty(state,state==="PA"?"Lehigh":state==="FL"?"PalmBeach":"Middlesex");
    clearOldResults();
    bridge()?.setStatus("County and state selected. Press Scan public parcels, or ask Radar for a nearby search.","info");
  }
@@ -192,6 +196,7 @@
      return;
    }
    pendingSearch=null;
+   clearOldResults();
    const missing=missingCriteria(intent);
    if(!intent.location&&!intent.countyLabel&&!intent.nearMe&&(!locationKnown||intent.state&&intent.state!==$("stateSelect").value)){
      clearOldResults();pendingSearch=intent;
@@ -201,15 +206,15 @@
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
      let state=intent.state||$ ("stateSelect").value;
-     if(!["FL","NJ"].includes(state)){putMessage("Currently connected public parcel sources are Florida (connected counties) and New Jersey. Other states require a verified new source adapter.");return;}
-     $("stateSelect").value=state;
+     if(!["FL","NJ","PA"].includes(state)){putMessage("Currently connected public parcel sources are Florida (connected counties), New Jersey, and Lehigh/Northampton in Pennsylvania (live schema check required). Other counties/states are not connected.");return;}
+     const previousState=$("stateSelect").value;$("stateSelect").value=state;
      let county=null;
      if(intent.countyLabel){
        const row=countyEntries(state).find(x=>x.label.toLowerCase()===intent.countyLabel.toLowerCase());
        if(row&&!row.connected){putMessage("The county was recognized but is not connected to a verified parcel service yet. No search was fabricated.");return;}
        county=row?.key;
      }
-     if(county||state!==$("stateSelect").value)applyCounty(state,county,{center:!!county});
+     if(county||state!==previousState)applyCounty(state,county,{center:!!county});
      if(county)locationKnown=true;
      if(intent.nearMe){
        const location=await bridge().locateGPS();
@@ -223,12 +228,13 @@
        $("placeInput").value=intent.location+(intent.state&&!new RegExp("\\b"+intent.state+"\\b","i").test(intent.location)?", "+intent.state:"");
        const located=await bridge().findPlace();
        if(located!==true){
-         putMessage("Couldn't verify the requested location from the public geocoder. No parcel scan was run at a guessed location.");return;
+         putMessage((bridge().getStatus()?.message||"Location lookup failed")+" No parcel scan was run at a guessed location.");return;
        }
        state=$("stateSelect").value;locationKnown=true;
        const matchCounty=String(bridge().getLastGeocodeCounty?.()||"").trim();
        const recognized=countyEntries(state).find(c=>c.label.toLowerCase()===matchCounty.toLowerCase());
        if(!recognized){
+         if(state==="PA"&&matchCounty){putMessage("Pennsylvania county "+matchCounty+" is not connected. Only Lehigh and Northampton parcel adapters are configured. No parcel scan was run.");return;}
          putMessage("The geocoder located the address but did not provide a matching county. Choose the county explicitly to prevent searching the wrong assessment source. No source search was run.");
          return;
        }
@@ -323,7 +329,7 @@
       const row=countyEntries(state).find(c=>c.key===$("countySelect").value);
       if(!row){activeCounty="";window.PublicRadarCounty="";clearOldResults();return;}
       if(!row.connected)return;
-      activeCounty=row.key;window.PublicRadarCounty=activeCounty;
+      applyCounty(state,row.key,{center:false});activeCounty=row.key;window.PublicRadarCounty=activeCounty;
       bridge().setCenter(row.lat,row.lon,12);clearOldResults();
       bridge().setStatus("Centered on "+row.label+" County. Searches are public-source, bounded by radius and selected county.","info");
    });
@@ -331,7 +337,7 @@
      locationKnown=true;pendingSearch=null;
      const id=$("market").value;
      const m={njcentral:["NJ","Middlesex"],njnorth:["NJ","Passaic"],njshore:["NJ","Monmouth"],
-       palm:["FL","PalmBeach"],treasure:["FL","Martin"],stlucie:["FL","StLucie"]}[id];
+       lehigh:["PA","Lehigh"],northampton:["PA","Northampton"],broward:["FL","Broward"],miami:["FL","MiamiDade"],palm:["FL","PalmBeach"],treasure:["FL","Martin"],stlucie:["FL","StLucie"]}[id];
      if(m){applyCounty(m[0],m[1],{center:false});clearOldResults();}
    });
    applyCounty($("stateSelect").value,"Middlesex",{center:false});
@@ -342,7 +348,7 @@
      const {state,county}=e.detail;
      const row=countyEntries(state).find(c=>c.connected&&c.label.toLowerCase()===String(county||"").toLowerCase());
      applyCounty(state,row?.key,{center:false});
-     if(!row){$("countySelect").value="";activeCounty="";window.PublicRadarCounty="";}
+     if(!row){$("countySelect").value="";activeCounty="";window.PublicRadarCounty="";$("market").value="custom";}
    });
    bindVoice();showAssembly();document.addEventListener("radar:parcel-selected",parcelAction);
    document.addEventListener("radar:scan-complete",()=>{assembly.clear();showAssembly();});

@@ -1,10 +1,10 @@
 # Capital Radar
 
-A map-first property research workspace using public GIS in New Jersey and selected Florida counties. Open the [GitHub Pages app](https://prcasley.github.io/ubiquitous-fortnight/). Public services can be incomplete or unavailable; assessment records do not establish title, zoning approval or availability for sale.
+A map-first property research workspace using public GIS in New Jersey, selected Florida counties, and prepared Lehigh/Northampton PA county adapters. PA live service verification remains pending because the execution environment blocks those county hosts. Open the [GitHub Pages app](https://prcasley.github.io/ubiquitous-fortnight/). Public services can be incomplete or unavailable; assessment records do not establish title, zoning approval or availability for sale.
 
 ## Available now
 
-- Large street/satellite map, expandable map view, parcel identify, GPS and plain-English parcel search. Property cards appear in chat with mapped outlines, Google Maps/Street View links and field-trip actions.
+- Search first on phones, a mobile navigation menu, 44-pixel button targets, and a large desktop street/satellite map, expandable map view, parcel identify, GPS and plain-English parcel search. Property cards appear in chat with mapped outlines, Google Maps/Street View links and field-trip actions.
 - Public assessment-name lookups without a data-provider account. Organization-style names can be researched for up to 25 visible parcels at a time, with explicit stop control. Individual names remain selected-record observations, outside the saved company directory. NJ's connected layer redacts names.
 - Browser-local company dossiers, same-name parcel observations, dated registry/deed references and manually cited business contacts. Matching names do not prove common control. These notes are excluded from hosted summaries.
 - Saved searches, parcel notes, selected-parcel FEMA flood / USFWS wetlands screening adapters and manual dated zoning, flood, wetlands, access, power and fiber observations. Source errors and unchecked coverage remain visible.

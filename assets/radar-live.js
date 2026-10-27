@@ -30,6 +30,7 @@
       attribution:"Miami-Dade County",date:"Live county source; verify per record",geometry:"polygon",bounds:[-80.88,25.13,-80.11,25.98],
       fields:"FOLIO,TRUE_SITE_ADDR,LOT_SIZE,DOR_CODE_CUR",id:"FOLIO",orderField:"OBJECTID",ownerField:"TRUE_OWNER1"
     },
+    PA:{name:"Pennsylvania · selected county sources",bounds:[-80.53,39.71,-74.68,42.28],date:"County metadata checked on request",attribution:"County GIS",geometry:"polygon"},
     NJ: {
       name: "NJGIN · statewide parcels and MOD-IV (2026)",
       url: "https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0",
@@ -47,6 +48,8 @@
     njshore: {name:"Monmouth County",state:"NJ",lat:40.302,lon:-74.035,zoom:11},
     palm: {name:"West Palm Beach",state:"FL",lat:26.715,lon:-80.057,zoom:12},
     treasure: {name:"Treasure Coast / Stuart",state:"FL",lat:27.196,lon:-80.252,zoom:12},
+    lehigh: {name:"Lehigh County / Allentown",state:"PA",lat:40.602,lon:-75.49,zoom:12},
+    northampton: {name:"Northampton County / Easton",state:"PA",lat:40.69,lon:-75.22,zoom:12},
     stlucie: {name:"Port St. Lucie",state:"FL",lat:27.273,lon:-80.358,zoom:12},
     broward: {name:"Broward County",state:"FL",lat:26.122,lon:-80.143,zoom:12},
     miami: {name:"Miami-Dade",state:"FL",lat:25.775,lon:-80.195,zoom:12}
@@ -107,21 +110,23 @@
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
     const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
     if(!rawId) return null;
-    const address=state==="FL"?[a.SITE_ADDR_STR||a.TRUE_SITE_ADDR||[a.SITUS_STREET_NUMBER,a.SITUS_STREET_NAME,a.SITUS_STREET_TYPE].filter(Boolean).join(" ")||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
+    let address=state==="FL"?[a.SITE_ADDR_STR||a.TRUE_SITE_ADDR||[a.SITUS_STREET_NUMBER,a.SITUS_STREET_NAME,a.SITUS_STREET_TYPE].filter(Boolean).join(" ")||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
     const owner=null;
-    const acres=numberAcres(a), cls=category(a,state);
+    let acres=numberAcres(a), cls=category(a,state);
     const officialYear=v=>{const y=Number(v);return Number.isInteger(y)&&y>=1800&&y<=2035?y:null;};
-    const yearBuilt=officialYear(state==="FL"?(a.YRBLT||a.ACT_YR_BLT):a.YR_CONSTR);
+    let yearBuilt=officialYear(state==="FL"?(a.YRBLT||a.ACT_YR_BLT):a.YR_CONSTR);
     const effectiveYear=state==="FL"?officialYear(a.EFF_YR_BLT):null;
     const buildingArea=state==="FL"&&Number(a.TOT_LVG_AR)>0?Number(a.TOT_LVG_AR):null;
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
-    const countyProvider=publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
+    let use=useLabel(a,state);
+    if(state==="PA"){const pa=window.RadarPA.attributes(a,publishedSource);address=pa.address;acres=pa.acres;cls=pa.type;yearBuilt=pa.yearBuilt;use=pa.use;}
+    const countyProvider=state==="PA"?{code:publishedSource.jurisdiction,id:publishedSource.provider}:publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, acres, type:cls,
-      use:useLabel(a,state), lat, lon, distance:mi(center.lat,center.lon,lat,lon),
+      use, lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
       locationPrecision:type==="Point"?"Published parcel centroid":"Point on published parcel geometry (map reference)",
       original:a};
@@ -136,12 +141,14 @@
   }
   function readAcreageFilter(){return domain.acreageFilter($("minAcres").value,$("acreageComparison").value,$("maxAcres").value);}
   function providerFor(state,lat,lon){
+    if(state==="PA")return window.RadarPA.sources[window.PublicRadarCounty]||SOURCES.PA;
     const countySource={PalmBeach:"PBC",Broward:"BRO",MiamiDade:"MDC"}[window.PublicRadarCounty];
     return state==="FL"&&countySource&&stateInBounds(lat,lon,countySource)?SOURCES[countySource]:SOURCES[state];
   }
   function serverWhere(state,mode,min,provider=SOURCES[state]) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=readAcreageFilter().op;
+    if(state==="PA")return "1=1";
     if(provider===SOURCES.BRO||provider===SOURCES.MDC){
       // County schemas differ. Apply exact assessment/acreage filters after normalization.
     } else if(provider===SOURCES.PBC) {
@@ -206,13 +213,20 @@
     scannerBusy=true;scanState="loading"; scanAbort=controller;
     $("scanButton").disabled=false;
     $("scanButton").textContent="Cancel scan";
-    const source=providerFor(state,center.lat,center.lon), env=scanEnvelope(center,radius);
+    let source=providerFor(state,center.lat,center.lon);const env=scanEnvelope(center,radius);
     activeSource=source;sourceState=state;sourceCenter=center;
     searchSnapshot={state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,5):[]};
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
+      if(state==="PA"){
+        if(!source.url)throw Error("Pennsylvania searches require Lehigh or Northampton County; other PA counties are not connected");
+        source=await window.RadarPA.prepare(source,{signal:controller.signal});checkCurrent();activeSource=source;
+        base.where=window.RadarPA.where(source,mode,acreFilter);
+        if(!source.mappings.acres.length&&(min!==0||acreFilter.op!==">="))throw Error(source.name+" does not publish a recognized acreage field. Choose At least 0 acres to inspect records, or verify the county schema");
+        if(mode!=="all"&&!source.supportsUse)throw Error(source.name+" does not publish a verified descriptive assessment classification. Choose All assessment types; industrial zoning cannot be inferred");
+      }
       if([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
         // County layer is demonstrably fast. Page directly instead of asking FDOR for an
         // expensive 10.8-million-parcel statewide count before drawing any result.
@@ -319,7 +333,7 @@
     node.innerHTML=filtered.slice(0,listLimit).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":"NJ statewide owner name redacted"))+'</span></button>').join("");
+       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"NJ statewide owner name redacted":"PA owner enrichment not connected"))+'</span></button>').join("");
     if(filtered.length>listLimit){
       const more=document.createElement('button');more.type='button';more.className='secondary';
       more.textContent='Show more parcels ('+listLimit+' of '+filtered.length+' displayed)';
@@ -357,7 +371,7 @@
     node.innerHTML=groups.length?groups.map(g=>'<div class="owner"><strong>'+safe(g.owner)+'</strong><span>'+g.count+
       ' matching parcel'+(g.count===1?"":"s")+' in current scan'+(g.acresCount?' · '+fmt(g.acres)+' reported ac':'')+
       '</span></div>').join(""):'<div class="empty">'+(sourceState==="NJ"?
-      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
+      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":sourceState==="PA"?"PA ownership enrichment is not connected. Use the official county source to research records.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
     $("ownerInfo").textContent="Organization-name research loads only on request from official sources. Individual lookups and the company research workspace retain source dates; NJ names remain redacted in this layer.";
   }
   function formatAsOf(raw){
@@ -402,14 +416,14 @@
   function setMarket(key){
     clearResults();
     const v=AREAS[key];if(!v||!map)return;
-    $("stateSelect").value=v.state;
+    $("market").value=key;$("stateSelect").value=v.state;
     map.setView([v.lat,v.lon],v.zoom,{animate:false});
     $("placeInput").value=v.name+", "+v.state;
     sourceCenter={lat:v.lat,lon:v.lon};
     status("Centered on "+v.name+". Set a radius and press Scan public parcels.","info");
   }
   async function findPlace(){
-    lastGeocodeCounty=null;
+    clearResults();lastGeocodeCounty=null;
     const q=$("placeInput").value.trim();if(q.length<3){status("Enter a US city or street address.","warning");return false;}
     status("Locating "+q+" with the public geocoding service…","info");
     try{
@@ -421,7 +435,7 @@
       const cand=(data.candidates||[]).find(c=>c.location&&Number(c.score)>=75);
       if(!cand)throw Error("No confident US location returned. Click directly on the map instead.");
       const state=String(cand.attributes?.RegionAbbr||"").toUpperCase();
-      if(!["FL","NJ"].includes(state))throw Error("Address located in "+(state||"an unsupported state")+". Current supported public sources: FL and NJ.");
+      if(!["FL","NJ","PA"].includes(state))throw Error("Address located in "+(state||"an unsupported state")+". Connected sources: FL, NJ and selected PA counties (Lehigh/Northampton).");
       const {x,y}=cand.location;
       if(!stateInBounds(y,x,state))throw Error("Address located outside verified layer extent.");
       clearResults();$("stateSelect").value=state; map.setView([y,x],13);
@@ -437,8 +451,8 @@
       status("Requesting device location. Location is used for public-source geographic screening only.","info");
       navigator.geolocation.getCurrentPosition(pos=>{
         const lat=pos.coords.latitude,lon=pos.coords.longitude;
-        const state=Object.keys(SOURCES).find(k=>stateInBounds(lat,lon,k));
-        if(!state){status("Your location is outside currently connected FL/NJ sources. No nationwide result was claimed.","warning");resolve(null);return;}
+        const state=["FL","NJ"].find(k=>stateInBounds(lat,lon,k));
+        if(!state){status("Your location is outside the FL/NJ GPS coverage. For Pennsylvania, select Lehigh or Northampton or type a city/address. No location was guessed.","warning");resolve(null);return;}
         clearResults();$("stateSelect").value=state;map.setView([lat,lon],14);
         document.dispatchEvent(new CustomEvent("radar:location",{detail:{state,county:null}}));
         L.circleMarker([lat,lon],{radius:8,color:"#fff",weight:3,fillColor:"#1479f5",fillOpacity:1}).addTo(map);
@@ -489,7 +503,7 @@
   }
   function ingestOne(feature,state,center){
     const props=feature?.properties||{};
-    const provider=state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state];
+    const provider=state==="PA"?activeSource:state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state];
     const item=normalize(feature,state,center,provider);if(!item)return null;
     clearResults();activeSource=provider;scanState="identified";scanComplete=false;
     records=[item];filtered=[item];sourceState=state;sourceCenter=center;sourceTime=new Date();countResult=1;
@@ -510,10 +524,10 @@
     getSearch:()=>searchSnapshot?JSON.parse(JSON.stringify(searchSnapshot)):null,
     setAcreageFilter:(value,op,upper)=>{const f=domain.acreageFilter(value,op,upper);$("minAcres").value=f.value;$("acreageComparison").value=f.op;$("maxAcres").value=f.max??"";$("maxAcresField").hidden=f.op!=="between";},
     sortResults:sort=>{records.sort(sort==="largest"?(a,b)=>(b.acres??-1)-(a.acres??-1):(a,b)=>a.distance-b.distance);renderResults();},
-    getSource:(state,lat,lon)=>providerFor(state,lat,lon),
+    getSource:(state,lat,lon)=>state==="PA"&&activeSource?.mappings?activeSource:providerFor(state,lat,lon),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
-    setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:providerFor("FL",map?.getCenter().lat,map?.getCenter().lng).url,NJ:SOURCES.NJ.url})};
+    setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:providerFor("FL",map?.getCenter().lat,map?.getCenter().lng).url,NJ:SOURCES.NJ.url,PA:providerFor("PA")?.url})};
   function initMap(){
     if(!window.L||!window.turf||!domain){
       for(const id of ["scanButton","gps","mobileShowMap","fitResults","placeInput"])$(id).disabled=true;

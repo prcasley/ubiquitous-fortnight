@@ -118,7 +118,8 @@
   async function identifyAt(lat,lng){
    const b=source(),state=$("stateSelect")?.value,m=map();if(!b||!m||!state)return;
    const provider=b.getSource(state,lat,lng),uri=provider?.url;if(!uri){note("No public parcel service is available for this state.");return;}
-   const countyFL=state==="FL"&&provider.geometry==="polygon";
+   if(state==="PA"&&!provider.mappings){note("Run a PA parcel scan first to verify this county source schema before identifying a parcel.","warning");return;}
+   const countyFL=(state==="FL"||state==="PA")&&provider.geometry==="polygon";
    const field=provider.fields;
    const span=countyFL?.0001:state==="FL"?.0007:.00002;
    const env={xmin:lng-span,ymin:lat-span,xmax:lng+span,ymax:lat+span,spatialReference:{wkid:4326}};
@@ -126,7 +127,7 @@
      spatialRel:"esriSpatialRelIntersects",outSR:"4326",outFields:field,returnGeometry:"true",
      f:"geojson",resultRecordCount:"7"};
    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);
-   note(state==="FL"?"Finding published centroids near the map tap…":"Identifying the public NJ parcel polygon at this map location…");
+   note(state==="FL"?"Finding published centroids near the map tap…":"Identifying the public parcel polygon at this map location…");
    try{
      const res=await queryLayer(uri,params,ctrl.signal);
      if(!Array.isArray(res.features)||res.exceededTransferLimit||!res.features.length)
@@ -147,7 +148,7 @@
      if(!rec)throw Error("The returned feature lacks a stable parcel ID or coordinates");
      note(state==="FL"?
        (countyFL?"Clicked county parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
-       "One NJ source polygon identified. This is a planning boundary, not a title survey.","success");
+       "One source polygon identified. This is a planning boundary, not a title survey.","success");
    }catch(e){
      note("Parcel identification unavailable: "+String(e?.message||e)+". No parcel identity was guessed.","warning");
    }finally{clearTimeout(timer);}
