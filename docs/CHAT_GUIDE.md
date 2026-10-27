@@ -32,3 +32,14 @@ Active listings, asking prices, closed-sale comparables and verified lease sched
 For renewal screening, specify a dated window such as “leases expiring in the next 12 months” once a lease schedule is connected. Recorded assessment owners are distinct from verified title or ultimate ownership. Florida has an individual source lookup; the connected NJ statewide layer redacts names.
 
 Natural-language handling remains available without hosted AI. Hosted summaries can explain the resulting facts, but cannot replace missing datasets. Unit tests check interpretation and generated predicates; browser tests run the example conversations against deterministic source fixtures. This does not establish live listing, lease or comps coverage.
+
+
+## Executive shortlist behavior
+
+“Show the largest properties in this scan” and “show the nearest parcels in these results” sort retrieved records without changing filters, location or source retrieval. Partial rankings are explicitly limited to the retrieved subset. “Verify source” explains partial retrievals too. Hosted explanations can summarize labeled partial data when an authenticated backend is configured.
+
+Map browsing and parcel inspection preserve the shortlist and its search anchor. Use **Set search center** deliberately to choose where the next scan runs. Identify displays a separate property observation; adding it to a trip does not turn a one-parcel inspection into a completed source search. Double-click zoom cancels pending identification. OZ checkboxes retain the requested layer during zoom/pan; the legend reports loading, unavailable or zoom-closer states.
+
+A request such as “Find industrial over 5 acres near Edison NJ under $5 million before January 1 in OZ2” searches the available public parcel attributes. Budget matching, closing feasibility and OZ2 designation/tax eligibility remain explicitly unverified, including in a field pack. The date is a planning target, not a verified publication or qualification deadline. Sale/lease data is not supplied by the public scanner; local files are clearly labeled separately.
+
+See [the executive acquisition QA matrix](EXECUTIVE_ACQUISITION_QA.md) for automated cases and live-check limitations.

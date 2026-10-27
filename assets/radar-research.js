@@ -43,7 +43,7 @@
     return {key:record.key,id:record.id,state:record.state,jurisdiction:record.jurisdiction,provider:record.provider,
       address:record.address,acres:record.acres,assessmentClass:record.use,yearBuilt:record.yearBuilt,
       sourceURL:record.source.url,sourceName:record.source.name,sourceVintage:record.source.date,
-      retrievedAt:meta.time,scanStatus:meta.status,unverifiedCriteria:meta.unverified||[],geometryPrecision:record.locationPrecision,
+      retrievedAt:record.retrievedAt||meta.time,scanStatus:record.scanStatus||meta.status,unverifiedCriteria:meta.unverified||[],geometryPrecision:record.locationPrecision,
       geometry:record.geometry.geometry,screenings:results.get(record.key)||[],note:'',savedAt:new Date().toISOString()};
   }
   window.PublicRadarResearch={getScreenings:parcelKey=>JSON.parse(JSON.stringify(results.get(parcelKey)||[]))};
@@ -61,7 +61,7 @@
       if(e.detail.state==='idle'){selected=null;controller?.abort();results.clear();$('saveParcel').disabled=true;$('screenParcel').disabled=true;$('screenResults').textContent='Select a parcel to screen.';}
     });
     $('saveParcel').addEventListener('click',()=>{
-      const record=bridge().getResults().find(r=>r.key===selected);if(!record)return;
+      const record=bridge().getRecord(selected);if(!record)return;
       if(saved.parcels.length>=500&&!saved.parcels.some(r=>r.key===selected)){message('500-parcel browser limit reached. Export or remove records first.');return;}
       const item=snapshot(record),old=saved.parcels.find(x=>x.key===selected);item.note=old?.note||'';
       saved.parcels=saved.parcels.filter(x=>x.key!==selected);saved.parcels.push(item);
@@ -80,7 +80,7 @@
       message('Exported saved research, notes, provenance and screening observations.');
     });
     $('screenParcel').addEventListener('click',async()=>{
-      const record=bridge().getResults().find(r=>r.key===selected);if(!record)return;
+      const record=bridge().getRecord(selected);if(!record)return;
       controller?.abort();controller=new AbortController();const signal=controller.signal,scanId=bridge().getMeta().scanId;
       $('screenParcel').disabled=true;$('screenResults').textContent='Checking public flood and wetlands layers…';
       const checks=await Promise.all(['flood','wetlands'].map(kind=>window.RadarScreening.screen(record,kind,{signal})));

@@ -31,7 +31,7 @@ The server has one shared development identity, not enterprise SSO or tenant iso
 
 ## Data and operational limits
 
-- Only completed public scans can be summarized. Partial, failed, cancelled and identify-only results are not treated as complete scans.
+- Completed scans and explicitly labeled partial retrievals with records can be summarized. Partial requests carry `scanComplete:false` and `scanStatus:partial`; model context and response label the subset incomplete. Failed, cancelled, loading and identify-only states are rejected. None is promoted to a completed scan.
 - At most 25 visible records are sent: ID/key/jurisdiction, address, state, assessment class, acreage and year built. The question, source URL, retrieval time and visible count accompany them.
 - Owner lookups, private notes, raw attributes, licensed histories, uploaded/recovered files, portfolio/target records and contacts are excluded from the automatic payload.
 - Larger scans are labeled as sampled explanations, not exhaustive rankings. Output is advisory, not independent title, zoning, lease, environmental or feasibility verification.

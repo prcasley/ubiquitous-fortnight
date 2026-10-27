@@ -131,3 +131,8 @@ Deploy the built **`dist/` artifact**, rather than raw repository root. The incl
 - Select a licensed provider and supply an approved feed or scoped API credentials securely. Test national coverage and commercial-record completeness before claiming either.
 - Obtain permitted commercial histories/entity data before claiming Reonomy-like ownership intelligence.
 - Production SSO/multi-user hosting, provider-specific polling and notifications, power/broadband screening, split/merge reconciliation and larger-scale spatial indexing remain later work. SQLite is the local pilot store; move to PostGIS when data volume, polygon search or multi-user operations justify it.
+
+
+## Executive interaction regressions
+
+Run `python3 tests/executive-browser.py` after the existing browser smoke suite. It covers in-place sorting, stable map/search state, stale identifies, OZ legends/refresh/errors, partial-source research, mixed-state acquisition packs, storage failure and a mocked speech device. Fixture definitions live in `tests/browser_fixture.py`. See EXECUTIVE_ACQUISITION_QA.md for scope and verification limits; fixtures do not establish a tax deadline or source uptime.

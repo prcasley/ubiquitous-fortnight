@@ -20,3 +20,5 @@
 }
 @media(max-width:900px){.property-card-actions a,.legal a,.source-facts a,.research-tools a{display:inline-flex;align-items:center;min-height:44px}#basemap{min-height:44px}}
 @media(max-width:900px){.radar-agent .property-card-actions .secondary,.map-column .map-actions #identifyParcel{min-height:44px}}
+
+.oz-legend{padding:8px 14px;background:#f6fafb;border-top:1px solid #d5e4e8;font-size:11px}.oz-legend p{display:flex;align-items:center;gap:8px;margin:4px 0}.oz-legend small{margin-left:auto;color:#416375}.oz-swatch{width:14px;height:14px;flex:none;border:1px solid #193b49;border-radius:3px}.map-expanded .oz-legend{flex:none}@media(max-width:900px){.oz-legend p{flex-wrap:wrap}.oz-legend small{margin-left:22px}}

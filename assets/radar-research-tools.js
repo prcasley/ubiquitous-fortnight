@@ -9,7 +9,7 @@
   function message(text){$('researchToolsStatus').textContent=text;}
   function persist(){try{localStorage.setItem(key,JSON.stringify(state));return true;}catch{message('Storage is full. The current data is loaded only in this tab; retain the original source file and export your research.');return false;}}
   function download(name,text,type='text/csv'){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-  const current=()=>bridge().getResults().find(r=>r.key===selected);
+  const current=()=>bridge().getRecord(selected);
   function assembly(){
     const host=$('assemblyResearch');host.textContent='';
     if(!state.assembly.length){host.textContent='Select mapped parcels to build a research assembly.';return;}

@@ -13,7 +13,7 @@ A map-first property research workspace using public GIS in New Jersey, selected
 - Ordered field trips, notes, photos, backups and printable HTML/PDF field packs with parcel imagery. Dated organization observations and manual screening notes can accompany the selected property.
 - Optional hosted summaries through an authenticated server. Executives see a property-research workflow; API keys remain on the server and no model is downloaded. Static Pages searches work without that backend.
 
-See [free sources, restored features and paid-data gaps](docs/FREE_SOURCES_AND_FEATURES.md), [coverage](docs/PUBLIC_DATA_COVERAGE.md), [chat examples](docs/CHAT_GUIDE.md), and [field packs](docs/FIELD_PACKS.md).
+See [executive acquisition tests](docs/EXECUTIVE_ACQUISITION_QA.md), [free sources, restored features and paid-data gaps](docs/FREE_SOURCES_AND_FEATURES.md), [coverage](docs/PUBLIC_DATA_COVERAGE.md), [chat examples](docs/CHAT_GUIDE.md), and [field packs](docs/FIELD_PACKS.md).
 
 ## Run locally
 

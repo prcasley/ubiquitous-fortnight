@@ -33,3 +33,4 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
       - run: python tests/browser-smoke.py
+      - run: python tests/executive-browser.py

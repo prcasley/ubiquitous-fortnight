@@ -50,6 +50,18 @@ test('incomplete or unsupported source context is rejected before hosted inferen
   for(const variant of variants)assert.equal((await service.answer({...payload(),...variant})).status,400);
   assert.equal(calls,0);
 });
+test('explicit partial summaries preserve incompleteness and deadline/OZ unknowns in model context and response',async()=>{
+  let context,system;
+  const service=configured(async(_url,options)=>{const body=JSON.parse(options.body);context=JSON.parse(body.messages[1].content);system=body.messages[0].content;return {ok:true,json:async()=>({choices:[{message:{content:'P-1 is a retrieved observation. More parcels may exist.'}}]})};});
+  const result=await service.answer({...payload(),scanComplete:false,scanStatus:'partial',unverifiedCriteria:['acquisition deadline feasibility','OZ 2 designation and tax eligibility']});
+  assert.equal(result.status,200);assert.equal(context.scanStatus,'partial');assert.equal(result.body.scanStatus,'partial');
+  assert.match(system,/source retrieval is incomplete/);assert.match(result.body.caveat,/PARTIAL.*more parcels may exist/);
+  assert.deepEqual(context.unverifiedCriteria,['acquisition deadline feasibility','OZ 2 designation and tax eligibility']);
+});
+for(const status of ['failed','cancelled','loading','identified'])test('hosted summary rejects an unusable '+status+' scan',async()=>{
+  const service=configured(()=>{throw Error('must not call upstream');});
+  assert.equal((await service.answer({...payload(),scanComplete:false,scanStatus:status})).status,400);
+});
 test('hosted failures, hidden reasoning and vendor responses do not leak infrastructure or credentials',async()=>{
   for(const fetcher of [
     async()=>({ok:false,status:401,text:async()=> 'NVIDIA synthetic-test-key error'}),

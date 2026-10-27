@@ -1,0 +1,176 @@
+"""Executive acquisition workflows; synthetic public facts, isolated origins, no live key use."""
+from browser_fixture import *
+
+passed=[]
+def check(label,condition):
+    assert condition,label
+    passed.append(label)
+
+try:
+    with sync_playwright() as p:
+        browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+        context=browser.new_context(accept_downloads=True)
+        page=context.new_page()
+        errors=[]
+        page.on('pageerror',lambda e:errors.append(str(e)))
+        page.route('**/*',network)
+        page.goto(f'http://127.0.0.1:{server.server_port}/')
+        mode['executive']=True
+        def ask(text):
+            page.fill('#agentPrompt',text)
+            page.locator('#agentPrompt').press('Enter')
+        ask('Find industrial over 5 acres near West Palm Beach FL')
+        page.wait_for_function('window.PublicRadarBridge.getMeta().complete')
+        snapshot=page.evaluate('({search:PublicRadarBridge.getSearch(),meta:PublicRadarBridge.getMeta(),ids:PublicRadarBridge.getResults().map(r=>r.key),center:PublicRadarBridge.getSearchCenter()})')
+        source_calls=lambda:len([u for u in external_requests if "/query?" in u or "geocode.arcgis.com" in u])
+        before=source_calls()
+        ask('Show the largest properties in this scan')
+        page.wait_for_function('PublicRadarBridge.getResults()[0].acres===20')
+        check('largest keeps the existing acreage and industrial filters',page.evaluate('PublicRadarBridge.getSearch()')==snapshot['search'])
+        check('largest makes no new source/geocoder request',source_calls()==before)
+        check('largest preserves scan identity',page.evaluate('PublicRadarBridge.getMeta().scanId')==snapshot['meta']['scanId'])
+        check('largest sorts chat cards as well as the sidebar','20 acres' in page.locator('.chat-properties:not(.previous-search)').last.locator('.chat-property-card').first.inner_text())
+        check('largest retains the same property identities',sorted(page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)'))==sorted(snapshot['ids']))
+        # Reject invalid instructions without erasing the acquisition shortlist.
+        for text in ['Find industrial over -5 acres near Edison NJ','Find industrial between 20 and 5 acres near Edison NJ']:
+            ask(text)
+            page.wait_for_function('document.getElementById("agentLog").lastChild.textContent.includes("current results were retained")')
+            check('invalid size retains shortlist: '+text,page.evaluate('PublicRadarBridge.getMeta().scanId')==snapshot['meta']['scanId'])
+        # A closing target is never an automatic tax qualification or recorded availability claim.
+        for text,fragment in [('Can we close before January 1 and qualify for OZ2?','planning target'),('Who owns these parcels?','assessment'),('Which leases are up for renewal?','not connected'),('Show recent sale comps around $200/SF','not connected')]:
+            ask(text)
+            page.wait_for_function('(fragment)=>document.getElementById("agentLog").lastChild.textContent.toLowerCase().includes(fragment)',arg=fragment.lower())
+            check('missing acquisition evidence leaves shortlist intact: '+text,page.evaluate('PublicRadarBridge.getMeta().scanId')==snapshot['meta']['scanId'])
+        # Browsing is separate from deliberately choosing a new search center.
+        page.evaluate('PublicRadarBridge.getMap().setView([26.73,-80.14],16,{animate:false})')
+        page.click('#identifyParcel')
+        before=len([u for u in external_requests if 'resultRecordCount=7' in u])
+        page.locator('#map').dblclick(position={'x':230,'y':180},delay=70)
+        page.wait_for_timeout(650)
+        check('double-click zoom issues no identification query',len([u for u in external_requests if 'resultRecordCount=7' in u])==before)
+        check('double-click zoom retains shortlist and source status',page.evaluate('PublicRadarBridge.getMeta()')==snapshot['meta'])
+        check('browsing does not change search anchor',page.evaluate('PublicRadarBridge.getSearchCenter()')==snapshot['center'])
+        mode['mapInspect']=True
+        page.evaluate('PublicRadarGeo.identifyAt(26.73,-80.14)')
+        page.wait_for_function('document.getElementById("details").textContent.includes("INSPECT-HOME")')
+        check('out-of-shortlist inspection retains search results',sorted(page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)'))==sorted(snapshot['ids']))
+        check('inspection retains complete/partial metadata',page.evaluate('PublicRadarBridge.getMeta()')==snapshot['meta'])
+        mode['ownerIndividual']=True
+        companies_before=page.evaluate('RadarOwnership.groups().length')
+        page.click('#researchSelectedOwner')
+        page.wait_for_function('document.getElementById("ownershipStatus").textContent.includes("not saved to the company directory")')
+        check('home lookup produces a visible privacy explanation',page.locator('#ownershipStatus').is_visible())
+        check('individual assessment name is not indexed',page.evaluate('RadarOwnership.groups().length')==companies_before)
+        mode['ownerIndividual']=False
+        page.click('#addSelectedTrip')
+        check('inspected property can be added without replacing shortlist',page.locator('.field-trip-stop').count()==1 and page.evaluate('PublicRadarBridge.getResults().length')==4)
+        with page.expect_download() as trip_download: page.click('#exportFieldTrip')
+        trip=json.loads(Path(trip_download.value.path()).read_text())
+        check('inspection keeps its own source observation date',trip['stops'][0]['property']['scanStatus']=='identified' and bool(trip['stops'][0]['property']['retrievedAt']))
+        original=page.evaluate('({id:PublicRadarBridge.getResults()[0].id,key:PublicRadarBridge.getResults()[0].key,acres:PublicRadarBridge.getResults()[0].acres})')
+        page.evaluate('''(row)=>PublicRadarBridge.ingestOne({type:'Feature',properties:{PARID:row.id,SITE_ADDR_STR:'Synthetic fresh observation',ACRES:.25,PROPERTY_USE:'SINGLE FAMILY RESIDENTIAL'},geometry:{type:'Point',coordinates:[-80.13,26.72]}},'FL',{lat:26.72,lon:-80.13})''',original)
+        check('same-ID inspection displays its fresh observation',page.evaluate('(key)=>PublicRadarBridge.getRecord(key).acres',original['key'])==.25)
+        check('same-ID inspection retains the dated search observation',page.evaluate('(key)=>PublicRadarBridge.getResults().find(r=>r.key===key).acres',original['key'])==original['acres'])
+        page.evaluate('''window.beforeHeldFetch=fetch;window.fetch=async(u,o)=>{if(String(u).includes('resultRecordCount=7')){window.heldIdentification=true;await new Promise(r=>setTimeout(r,500));}return beforeHeldFetch(u,o)};void PublicRadarGeo.identifyAt(26.74,-80.15)''')
+        page.wait_for_function('window.heldIdentification===true')
+        # A preset should be reproducible after every map action.
+        mode['mapInspect']=False
+        ask('Find industrial over 5 acres near West Palm Beach FL')
+        page.wait_for_function('PublicRadarBridge.getMeta().complete')
+        check('preset restores geographic search and filters',page.evaluate('PublicRadarBridge.getSearch()')==snapshot['search'])
+        check('preset returns the same identities after map inspection',sorted(page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)'))==sorted(snapshot['ids']))
+        check('preset preserves saved field trip',page.locator('.field-trip-stop').count()==1)
+        page.wait_for_timeout(650)
+        check('late identify cannot reopen details after a new search',page.locator('#details').is_hidden())
+        check('late identify cannot change the new source status',page.evaluate('PublicRadarBridge.getMeta().complete'))
+        page.evaluate('()=>{window.fetch=window.beforeHeldFetch;}')
+        # Both layers can load together, survive identification and zoom, and explain failures.
+        page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})')
+        page.check('#oz1Toggle');page.check('#oz2Toggle')
+        page.wait_for_function('document.getElementById("oz1LegendStatus").textContent.includes("displayed")&&document.getElementById("oz2LegendStatus").textContent.includes("displayed")')
+        colors=page.locator('.oz-swatch').evaluate_all('(nodes)=>nodes.map(n=>getComputedStyle(n).backgroundColor)')
+        check('OZ reference layers have distinct labeled legend colors',len(set(colors))==2 and 'NOT certified designation' in page.locator('#ozLegend').inner_text())
+        page.click('#identifyParcel')
+        check('identify toggle preserves requested OZ layers',page.locator('#oz1Toggle').is_checked() and page.locator('#oz2Toggle').is_checked())
+        page.evaluate('PublicRadarBridge.getMap().setZoom(9,{animate:false})')
+        page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("Zoom closer")')
+        check('zooming out preserves both requested toggles',page.locator('#oz1Toggle').is_checked() and page.locator('#oz2Toggle').is_checked())
+        page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})')
+        page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("displayed")')
+        check('zooming back in automatically refreshes requested layers',page.locator('#oz1Toggle').is_checked())
+        for flag in ['ozFail','ozCap','ozTruncated','ozUnknown']:
+            mode[flag]=True
+            page.evaluate('PublicRadarGeo.loadOpportunityZone("oz2")')
+            page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("Unavailable")')
+            check('OZ source problem remains explicit and selected: '+flag,page.locator('#oz2Toggle').is_checked())
+            check('OZ source problem never labels final designation: '+flag,'No tract-status conclusion' in page.locator('#mapResearchNote').inner_text())
+            mode[flag]=False
+        # In-flight references must not reappear after the user turns them off.
+        page.evaluate('''window.originalFetch=fetch;window.fetch=async(u,o)=>{if(String(u).includes('Opportunity_Zone_2')){window.delayedOZ=true;await new Promise(r=>setTimeout(r,400));}return originalFetch(u,o)}''')
+        page.evaluate('void PublicRadarGeo.loadOpportunityZone("oz2")')
+        page.wait_for_function('window.delayedOZ===true')
+        page.uncheck('#oz2Toggle')
+        page.wait_for_timeout(550)
+        check('disabled in-flight overlay stays hidden',page.locator('#oz2LegendStatus').inner_text()=='Hidden')
+        page.evaluate('()=>{window.fetch=window.originalFetch;}')
+        # Explicit search center is the sole map operation that changes the next query anchor.
+        page.click('#setSearchCenter')
+        page.evaluate('PublicRadarBridge.getMap().fire("click",{latlng:L.latLng(26.72,-80.12)})')
+        page.wait_for_function('PublicRadarBridge.getSearchCenter().lon===-80.12')
+        check('explicit center changes next anchor only',page.evaluate('PublicRadarBridge.getSearch()')==snapshot['search'])
+        # The acquisition team can research the retrieved subset after a source outage.
+        mode['partial']=True
+        page.locator('#filterDrawer').evaluate('e=>e.open=true')
+        page.select_option('#acreageComparison','>=');page.fill('#minAcres','0')
+        page.click('#scanButton')
+        page.wait_for_function('PublicRadarBridge.getMeta().status==="partial"&&!document.getElementById("scanButton").textContent.includes("Cancel")')
+        partial_id=page.evaluate('PublicRadarBridge.getMeta().scanId')
+        ask('Verify source and coverage')
+        page.wait_for_function('document.getElementById("agentLog").lastChild.textContent.includes("Partial retrieval")')
+        check('partial source explanation uses actual source and caveat','Palm Beach' in page.locator('#agentLog').last.inner_text())
+        ask('Show the largest properties in this scan')
+        page.wait_for_function('document.getElementById("agentLog").textContent.includes("not a market-wide ranking")')
+        check('partial sorting never starts a replacement search',page.evaluate('PublicRadarBridge.getMeta().scanId')==partial_id)
+        check('partial workflow preserves saved trip',page.locator('.field-trip-stop').count()==1)
+        check('menu accurately labels local data imports',page.locator('.rail-nav').get_by_text('Assemblies & local files',exact=False).count()==1)
+        mode['partial']=False
+        ask('Find industrial over 5 acres near Edison NJ under $5 million before January 1 in OZ2')
+        page.wait_for_function('PublicRadarBridge.getMeta().complete&&PublicRadarBridge.getMeta().state==="NJ"')
+        unknowns=page.evaluate('PublicRadarBridge.getMeta().unverified')
+        check('NJ acquisition search keeps budget, deadline and OZ eligibility unverified',set(unknowns)=={'purchase budget matching','acquisition deadline feasibility','OZ 2 designation and tax eligibility'})
+        page.locator('.chat-properties:not(.previous-search)').last.locator('[data-action=focus-parcel]').first.click()
+        page.click('#researchSelectedOwner')
+        page.wait_for_function('document.getElementById("ownershipStatus").textContent.includes("redacted")')
+        check('NJ redaction is explicit without inventing an owner',page.evaluate('RadarOwnership.groups().length')==companies_before)
+        page.click('#addSelectedTrip')
+        with page.expect_download() as acquisition_pack: page.click('#generateFieldPack')
+        packet=Path(acquisition_pack.value.path()).read_text()
+        check('mixed FL/NJ acquisition pack carries unresolved conditions',all(value in packet for value in unknowns))
+        check('acquisition pack contains dated facts and both state stops','PARCEL INSPECT-HOME' in packet and 'PARCEL NJ-' in packet and 'Source:' in packet)
+        # A full browser store must not produce a false promise that a stop was saved.
+        page.evaluate('''window.storageSet=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='capital-radar-field-trip-v1')throw new DOMException('Quota','QuotaExceededError');return storageSet.call(this,k,v)};PublicRadarBridge.ingestOne({type:'Feature',properties:{PARID:'QUOTA-STOP',SITE_ADDR_STR:'Synthetic backup-only stop',ACRES:6,PROPERTY_USE:'WAREHOUSE'},geometry:{type:'Point',coordinates:[-80.13,26.72]}},'FL',{lat:26.72,lon:-80.13})''')
+        page.click('#addSelectedTrip')
+        check('storage failure is visible before the executive closes the tab','this tab only' in page.locator('#fieldPackStatus').inner_text())
+        with page.expect_download() as quota_backup: page.click('#exportFieldTrip')
+        backup=json.loads(Path(quota_backup.value.path()).read_text())
+        check('unsaved in-memory field work can still be backed up',len(backup['stops'])==3)
+        page.evaluate('()=>{Storage.prototype.setItem=window.storageSet;}')
+        check('executive workflow has no uncaught browser errors',not errors)
+        page.screenshot(path='/tmp/capital-radar-executive-qa.png')
+        # Speech failures use a test double; no microphone or speech service is accessed.
+        voice=context.new_page()
+        voice.route('**/*',network)
+        voice.add_init_script('''window.voiceStarts=0;window.confirm=()=>true;window.SpeechRecognition=class {start(){voiceStarts++;if(window.voiceThrows)throw Error('Synthetic unavailable device');queueMicrotask(()=>{this.onresult({results:[[{transcript:'Find industrial over 5 acres near Edison NJ'}]]});this.onend()})}}''')
+        voice.goto(f'http://127.0.0.1:{server.server_port}/')
+        check('speech does not start on page load',voice.evaluate('voiceStarts')==0)
+        voice.click('#agentMic')
+        voice.wait_for_function('document.getElementById("agentPrompt").value.includes("Edison")')
+        check('dictation fills the prompt without starting a guessed search',not voice.evaluate('PublicRadarBridge.getMeta().complete'))
+        voice.evaluate('window.voiceThrows=true')
+        voice.click('#agentMic')
+        voice.wait_for_function('document.getElementById("agentLog").textContent.includes("Voice input could not start")')
+        check('unavailable speech device releases the button for text entry','Speak' in voice.locator('#agentMic').inner_text())
+        browser.close()
+    print('Executive browser suite passed:',len(passed),'workflow checks (synthetic data; no live tax/designation/closing verification).')
+finally:
+    server.shutdown();server.server_close()

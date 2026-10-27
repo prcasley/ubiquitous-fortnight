@@ -57,6 +57,7 @@
   const MAX_FEATURES = 1100;
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
+  let inspected=null,searchAnchor={lat:40.527,lon:-74.363},centerMode=false,clickTimer=null;
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
   let scanComplete=false, scanState="idle", scanId=0, activeSource=null, searchSnapshot=null;
   let lastGeocodeCounty=null;
@@ -194,7 +195,7 @@
     if(scannerBusy) { clearResults();scanState="cancelled";status("Search cancelled.","warning");return; }
     if(!map||!domain||!window.turf){status("Map or spatial library unavailable. Reload after dependencies are available.","danger");return;}
     const state=$("stateSelect").value;
-    const center={lat:map.getCenter().lat,lon:map.getCenter().lng};
+    const center={...searchAnchor};
     const radius=Number($("radiusSelect").value);
     let acreFilter;try{acreFilter=readAcreageFilter();}catch(e){status(e.message,"warning");return;}
     const min=acreFilter.value;
@@ -344,7 +345,7 @@
   function renderMap(){
     if(!map||!layers)return;
     layers.clearLayers();
-    for(const p of filtered) {
+    for(const p of [...filtered.map(p=>inspected?.key===p.key?inspected:p),...(inspected&&!filtered.some(r=>r.key===inspected.key)?[inspected]:[])]) {
       const feature=p.geometry;
       let l;
       if(feature.geometry.type==="Point"){
@@ -352,7 +353,7 @@
       } else {
         l=L.geoJSON(feature,{style:{weight:selectedId===p.key?3:1,color:selectedId===p.key?"#ffd334":"#147c91",fillColor:p.type==="Industrial"?"#00aa93":"#54a9c3",fillOpacity:.16}});
       }
-      l.addTo(layers);l.on("click",()=>choose(p.key));
+      l.addTo(layers);l.on("click",e=>{if(centerMode||$("identifyParcel")?.getAttribute("aria-pressed")==="true")return;clearTimeout(clickTimer);if(e.originalEvent?.detail>1)return;clickTimer=setTimeout(()=>choose(p.key),450);});
     }
     if(circle) map.removeLayer(circle);
     circle=L.circle([sourceCenter.lat,sourceCenter.lon],{radius:(searchSnapshot?.radius||Number($("radiusSelect").value))*1609.344,color:"#058b87",fillOpacity:.035,weight:1,dashArray:"6 5"}).addTo(map);
@@ -379,8 +380,9 @@
     if(typeof raw==="number" && raw>1000000000) return new Date(raw).toLocaleDateString();
     return String(raw);
   }
-  function choose(id){
-    const p=records.find(x=>x.key===id);if(!p)return;
+  function choose(id,{inspection=false}={}){
+    const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||(inspected?.key===id?inspected:null);if(!p)return;
+    if(!inspection&&records.includes(p))inspected=null;
     selectedId=id;renderResults();renderMap();$("details").hidden=false;
     const owner=p.owner||"Use the public-source lookup below";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
@@ -419,7 +421,7 @@
     $("market").value=key;$("stateSelect").value=v.state;
     map.setView([v.lat,v.lon],v.zoom,{animate:false});
     $("placeInput").value=v.name+", "+v.state;
-    sourceCenter={lat:v.lat,lon:v.lon};
+    searchAnchor={lat:v.lat,lon:v.lon};sourceCenter={...searchAnchor};
     status("Centered on "+v.name+". Set a radius and press Scan public parcels.","info");
   }
   async function findPlace(){
@@ -438,7 +440,7 @@
       if(!["FL","NJ","PA"].includes(state))throw Error("Address located in "+(state||"an unsupported state")+". Connected sources: FL, NJ and selected PA counties (Lehigh/Northampton).");
       const {x,y}=cand.location;
       if(!stateInBounds(y,x,state))throw Error("Address located outside verified layer extent.");
-      clearResults();$("stateSelect").value=state; map.setView([y,x],13);
+      clearResults();$("stateSelect").value=state; searchAnchor={lat:y,lon:x};map.setView([y,x],13);
       lastGeocodeCounty=String(cand.attributes?.Subregion||"").replace(/\s+County$/i,"").trim()||null;
       document.dispatchEvent(new CustomEvent("radar:location",{detail:{state,county:lastGeocodeCounty}}));
       status("Located "+cand.address+" in "+state+". Scan when ready; an address match is NOT a parcel verification.","success");
@@ -453,7 +455,7 @@
         const lat=pos.coords.latitude,lon=pos.coords.longitude;
         const state=["FL","NJ"].find(k=>stateInBounds(lat,lon,k));
         if(!state){status("Your location is outside the FL/NJ GPS coverage. For Pennsylvania, select Lehigh or Northampton or type a city/address. No location was guessed.","warning");resolve(null);return;}
-        clearResults();$("stateSelect").value=state;map.setView([lat,lon],14);
+        clearResults();$("stateSelect").value=state;searchAnchor={lat,lon};map.setView([lat,lon],14);
         document.dispatchEvent(new CustomEvent("radar:location",{detail:{state,county:null}}));
         L.circleMarker([lat,lon],{radius:8,color:"#fff",weight:3,fillColor:"#1479f5",fillOpacity:1}).addTo(map);
         status("Device located in "+state+". County identity is not verified from GPS alone; countywide source filtering is disabled until selected.","warning");
@@ -489,7 +491,7 @@
     scanId++;if(scanAbort)scanAbort.abort();
     scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;
     $("scanButton").disabled=!map;$("scanButton").textContent="Scan public parcels";
-    listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
+    inspected=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
     $("details").hidden=true;
     if(layers)layers.clearLayers();
     if(circle&&map){map.removeLayer(circle);circle=null;}
@@ -505,16 +507,14 @@
     const props=feature?.properties||{};
     const provider=state==="PA"?activeSource:state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state];
     const item=normalize(feature,state,center,provider);if(!item)return null;
-    clearResults();activeSource=provider;scanState="identified";scanComplete=false;
-    records=[item];filtered=[item];sourceState=state;sourceCenter=center;sourceTime=new Date();countResult=1;
-    selectedId=item.key;renderResults();renderMap();renderSource();choose(item.key);
-    $("lastUpdated").textContent=sourceTime.toLocaleString();
+    item.retrievedAt=new Date().toISOString();item.scanStatus='identified';
+    inspected=item;choose(item.key,{inspection:true});
     return item;
   }
   window.PublicRadarBridge={scan,
-    setOwnerObservation:(key,observation)=>{const record=records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
+    setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
-    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");
@@ -526,7 +526,7 @@
     sortResults:sort=>{records.sort(sort==="largest"?(a,b)=>(b.acres??-1)-(a.acres??-1):(a,b)=>a.distance-b.distance);renderResults();},
     getSource:(state,lat,lon)=>state==="PA"&&activeSource?.mappings?activeSource:providerFor(state,lat,lon),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
-    setCenter:(lat,lon,zoom=13)=>{if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
+    getSearchCenter:()=>({...searchAnchor}),cancelCenterSelection:()=>{centerMode=false;$("setSearchCenter").setAttribute("aria-pressed","false");$("setSearchCenter").textContent="Set search center";},setCenter:(lat,lon,zoom=13)=>{searchAnchor={lat,lon};if(map)map.setView([lat,lon],zoom);},getMap:()=>map,getLayers:()=>layers,
     setStatus:status,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:providerFor("FL",map?.getCenter().lat,map?.getCenter().lng).url,NJ:SOURCES.NJ.url,PA:providerFor("PA")?.url})};
   function initMap(){
     if(!window.L||!window.turf||!domain){
@@ -537,7 +537,9 @@
     street=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap contributors"});
     satellite=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri imagery; source providers"});
     street.addTo(map);layers=L.layerGroup().addTo(map);
-    map.on("click",e=>{map.panTo(e.latlng);document.dispatchEvent(new CustomEvent("radar:center-selected"));status("Center selected by map tap: "+e.latlng.lat.toFixed(5)+", "+e.latlng.lng.toFixed(5)+". Click Scan public parcels.","info");});
+    map.on("dblclick",()=>clearTimeout(clickTimer));
+    map.on("click",e=>{if(!centerMode||e.originalEvent?.detail>1)return;clearTimeout(clickTimer);clickTimer=setTimeout(()=>{if(!centerMode)return;searchAnchor={lat:e.latlng.lat,lon:e.latlng.lng};map.panTo(e.latlng);window.PublicRadarBridge.cancelCenterSelection();document.dispatchEvent(new CustomEvent("radar:center-selected"));status("Search center set explicitly. Existing results retain their original search area until you scan again.","info");},450);});
+    $("setSearchCenter").addEventListener('click',()=>{centerMode=!centerMode;if(centerMode&&$("identifyParcel").getAttribute('aria-pressed')==='true')$("identifyParcel").click();$("setSearchCenter").setAttribute('aria-pressed',String(centerMode));$("setSearchCenter").textContent=centerMode?'Tap map to set center · ON':'Set search center';});
     $("basemap").addEventListener("change",()=>{if($("basemap").value==="satellite"){map.removeLayer(street);satellite.addTo(map);}else{map.removeLayer(satellite);street.addTo(map);}});
     $("fitResults").addEventListener("click",()=>{
       if(!records.length)return;

@@ -51,9 +51,9 @@
    const type=/\b(multifamily|multi.family|apartment|apartments)\b/.test(l)?'multifamily':
      /\b(vacant|undeveloped|empty lots?)\b/.test(l)?'vacant':
      /\b(industrial|warehouses?|warehousing|distribution|manufacturing|factories)\b/.test(l)?'industrial':null;
-   const countyLabel=[...NJ.map(x=>x[0]),...FL.map(x=>x[0])].find(x=>l.includes(x.toLowerCase()+' county'));
+   const countyLabel=[...NJ.map(x=>x[0]),...FL.map(x=>x[0]),...PA.map(x=>x[0])].find(x=>l.includes(x.toLowerCase()+' county'));
    let location=(q.match(/\b(?:in|near|around)\s+([A-Za-z][^?.!]*)(?:$)/i)||[])[1]||'';
-   location=location.split(/\s+(?:with|that|which|within|over|above|under|at least|at most|up for|for sale|priced|asking|about|around|approximately|approx\.?|and (?:has|have|for))\b|\s*\$/i)[0].replace(/[,\s]+$/,'').trim();
+   location=location.split(/\s+(?:with|that|which|within|over|above|under|at least|at most|up for|for sale|priced|asking|before (?:jan(?:uary)?|dec(?:ember)?)|by (?:jan(?:uary)?|dec(?:ember)?)|about|around|approximately|approx\.?|and (?:has|have|for))\b|\s*\$/i)[0].replace(/[,\s]+$/,'').trim();
    if(/^(?:(?:the|this|these|my) (?:results|scan|parcels|area)|florida|new jersey|nj|fl|me|my location)$/i.test(location))location='';
    const search=/\b(find|show|scan|search|look(?:ing)? for|locate|need|want|get me)\b/i.test(q)&&
      (type||acres!=null||location||radius||/\b(parcels?|properties|property|land|near me)\b/i.test(q));
@@ -61,17 +61,23 @@
    const comps=/\b(comps?|comparables?|closed sales?|recent sales?)\b/.test(l);
    const price=l.match(/\$?\s*(\d[\d,]*(?:\.\d+)?)\s*(?:\/|per\s+)(?:sq\.?\s*(?:ft\.?|foot|feet)|sqft|square\s*(?:foot|feet)|sf)\b/);
    const pricePsf=price?{amount:Number(price[1].replace(/,/g,'')),basis:comps?'closed-sale':forSale?'asking-sale':/\b(rent|rental)\b/.test(l)?'asking-rent':'unspecified',unit:'building-square-foot',approximate:/\b(about|approx|approximately|around|roughly)\b/.test(l)}:null;
-   return {q,search:!!search,nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres,maxAcres,comparison,acreageMeaning,
+   const budgetMatch=!price&&l.match(/\$\s*(\d[\d,]*(?:\.\d+)?)\s*(million|m\b|thousand|k\b)?/i);
+   const budget=budgetMatch?{amount:Number(budgetMatch[1].replace(/,/g,''))*(/^(million|m)$/i.test(budgetMatch[2])?1000000:/^(thousand|k)$/i.test(budgetMatch[2])?1000:1)}:null;
+   return {q,budget,invalidReason:range&&Number(range[1])>Number(range[2])?"Enter a size range with the smaller acreage first.":!range&&/(?:^|[\s(])-\s*\d+(?:\.\d+)?\s*(?:acres?|ac\b|miles?)/i.test(q)?"Acreage and radius cannot be negative.":null,search:!!search,nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres,maxAcres,comparison,acreageMeaning,
      radius:radius?Number(radius[1]):null,state:stateFrom(q),countyLabel:countyLabel||null,location,
      sort:/\b(biggest|largest|most acreage)\b/.test(l)?'largest':/\b(nearest|closest)\b/.test(l)?'nearest':null,
      questionOwnership:/\b(owners?|ownership|who owns|owned by|title holder)\b/.test(l),
      questionLease:/\b(leases?|tenants?|rent|expiration|expiring|expires|renewal|renewals|renewing|renew)\b/.test(l),
      forSale,comps,pricePsf,
      questionOZ:/\b(opportunity zone|oz ?1|oz ?2|oz ?2027)\b/.test(l),
+     questionDeadline:/\b(?:before|by|close|closing|acquir|deadline)\b.*\b(?:jan(?:uary)?|dec(?:ember)?|year.end|1st|31st)\b/i.test(q),
      questionSource:/\b(source|accuracy|verified|reliable|coverage|provenance)\b/.test(l)};
  }
  function missingCriteria(intent){
    const missing=[];
+   if(intent.budget)missing.push('purchase budget matching');
+   if(intent.questionDeadline)missing.push('acquisition deadline feasibility');
+   if(intent.questionOZ)missing.push('OZ 2 designation and tax eligibility');
    if(intent.questionLease)missing.push('lease renewal dates');
    if(intent.forSale)missing.push('current sale availability');
    if(intent.pricePsf||intent.comps)missing.push(intent.comps?'closed-sale comparables':'asking price per building square foot');
@@ -156,9 +162,11 @@
  }
  function explainFollowUp(intent){
    const rows=bridge()?.getResults()||[],meta=bridge()?.getMeta()||{};
-   if(intent.forSale||intent.pricePsf||intent.comps)return "Current listings, asking prices and comparable sales are not connected to this public scan. Asking sale price per building square foot differs from closed-sale price per building square foot; both require source records, dates and building area. I cannot mark a parcel for sale or say it meets a price target without those records.";
+   if(intent.forSale||intent.pricePsf||intent.comps||intent.budget)return "Current listings, purchase prices, budget matching and comparable sales are not connected to this public scan. Asking sale price per building square foot differs from closed-sale price per building square foot; both require source records, dates and building area. I cannot mark a parcel for sale or say it meets a price target without those records.";
    if(intent.questionLease)return "Lease renewal and expiration dates are not connected to this public scan. They need a lease schedule or other dated evidence; no parcel is being labeled up for renewal.";
-   if(!meta.ready||!meta.complete)return "No completed public scan is loaded. Search for a county or property type first.";
+   if(intent.questionDeadline)return "A January 1 closing target needs a dated acquisition plan: seller agreement, title and survey review, financing and closing conditions. Public GIS cannot establish closing readiness. Treat that date as a planning target; verify any OZ publication schedule, designation and tax eligibility against dated Treasury/IRS guidance. An eligibility-reference map does not confirm qualification.";
+   if(intent.questionSource&&meta.time)return "Records come from "+meta.source+". Retrieved "+meta.time+". Scan status: "+meta.status+". "+(!meta.complete?"Partial retrieval: more parcels may exist; counts and rankings cover only the retrieved records. ":"")+"Assessment class is not zoning or legal title. Verify county records, source vintage and coverage before acquisition decisions.";
+   if(!meta.complete&&!(meta.status==='partial'&&rows.length))return "No retrieved parcel results are loaded. Search for a county or property type first.";
    if(intent.questionOwnership)return "For a Florida parcel, open its detail card and choose Look up published assessment name. This queries the official record for that parcel when requested, without mailing addresses. New Jersey statewide GIS redacts owner names; open the official county tax-record lookup for independent research. Assessment names are NOT deed or beneficial-ownership verification.";
    if(intent.questionLease)return "Connected parcel/assessment sources do not provide verified lease start, tenant, rental terms or expiration. Those fields are unavailable here, not zero or unleased.";
    if(intent.questionOZ)return "OZ 1 means tracts designated in the older round. OZ 2 map data currently concerns eligibility or nominations for a later designation round. Turn on the appropriate reference layers; eligibility is NOT designation. Check the IRS source notice before relying on status.";
@@ -170,8 +178,8 @@
    if(intent.sort==="largest")matches.sort((a,b)=>(b.acres??-1)-(a.acres??-1));
    if(intent.sort==="nearest")matches.sort((a,b)=>a.distance-b.distance);
    const list=matches.slice(0,5).map(r=>"• "+(r.address||r.id)+" · "+(r.acres==null?"acreage unavailable":r.acres.toFixed(2)+" acres")+" · parcel "+r.id).join("\n");
-   return matches.length+" of "+rows.length+" records in the last completed source scan match this question.\n"+list+
-     (matches.length>5?"\nShowing five; use the results panel for more.":"")+"\nSource: "+meta.source+". Status: public research only.";
+   return matches.length+" of "+rows.length+" records in the retrieved source results match this question.\n"+list+
+     (matches.length>5?"\nShowing five; use the results panel for more.":"")+"\nSource: "+meta.source+". Status: "+meta.status+(!meta.complete?" — partial retrieval; more properties may exist.":" — public research only.");
  }
  async function ask(raw){
    let intent=parseIntent(raw);if(!intent.q)return;
@@ -189,8 +197,18 @@
    }
    if(busy){putMessage("A public-source search is already in progress. Finish it before submitting another request.");return;}
    putMessage(clean(raw),"user");
+   if(intent.invalidReason){putMessage(intent.invalidReason+" Your current results were retained.");return;}
+   if(intent.sort&&!intent.location&&!intent.state&&!intent.countyLabel&&!intent.nearMe&&intent.acres==null&&intent.type==null){
+     const meta=bridge().getMeta(),rows=bridge().getResults();
+     if(!rows.length){putMessage("Search for properties first, then I can sort the retrieved records by acreage or distance.");return;}
+     bridge().sortResults(intent.sort);
+     const unverified=missingCriteria(intent);
+     putMessage((intent.sort==='largest'?"Largest reported acreage first":"Nearest map reference point first")+" in your existing results. Location and filters are unchanged. "+(!meta.complete?"Partial retrieval: more properties may exist; this is not a market-wide ranking.":"This ranks the retrieved scan only.")+(unverified.length?" Requested conditions remain unverified: "+unverified.join(", ")+".":""));
+     window.RadarChatProperties?.render(bridge().getVisible(),meta);return;
+   }
+
    if(!intent.search){
-     if(!intent.questionOwnership&&!intent.questionLease&&!intent.questionOZ&&!intent.forSale&&!intent.pricePsf&&!intent.comps&&window.PublicRadarAssistant?.isAvailable()&&bridge()?.getMeta()?.complete)
+     if(!intent.questionOwnership&&!intent.questionLease&&!intent.questionOZ&&!intent.forSale&&!intent.pricePsf&&!intent.comps&&!intent.budget&&window.PublicRadarAssistant?.isAvailable()&&bridge()?.getMeta()?.complete)
        await window.PublicRadarAssistant.explain(intent.q);
      else putMessage(explainFollowUp(intent),"bot",bridge()?.getMeta()?.sourceURL);
      return;
@@ -292,7 +310,7 @@
    }
  }
  function parcelAction(e){
-   const key=e?.detail?.key,prop=bridge()?.getResults()?.find(x=>x.key===key);if(!prop)return;
+   const key=e?.detail?.key,prop=bridge()?.getRecord(key);if(!prop)return;
    const host=$("details");if(!host)return;
    let btn=$("assembleSelect");if(btn)btn.remove();btn=document.createElement("button");
    btn.type="button";btn.className="secondary";btn.id="assembleSelect";
@@ -314,7 +332,7 @@
      r.onresult=e=>{$("agentPrompt").value=e.results?.[0]?.[0]?.transcript||"";};
      r.onerror=()=>putMessage("Microphone transcription failed. You can type your request instead.");
      r.onend=()=>{speaking=false;button.textContent="🎙 Speak";};
-     r.start();
+     try{r.start();}catch{speaking=false;button.textContent="🎙 Speak";putMessage("Voice input could not start. Type your property request instead; your existing results were retained.");}
    });
  }
  function init(){

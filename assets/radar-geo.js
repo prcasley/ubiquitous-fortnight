@@ -13,7 +13,7 @@
     color:"#b4752e",limit:280}
  };
  const source=()=>window.PublicRadarBridge;
- let layers={},activeIdentify=false,themeLayer=null,loading=false;
+ let layers={},activeIdentify=false,themeLayer=null,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;
  const map=()=>source()?.getMap();
  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const note=(message,type="info")=>{
@@ -22,6 +22,12 @@
      $("mapPanel")?.append(n);}
    n.dataset.type=type;n.textContent=message;
  };
+ function layerStatus(kind,value){const node=document.getElementById(kind+'LegendStatus');if(node)node.textContent=value;}
+ function legend(){
+   const host=document.createElement('div');host.id='ozLegend';host.className='oz-legend';host.setAttribute('aria-label','Opportunity zone map legend');host.setAttribute('aria-live','polite');
+   for(const [kind,d] of Object.entries(OZ)){const row=document.createElement('p'),swatch=document.createElement('span'),text=document.createElement('span'),status=document.createElement('small');swatch.className='oz-swatch';swatch.style.backgroundColor=d.color;text.textContent=d.label;status.id=kind+'LegendStatus';status.textContent='Hidden';row.append(swatch,text,status);host.append(row);}
+   const foot=document.createElement('p');foot.textContent='OZ 2 eligibility estimates do not establish final designation, tax eligibility or a publication/closing deadline.';host.append(foot);document.getElementById('mapPanel').insertBefore(host,document.querySelector('#mapPanel .map-wrap'));
+ }
  function queryParams(m){
    const b=m.getBounds();
    const env={xmin:b.getWest(),ymin:b.getSouth(),xmax:b.getEast(),ymax:b.getNorth(),spatialReference:{wkid:4326}};
@@ -39,14 +45,14 @@
  async function loadOpportunityZone(kind){
    const m=map(),d=OZ[kind];
    if(!m||!d)return;
-   if(loading){note("A GIS layer request is already in progress.","warning");return;}
+   requests[kind]?.abort();
    const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;group.clearLayers();
    if(m.getZoom()<10){
       note("Zoom closer before loading tract boundaries. The current map covers too large an area for a complete layer.","warning");
-      $(kind+"Toggle").checked=false;return;
+      layerStatus(kind,"Zoom closer to load (requested)");return;
    }
    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);
-   loading=true;note("Loading "+d.label+" from its public reference GIS layer…");
+   requests[kind]=ctrl;layerStatus(kind,"Loading reference polygons…");note("Loading "+d.label+" from its public reference GIS layer…");
    try {
      const base=queryParams(m);
      const c=await queryLayer(d.url,{...base,returnCountOnly:"true",returnGeometry:"false"},ctrl.signal);
@@ -60,6 +66,7 @@
        returnGeometry:"true",maxAllowableOffset:"0.00003",geometryPrecision:"5",resultRecordCount:String(d.limit)},ctrl.signal);
      if(!Array.isArray(raw.features)||raw.exceededTransferLimit||raw.features.length!==count)
        throw Error("The public service returned an incomplete set of tract geometries");
+     if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
      const selected=kind==="oz2" ? raw.features.filter(f=>{
        const value=String(f.properties?.OZ_2_0_Eli??"").trim().toLowerCase();
        return /^(yes|true|1|eligible)$/.test(value) ||
@@ -84,11 +91,13 @@
      }
      note(kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
+     layerStatus(kind,polygon.length+" reference tracts displayed; viewport coverage only");
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
    }catch(e){
-     group.clearLayers();$(kind+"Toggle").checked=false;
+     if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
+     group.clearLayers();layerStatus(kind,"Unavailable — requested, not displayed");
      note("OZ layer could not be verified: "+String(e?.message||e)+". No tract-status conclusion was made.","warning");
-   }finally{loading=false;clearTimeout(timer);}
+   }finally{if(requests[kind]===ctrl)delete requests[kind];clearTimeout(timer);}
  }
  function changeTheme(value){
    const m=map();if(!m)return;
@@ -126,10 +135,11 @@
    const params={where:"1=1",geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",inSR:"4326",
      spatialRel:"esriSpatialRelIntersects",outSR:"4326",outFields:field,returnGeometry:"true",
      f:"geojson",resultRecordCount:"7"};
-   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),18000);
+   identifyRequest?.abort();const ctrl=new AbortController(),snapshotId=b.getMeta().scanId;identifyRequest=ctrl;const timer=setTimeout(()=>ctrl.abort(),18000);
    note(state==="FL"?"Finding published centroids near the map tap…":"Identifying the public parcel polygon at this map location…");
    try{
      const res=await queryLayer(uri,params,ctrl.signal);
+     if(ctrl.signal.aborted||snapshotId!==b.getMeta().scanId)return;
      if(!Array.isArray(res.features)||res.exceededTransferLimit||!res.features.length)
        throw Error("No uniquely identifiable public parcel was returned at this location");
      const features=res.features.filter(f=>f.geometry);
@@ -150,28 +160,29 @@
        (countyFL?"Clicked county parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
        "One source polygon identified. This is a planning boundary, not a title survey.","success");
    }catch(e){
+     if(ctrl.signal.aborted||snapshotId!==b.getMeta().scanId)return;
      note("Parcel identification unavailable: "+String(e?.message||e)+". No parcel identity was guessed.","warning");
-   }finally{clearTimeout(timer);}
+   }finally{if(identifyRequest===ctrl)identifyRequest=null;clearTimeout(timer);}
  }
  function init(){
-   const m=map();if(!m||!window.L)return;
+   const m=map();if(!m||!window.L)return;legend();
    for(const kind of Object.keys(OZ)){
      $(kind+"Toggle")?.addEventListener("change",e=>{
        if(e.target.checked)loadOpportunityZone(kind);
-       else{layers[kind]?.clearLayers();note(kind.toUpperCase()+" reference layer hidden.");}
+       else{requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
      });
    }
    $("basemap")?.addEventListener("change",e=>changeTheme(e.target.value));
    $("identifyParcel")?.addEventListener("click",()=>{
-     activeIdentify=!activeIdentify;
+     activeIdentify=!activeIdentify;clearTimeout(identifyTimer);if(!activeIdentify)identifyRequest?.abort();if(activeIdentify)source().cancelCenterSelection();
      $("identifyParcel").setAttribute("aria-pressed",String(activeIdentify));
      $("identifyParcel").textContent=activeIdentify?"Tap map to identify · ON":"Identify parcel";
      note(activeIdentify?"Tap a map point. FL finds the nearest assessment centroid, while NJ checks mapped parcel polygons.":"Parcel identification turned off.");
    });
-   m.on("click",e=>{if(activeIdentify)identifyAt(e.latlng.lat,e.latlng.lng);});
-   m.on("moveend",()=>{for(const k of Object.keys(OZ)){
-     if($(k+"Toggle")?.checked){$(k+"Toggle").checked=false;layers[k]?.clearLayers();}
-   }});
+   m.on("dblclick",()=>{clearTimeout(identifyTimer);identifyRequest?.abort();});
+   m.on("click",e=>{if(!activeIdentify||e.originalEvent?.detail>1)return;clearTimeout(identifyTimer);identifyTimer=setTimeout(()=>{if(activeIdentify)identifyAt(e.latlng.lat,e.latlng.lng);},450);});
+   document.addEventListener("radar:scan-state",e=>{if(e.detail.state==='idle'){clearTimeout(identifyTimer);identifyRequest?.abort();}});
+   m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){requests[k]?.abort();layers[k]?.clearLayers();layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
    window.PublicRadarGeo={sources:OZ,loadOpportunityZone,identifyAt};
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
