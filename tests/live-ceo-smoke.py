@@ -21,8 +21,8 @@ def live(route):
         with urllib.request.urlopen(urllib.request.Request(route.request.url,headers={'User-Agent':'Capital-Radar-read-only-repro-check'}),timeout=30) as r:
             body=r.read();report['transport'].append({'host':u.hostname,'status':r.status,'corsHeader':r.headers.get('Access-Control-Allow-Origin')})
             route.fulfill(status=r.status,content_type=r.headers.get('Content-Type','application/json'),headers={'access-control-allow-origin':'*'},body=body)
-    except Exception:
-        report['transport'].append({'host':u.hostname,'status':'unavailable'});route.abort()
+    except Exception as error:
+        report['transport'].append({'host':u.hostname,'status':'unavailable','errorType':type(error).__name__,'httpStatus':getattr(error,'code',None)});route.abort()
 try:
  with sync_playwright() as p:
     browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
@@ -37,6 +37,10 @@ try:
         result['phrase']=question;report['queries'].append(result)
         print(json.dumps({'phrase':question,'status':result['status'],'count':result['count'],'quarantined':result['quarantined'],'allIndustrial':result['allIndustrial'],'largestAcceptedAcres':result['largestAcceptedAcres'],'cards':result['cards'],'yearNotPublished':result['yearNotPublished'],'yearFilterVerified':result['yearFilterVerified']}),flush=True)
         assert result['status'] in ['complete','partial'] and result['count']>0 and result['cards']>0 and result['allIndustrial'] and result['yearFilterVerified']
+        if os.environ.get('RADAR_LIVE_ACQUISITION')=='1':
+            shortlist=page.evaluate("""()=>{const lists=RadarAcquisition.build();return Object.fromEntries(Object.entries(lists).map(([k,v])=>[k,{candidates:v.rows.length,eligible:v.eligibleCount,status:v.status,allResearchOnly:v.rows.every(x=>x.status==='research-candidate'&&x.offer===null&&x.permit===null),allWithinRetrievedPool:v.rows.every(x=>PublicRadarBridge.getResults().some(r=>r.key===x.key))}]))}""")
+            report['acquisition']=shortlist;print(json.dumps({'acquisition':shortlist}),flush=True)
+            assert all(v['candidates']>0 and v['allResearchOnly'] and v['allWithinRetrievedPool'] for v in shortlist.values())
         if question.startswith('industrial parcels'):
             prior=result['query'];page.fill('#agentPrompt','Show only parcels over 20 acres');page.locator('#agentPrompt').press('Enter')
             page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled',timeout=240000)

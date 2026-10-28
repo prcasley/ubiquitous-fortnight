@@ -36,6 +36,7 @@ jobs:
           python tests/executive-browser.py
           python tests/ceo-browser.py
           python tests/sprint1-browser.py
+          python tests/acquisition-browser.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

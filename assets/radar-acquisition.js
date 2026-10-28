@@ -1,0 +1,60 @@
+/* Two public-fact shortlists. No comps, private notes or inferred seller/owner status. */
+(() => {
+ 'use strict';
+ const $=id=>document.getElementById(id),B=()=>window.PublicRadarBridge,C=window.RadarAcquisitionCore;
+ let bundle={sources:{},records:[],notice:'Government offers, zoning permissions and infrastructure capacity feeds are not connected.'},checking=false,controller=null,run=0,results=null;
+ const publicFacts=new Map();
+ const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
+ const button=(text,action)=>{const b=node('button',text);b.type='button';b.className='secondary';b.addEventListener('click',action);return b;};
+ const link=(label,url)=>{const a=node('a',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
+ const message=text=>{$('acquisitionStatus').textContent=text;};
+ function facts(){const map={};for(const r of B().getResults())map[r.key]=publicFacts.get(r.key)?.checks||window.PublicRadarResearch?.getScreenings(r.key)||[];return map;}
+ function options(profile){return {profile,minAcres:$(profile+'AcquisitionMin').value,maxAcres:$(profile+'AcquisitionMax').value,officialOffersOnly:$('acquisitionOffersOnly').checked,evidence:bundle.records,sources:bundle.sources,screenings:facts(),limit:5};}
+ function render(){
+  const host=$('acquisitionResults'),meta=B().getMeta(),prepared=Object.fromEntries(['warehouse','ios'].map(profile=>[profile,C.build(B().getResults(),meta,options(profile))]));host.textContent='';results={};
+  for(const profile of ['warehouse','ios']){
+   const result=prepared[profile];results[profile]=result;
+   const column=node('section');column.className='acquisition-column';column.dataset.profile=profile;
+   column.append(node('h3',C.profiles[profile].name),node('p',(result.eligibleCount||0)+' matching research candidates in this retrieved pool; showing '+result.rows.length+'.'));
+   if(!result.rows.length)column.append(node('p',result.message||($('acquisitionOffersOnly').checked?'No current official parcel-specific government offer has been connected for these records. This does not mean no government land is available.':'No accepted industrial/vacant parcel has published acreage in this requested range. Widen the original search to retrieve a different pool.')));
+   for(const [index,item] of result.rows.entries()){
+    const r=item.record,card=node('article');card.className='acquisition-card';card.dataset.parcelKey=r.key;
+    card.append(node('h4',(index+1)+'. '+(r.address||'Parcel '+r.id)),node('strong',item.status==='public-evidence-candidate'?'Current public offer and use evidence found — diligence required':'Research candidate — sale availability and use permission unverified'));
+    const snapshot=window.RadarProperty.snapshot(r,meta),picture=link('',''+window.RadarProperty.links(snapshot).satellite);picture.className='property-picture';picture.setAttribute('aria-label','Satellite view for '+(r.address||r.id));const image=node('img');image.loading='lazy';image.src=window.RadarProperty.view(snapshot).imageURL;image.alt='Satellite imagery near '+(r.address||r.id);const outline=node('div');outline.className='property-outline';outline.innerHTML=window.RadarProperty.svg(snapshot);outline.querySelector('rect')?.remove();image.addEventListener('error',()=>{image.hidden=true;picture.append(node('span','Imagery unavailable · open satellite link'));});picture.append(image,outline);card.append(picture);
+    const why=node('ul');for(const text of item.why)why.append(node('li',text));card.append(why,node('p',item.ownership));
+    const o=publicFacts.get(r.key)?.owner;if(o?.status==='published'&&!o.entityName)card.append(node('p','Published name checked; individual/unclassified names are not indexed. Open this parcel to review its selected official observation.'));
+    if(o&&o.status!=='published'&&o.message)card.append(node('p',o.message));
+    for(const [label,e] of [['Government sale / lease / auction',item.offer],['Permission for this use',item.permit],['Infrastructure',item.infrastructure]]){const row=node('p',label+': '+(!e?'not verified':e.answer==='conflict'?'conflicting public records':e.answer==='yes'?'current public evidence observed':'public record reports a restriction/no offer'));if(e?.sourceURL)row.append(document.createTextNode(' · '),link('Public record',e.sourceURL),document.createTextNode(' · checked '+e.checkedAt));card.append(row);}
+    const mapping=publicFacts.get(r.key)?.checks||window.PublicRadarResearch?.getScreenings(r.key)||[];for(const check of mapping){const fact=node('p',check.kind+': '+check.status+(check.overlapPercent==null?'':' · '+check.overlapPercent.toFixed(1)+'% mapped overlap')+' · observed '+check.retrievedAt+'. '+(check.reason||check.caveat||'Mapping only; not an environmental clearance.'));if(/^https:\/\//.test(check.sourceURL||''))fact.append(document.createTextNode(' '),link('Mapping source',check.sourceURL));card.append(fact);}
+    if(item.flags.length)card.append(node('p','Review flags: '+item.flags.join('; ')));
+    const url=window.RadarProperty.links(r);card.append(link('Satellite / parcel imagery',url.satellite),button('Open parcel card',()=>{if(B().getMeta().scanId!==meta.scanId){message('Run the shortlist again for your current search.');return;}B().focusParcel(r.key,{satellite:true});if(o?.status==='published')window.RadarOwnership.present(r,o);window.RadarChatProperties.render([r],meta);$('mapPanel').scrollIntoView({behavior:'smooth',block:'start'});}),button('Add to field trip',()=>{window.RadarFieldPack?.add(window.RadarProperty.snapshot(r,meta));}));
+    const details=node('details'),summary=node('summary','Why this is not acquisition-ready yet');details.append(summary,node('p',item.unknowns.join('; ')),node('p','Next checks: '+item.nextChecks.join('; ')),node('p','Government ownership is not inferred from an assessment name. Published names do not establish legal title, beneficial control or seller authority.'));
+    const source=node('p',(r.source?.name||meta.source)+' · retrieved '+meta.time+' · '+meta.status+'. ');source.append(link('Parcel source',r.source?.url||meta.sourceURL));card.append(details,source);column.append(card);
+   }
+   if(result.excluded?.length){const omissions=node('details');omissions.append(node('summary',result.excluded.length+' retrieved parcels excluded from this list'));const reasons=new Map();for(const e of result.excluded)reasons.set(e.reason,(reasons.get(e.reason)||0)+1);for(const [reason,count] of reasons)omissions.append(node('p',count+': '+reason));column.append(omissions);}
+   column.append(node('p',result.ranking||''),node('p',result.caveat||''));host.append(column);
+  }
+  $('checkAcquisitionFacts').disabled=checking||!Object.values(results).some(r=>r.rows.length);
+  $('exportAcquisition').disabled=!Object.values(results).some(r=>r.rows.length);
+  $('stopAcquisitionFacts').disabled=!checking;
+  message('Built separate use-case research lists from '+B().getResults().length+' retrieved parcels. '+(!meta.complete?'PARTIAL retrieval: more parcels may exist; rankings cover this subset only. ':'')+bundle.notice+' Profile acreage filters only narrow the existing search pool; widen the scanner search to discover additional parcels. Identical lists mean the connected evidence does not distinguish the uses yet. Ownership completeness never changes the order.');
+  return results;
+ }
+ async function checkTop(){
+  if(checking)return;if(!results)render();
+  const targets=[...new Map(Object.values(results).flatMap(x=>x.rows.slice(0,3)).map(x=>[x.key,x.record])).values()];if(!targets.length)return;
+  checking=true;const id=++run,snapshot=B().getMeta().scanId;controller=new AbortController();const signal=controller.signal;render();let done=0;
+  async function worker(){while(targets.length&&!signal.aborted){const record=targets.shift();const [owner,flood,wetlands]=await Promise.allSettled([window.RadarOwnership.lookup(record,signal),window.RadarScreening.screen(record,'flood',{signal}),window.RadarScreening.screen(record,'wetlands',{signal})]);if(signal.aborted||id!==run||snapshot!==B().getMeta().scanId)return;publicFacts.set(record.key,{owner:owner.status==='fulfilled'?owner.value:null,checks:[flood,wetlands].filter(r=>r.status==='fulfilled').map(r=>r.value)});done++;message('Checked public records for '+done+' candidate(s). Missing or failed coverage remains unknown.');}}
+  try{await Promise.all([worker(),worker()]);}catch{message('A public source was unavailable; no missing fact was inferred.');}finally{if(id===run){checking=false;controller=null;if(snapshot===B().getMeta().scanId){render();message((signal.aborted?'Stopped. ':'Public checks finished. ')+done+' candidate(s) checked. Source dates and unknowns remain on each card; government offers and use approvals remain unverified where unconnected.');}}}
+ }
+ function exportResults(){if(!results)return;const rows=Object.values(results).flatMap(list=>list.rows.map(item=>({profile:list.name,parcel_id:item.record.id,state:item.record.state,address:item.record.address,reported_acres:item.record.acres,status:item.status,why:item.why.join('; '),review_flags:item.flags.join('; '),unverified:item.unknowns.join('; '),source_url:item.record.source?.url||B().getMeta().sourceURL,retrieved_at:B().getMeta().time,scan_status:B().getMeta().status,caveat:list.caveat})));if(!rows.length)return;const blob=new Blob([window.RadarResearchToolsCore.csv(rows,Object.keys(rows[0]))],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download='capital-radar-acquisition-shortlists.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Exported public-fact shortlists with unknowns and source dates. Owner names, contacts, notes, comps and private files are excluded.');}
+ async function init(){
+  $('buildAcquisition').addEventListener('click',()=>{try{render();}catch(e){message(e.message);}});
+  for(const id of ['warehouseAcquisitionMin','warehouseAcquisitionMax','iosAcquisitionMin','iosAcquisitionMax','acquisitionOffersOnly'])$(id).addEventListener('input',()=>{controller?.abort();run++;checking=false;controller=null;results=null;$('acquisitionResults').textContent='';$('checkAcquisitionFacts').disabled=true;$('exportAcquisition').disabled=true;$('stopAcquisitionFacts').disabled=true;message('Criteria changed. Build new shortlists to apply them.');});
+  $('checkAcquisitionFacts').addEventListener('click',checkTop);$('stopAcquisitionFacts').addEventListener('click',()=>controller?.abort());$('exportAcquisition').addEventListener('click',exportResults);
+  document.addEventListener('radar:scan-state',()=>{if(results||checking){controller?.abort();run++;checking=false;controller=null;results=null;$('acquisitionResults').textContent='';$('checkAcquisitionFacts').disabled=true;$('exportAcquisition').disabled=true;$('stopAcquisitionFacts').disabled=true;message('Search changed. Build new shortlists from the current retrieved parcel pool.');}});
+  try{const r=await fetch('assets/data/public-acquisition-evidence.json',{credentials:'omit',cache:'no-cache'});if(!r.ok)throw Error();const d=await r.json();if(d.version!==1||!Array.isArray(d.records)||d.records.some(e=>!e||typeof e!=='object')||!d.sources||typeof d.sources!=='object'||Array.isArray(d.sources))throw Error();bundle=d;message(d.notice);}catch{message('Official offer/approval evidence is unavailable. Parcel matching remains available; no availability or approval was inferred.');}
+ }
+ window.RadarAcquisition={build:(preferences={})=>{if(typeof preferences.officialOffersOnly==='boolean')$('acquisitionOffersOnly').checked=preferences.officialOffersOnly;const value=render();$('acquisitionWorkbench').scrollIntoView({behavior:'smooth',block:'start'});return value;},getResults:()=>results,checkTop};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();

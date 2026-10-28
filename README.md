@@ -39,3 +39,5 @@ Public data is requested on demand; no bulk owner database is published here. Lo
 Automated unit and mocked browser checks validate the implemented workflows; Palm Beach live queries have also been sampled. They do not establish nationwide source accuracy, physical-phone behavior or successful deployment of a hosted backend. No production backend is provisioned yet.
 
 Sprint 1 chat behavior, live observations and outstanding acceptance gates: [October 28 acceptance record](docs/SPRINT1_ACCEPTANCE_2026-10-28.md).
+
+[Acquisition shortlists: use, evidence rules and government-source coverage limits](docs/ACQUISITION_SHORTLISTS.md).

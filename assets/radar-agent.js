@@ -48,13 +48,15 @@
    intent.address=/^(?:where is|locate|find|show me)\s+(\d+\s+.+)/i.test(intent.q);
    if(intent.address){intent.location=intent.q.replace(/^(?:where is|locate|find|show me)\s+/i,'');intent.search=true;}
    if(/\b(all types|any types)\b/.test(l)){intent.type='all';intent.search=true;}
-   if(/\bios\b/.test(l)){intent.type='industrial';intent.ios=true;intent.search=true;}
+   if(/\bios\b/.test(l)){intent.type=intent.type||'industrial';intent.ios=true;intent.search=true;}
    const year=l.match(/\b(?:built\s+)?(before|after|newer than|older than)\s+(\d{4})\b/);
    intent.year=year?{op:/before|older/.test(year[1])?'<':'>',value:Number(year[2])}:null;
    if(intent.year)intent.search=true;
    intent.top=Number((l.match(/\btop\s+(\d+)\b/)||[])[1])||null;if(intent.top)intent.sort='largest';
    if(/\b(biggest|largest|sort by acreage|the big one)\b/.test(l))intent.sort='largest';
    intent.forSale=intent.forSale||/\b(?:available|availability|for sale)\b/.test(l);
+   intent.recommendation=/\b(?:recommend|suggest|shortlists?|acquisition)\b|\b(?:what|which).*\bbuy\b|\bbest\b.*\b(?:sites|parcels|land)\b/.test(l);
+   intent.governmentOffersOnly=intent.recommendation&&/\b(?:government[- ]owned|government surplus|surplus land|publicly owned|state[- ]owned)\b/.test(l);
    intent.unsupported=[];
    if(/\bturnpike\b/.test(l))intent.unsupported.push('Turnpike proximity (no road-distance filter connected)');
    if(/\bbig\b/.test(l)&&!intent.sort&&intent.acres==null)intent.unsupported.push('“big” (give an acreage threshold)');
@@ -136,6 +138,7 @@
  }
  function missingCriteria(intent){
    const missing=[...(intent.unsupported||[])];
+   if(intent.recommendation)missing.push('parcel-specific sale/lease offers, use approvals and infrastructure capacity where no official evidence is connected');
    if(intent.budget)missing.push('purchase budget matching');
    if(intent.questionDeadline)missing.push('acquisition deadline feasibility');
    if(intent.questionOZ)missing.push('OZ 2 designation and tax eligibility');
@@ -304,6 +307,7 @@
    if(/summariz[e].*(?:board)|board summary/i.test(intent.q)){boardSummary();return;}
    if(/^export (?:these|results|this)[.!]?$/i.test(intent.q)){if(!bridge().getResults().length){putMessage('Search a town first, then export its accepted public parcel records.');return;}exportPublicResults();putMessage('Exported the accepted public parcel records with source and retrieval dates. Year-not-published records are separate from year-filter matches.');return;}
    if(intent.suggestion){const candidate=parseIntent(intent.suggestion),label=(candidate.type||'industrial')+' in '+(candidate.recognizedPlace?candidate.recognizedPlace+', '+candidate.state:candidate.location);chips('Did you mean '+label+'?', [['Yes — '+label,intent.suggestion]]);return;}
+   if(intent.recommendation&&!intent.search){if(!bridge().getResults().length){chips('Choose a town and acreage first; I can then prepare separate warehouse/distribution and outdoor-storage research lists.',examples.map(x=>[x,x+' and suggest acquisition candidates']));return;}window.RadarAcquisition.build({officialOffersOnly:intent.governmentOffersOnly});putMessage('Prepared separate warehouse/distribution and outdoor-storage research shortlists below the map. Each shows the evidence, unknowns and next checks. No seller willingness, government availability or industrial approval was inferred.');return;}
    if(intent.compare){chips("I couldn't apply: a simultaneous comparison of two markets. Choose a town to run a separate, source-dated search; cross-market ranking would require comparable coverage.",intent.places.map(p=>[p.name,'industrial in '+p.name+', '+p.state]));return;}
    if(/\b(?:the big one|biggest|largest)\b/i.test(intent.q)&&!intent.location&&!intent.state&&!intent.acres&&!intent.type&&!intent.questionOwnership&&!intent.questionOZ){const rows=bridge().getResults().filter(r=>r.acres!=null).sort((a,b)=>b.acres-a.acres);if(!rows.length){putMessage('Search a town first so I can open the largest accepted parcel.');return;}bridge().sortResults('largest');bridge().choose(rows[0].key);putMessage('Largest accepted parcel: '+(rows[0].address||rows[0].id)+' · '+rows[0].acres+' acres. This ranks retrieved records only.'+(bridge().getMeta().complete?'':' Partial retrieval: more parcels may exist; this is not a market-wide ranking.'));window.RadarChatProperties?.render([rows[0]],bridge().getMeta());return;}
    if(pendingSearch&&intent.recognizedPlace&&!intent.type&&intent.acres==null&&intent.radius==null&&!intent.year&&!intent.questionOwnership&&!intent.questionOZ){intent={...pendingSearch,location:intent.location,state:intent.state,recognizedPlace:intent.recognizedPlace};pendingSearch=null;}
@@ -421,7 +425,7 @@
        const warning=bridge().getStatus?.()?.message||"The parcel service did not finish this search.";
        const failure=putMessage(warning+(rows.length?" These are partial results; more properties may exist.":" Try a smaller radius or retry the search. No zero-property conclusion was made."));
        if(failure){const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='Retry this search';retry.addEventListener('click',()=>ask(intent.q));failure.append(document.createElement('br'),retry);}
-       if(rows.length)window.RadarChatProperties?.render(intent.top?rows.slice(0,intent.top):rows,meta);unknownYears(meta);
+       if(rows.length)window.RadarChatProperties?.render(intent.top?rows.slice(0,intent.top):rows,meta);unknownYears(meta);if(intent.recommendation&&rows.length)window.RadarAcquisition?.build({officialOffersOnly:intent.governmentOffersOnly});
        return;
      }
      putMessage(sourceSummary(rows).sentence+"\nRetrieved: "+meta.time+
@@ -433,6 +437,7 @@
      if(intent.top)putMessage("Showing the first "+Math.min(intent.top,rows.length)+" accepted records; "+rows.length+" retrieved in this search. "+(intent.sort?"Ranked by acreage within retrieved records only.":"Nearest first."));
      if(intent.questionOwnership)await ownerAnswer(intent);
      if(intent.questionOZ)await ozAnswer(intent);
+     if(intent.recommendation)window.RadarAcquisition?.build({officialOffersOnly:intent.governmentOffersOnly});
      if(!intent.questionOwnership&&!intent.questionOZ){const host=$('agentLog'),cards=[...host.querySelectorAll('.chat-properties')].find(n=>n.dataset.scan===String(meta.scanId));if(cards)host.scrollTop=cards.offsetTop-host.offsetTop;}
 
    }catch(e){putMessage("The public search could not complete: "+String(e?.message||e)+". No zero-result conclusion was made.");}
