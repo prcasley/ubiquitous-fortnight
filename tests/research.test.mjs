@@ -46,7 +46,7 @@ test('screening unions overlapping hazards, respects polygon holes and never giv
   const hole=turf.polygon([[[0,0],[2,0],[2,2],[0,2],[0,0]],[[0.5,0.5],[0.5,1.5],[1.5,1.5],[1.5,0.5],[0.5,0.5]]]);
   assert.equal(domain.summarizeScreen(turf.point([1,1]).geometry,[hole],turf).status,'no-mapped-intersection');
 });
-function service({count=1,features=[rectangle(0,0,0.5,1)],truncated=false,schema=true,http=200}={}){
+function service({count=1,features=[{...rectangle(0,0,0.5,1),properties:{FLD_ZONE:'AE'}}],truncated=false,schema=true,http=200}={}){
   return async url=>({ok:http===200,status:http,json:async()=>{
     if(!url.includes('/query?'))return {geometryType:'esriGeometryPolygon',fields:schema?[{name:'FLD_ZONE'}]:[],maxRecordCount:1000};
     if(url.includes('returnCountOnly'))return {count};

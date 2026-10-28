@@ -33,7 +33,7 @@
       const info=document.createElement('small');info.textContent=`Parcel ${item.id} · ${item.state} · ${item.acres??'unknown'} ac · observed ${item.retrievedAt}`;
       const note=document.createElement('textarea');note.value=item.note||'';note.maxLength=2000;note.setAttribute('aria-label','Notes for parcel '+item.id);
       note.placeholder='Research note (stored only in this browser)';note.addEventListener('change',()=>{item.note=note.value;persist();});
-      const screens=document.createElement('small');screens.textContent=(item.screenings||[]).map(s=>`${s.kind}: ${s.status}${s.overlapPercent==null?'':` (${s.overlapPercent.toFixed(1)}% mapped overlap)`}`).join(' · ')||'Environmental screening not checked';
+      const screens=document.createElement('small');screens.textContent=(item.screenings||[]).map(s=>window.RadarScreening.review(s)).map(s=>`${s.kind}: ${s.status}${s.overlapPercent==null?'':` (${s.overlapPercent.toFixed(1)}% mapped overlap)`}`).join(' · ')||'Environmental screening not checked';
       row.append(title,info,screens,note,button('Remove',()=>{saved.parcels=saved.parcels.filter(x=>x.key!==item.key);persist();}));host.append(row);
     }
     if(!saved.parcels.length&&!saved.searches.length)host.textContent='No saved research yet. Select a parcel or complete a scan.';
@@ -46,7 +46,7 @@
       retrievedAt:record.retrievedAt||meta.time,scanStatus:record.scanStatus||meta.status,unverifiedCriteria:meta.unverified||[],geometryPrecision:record.locationPrecision,
       geometry:record.geometry.geometry,screenings:results.get(record.key)||[],note:'',savedAt:new Date().toISOString()};
   }
-  window.PublicRadarResearch={getScreenings:parcelKey=>JSON.parse(JSON.stringify(results.get(parcelKey)||[]))};
+  window.PublicRadarResearch={getScreenings:parcelKey=>JSON.parse(JSON.stringify((results.get(parcelKey)||[]).map(s=>window.RadarScreening.review(s))))};
   function init(){
     if(!$('savedResearch'))return;
     try{const data=JSON.parse(localStorage.getItem(key));

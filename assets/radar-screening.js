@@ -7,12 +7,20 @@
   'use strict';
   const sources={
     flood:{name:'FEMA National Flood Hazard Layer',url:'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28',
-      fields:['FLD_ZONE','ZONE_SUBTY','DFIRM_ID','EFF_DATE'],required:['FLD_ZONE'],
-      caveat:'Mapped flood zones only. Effective coverage has not been established by this query; not a flood-risk clearance or insurance determination.'},
+      fields:['FLD_ZONE','ZONE_SUBTY','SFHA_TF','DFIRM_ID','EFF_DATE'],required:['FLD_ZONE'],
+      caveat:'High-risk FEMA Special Flood Hazard Areas (A/V zones) only; Zone X is not counted as high-risk overlap. Zone D is undetermined, and unshaded/shaded X still require source review. Mapped coverage only. Effective coverage has not been established by this query; not a flood-risk clearance or insurance determination.'},
     wetlands:{name:'USFWS National Wetlands Inventory',url:'https://fwspublicservices.wim.usgs.gov/wetlandsmapservice/rest/services/Wetlands/MapServer/0',
       fields:['ATTRIBUTE','WETLAND_TYPE'],required:['ATTRIBUTE'],
       caveat:'Mapped inventory only. Survey coverage and imagery vintage vary; not a jurisdictional wetland delineation or buildability determination.'}
   };
+  const classificationVersion='fema-sfha-av-v1';
+  function floodClass(properties={}){
+    const zone=String(properties.FLD_ZONE??'').trim().toUpperCase().replace(/\s+/g,''),sfha=String(properties.SFHA_TF??'').trim().toUpperCase();
+    const high=/^(?:A|AE|AH|AO|A99|AR(?:\/(?:A|AE|AH|AO|A[1-9]\d?))?|A(?:[1-9]|[12]\d|30)|V|VE|V(?:[1-9]|[12]\d|30))$/.test(zone);
+    const low=['X','B','C'].includes(zone);
+    if((high&&['F','N'].includes(sfha))||(low&&['T','Y'].includes(sfha)))return 'unknown';
+    return high?'high-risk':low?'not-sfha':'unknown';
+  }
   async function read(url,fetcher,signal){
     const response=await fetcher(url,{signal,credentials:'omit',mode:'cors'});
     if(!response.ok)throw Error('Screening service HTTP '+response.status);
@@ -48,11 +56,19 @@
         returnGeometry:'true',outSR:'4326',resultRecordCount:String(limit)}),fetcher,controller.signal);
       if(!Array.isArray(data.features)||data.exceededTransferLimit||data.features.length!==count.count)
         return {...base,status:'incomplete',reason:'Source response was truncated or changed during retrieval'};
-      const result=domain.summarizeScreen(feature.geometry,data.features,geo);
-      return {...base,...result,featureCount:count.count,sourceUpdatedAt:meta.editingInfo?.lastEditDate||null,
+      let selected=data.features,classification={};
+      if(kind==='flood'){
+        const intersecting=data.features.filter(f=>f.geometry&&geo.booleanIntersects(feature,f));
+        if(intersecting.some(f=>floodClass(f.properties)==='unknown'))return {...base,status:'incomplete',classificationVersion,reason:'FEMA returned an undetermined, unknown or conflicting zone at this parcel. High-risk overlap could not be fully classified.'};
+        selected=data.features.filter(f=>floodClass(f.properties)==='high-risk');
+        classification={classificationVersion,allZoneLabels:[...new Set(intersecting.map(f=>String(f.properties.FLD_ZONE)))],overlapMeaning:'FEMA high-risk SFHA (A/V zones) only',zoneXSubtypes:[...new Set(intersecting.filter(f=>String(f.properties.FLD_ZONE).toUpperCase()==='X').map(f=>String(f.properties.ZONE_SUBTY||'Subtype not published')))]};
+      }
+      const result=domain.summarizeScreen(feature.geometry,selected,geo);
+      return {...base,...result,...classification,featureCount:count.count,sourceUpdatedAt:meta.editingInfo?.lastEditDate||null,
         sourceVersion:meta.currentVersion||null};
     }catch(error){return {...base,status:'error',reason:controller.signal.aborted?'Screening cancelled or timed out':String(error.message||error)};}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
   }
-  return {sources,screen};
+  function review(check){return check.kind==='flood'&&check.classificationVersion!==classificationVersion?{...check,status:'outdated',overlapPercent:null,reason:'This older flood check counted all mapped zones. Rerun the corrected high-risk A/V-zone check.',caveat:'Previous overlap percentages must not be used as high-risk flood exposure.'}:check;}
+  return {sources,screen,floodClass,classificationVersion,review};
 });
