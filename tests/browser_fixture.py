@@ -71,6 +71,7 @@ def network(route):
         }
         # State abbreviations alone and unknown towns intentionally return no candidates.
         place=re.sub(r'\s+(?:nj|fl|pa|ny|new jersey|florida|pennsylvania)$','',normalized)
+        if place=='40 hilton st easton': place='easton'
         if place=='5900 australian ave west palm beach': place='west palm beach'
         found=places.get(place)
         if not found:
@@ -86,9 +87,10 @@ def network(route):
             respond(route,{'count':281 if mode.get('ozCap') else 1})
         else:
             env=json.loads(params.get('geometry',['{}'])[0])
-            lon=(env.get('xmin',-80.14)+env.get('xmax',-80.12))/2
-            lat=(env.get('ymin',26.71)+env.get('ymax',26.73))/2
-            respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':polygon(lon,lat),'properties':{'geoid10':'12099000100','GEOID':'12099000100','OZ_2_0_Eli':'unknown' if mode.get('ozUnknown') else 'eligible'}}],'exceededTransferLimit':bool(mode.get('ozTruncated'))})
+            nj="'NJ'" in params.get('where',[''])[0]
+            lon=(env.get('xmin',-74.37 if nj else -80.14)+env.get('xmax',-74.35 if nj else -80.12))/2
+            lat=(env.get('ymin',40.51 if nj else 26.71)+env.get('ymax',40.53 if nj else 26.73))/2
+            respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':polygon(lon,lat),'properties':{'geoid10':'34023000100' if lat>35 else '12099000100','GEOID':'34023000100' if lat>35 else '12099000100','OZ_2_0_Eli':'unknown' if mode.get('ozUnknown') else 'eligible'}}],'exceededTransferLimit':bool(mode.get('ozTruncated'))})
         return
     if parsed.hostname in ('gis.lehighcounty.org','gis.northamptoncounty.org'):
         if mode.get('paFail'):
@@ -105,6 +107,21 @@ def network(route):
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
             features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),'ACREAGE':6,'USE_DESC':'Industrial warehouse','YEAR_BUILT':1984,'SITE_ADDRESS':'Synthetic PA property'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in range(2)]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
+        return
+    if 'USA_Structures_View/FeatureServer/0' in parsed.path or 'Tran_road/FeatureServer/0' in parsed.path:
+        building='USA_Structures' in parsed.path
+        if not parsed.path.endswith('/query'):
+            fields=['OBJECTID','SOURCE','IMAGE_DATE','PROD_DATE','STATE_FIPS'] if building else ['PRIMENAME','SHLD_TYPE','SHLD_NUM','SRI']
+            respond(route,{'geometryType':'esriGeometryPolygon' if building else 'esriGeometryPolyline','fields':[{'name':f} for f in fields]})
+        elif params.get('returnCountOnly')==['true']:respond(route,{'count':1})
+        else:
+            env=json.loads(params['geometry'][0]);x=(env['xmin']+env['xmax'])/2;y=(env['ymin']+env['ymax'])/2
+            if building:
+                dx=(env['xmax']-env['xmin'])/4;dy=(env['ymax']-env['ymin'])/4
+                g={'type':'Polygon','coordinates':[[[x-dx,y-dy],[x+dx,y-dy],[x+dx,y+dy],[x-dx,y+dy],[x-dx,y-dy]]]}
+                props={'SOURCE':'Synthetic public geometry','IMAGE_DATE':'2024-01-01','PROD_DATE':'2025-01-01'}
+            else:g={'type':'LineString','coordinates':[[x,y-.01],[x,y+.01]]};props={'PRIMENAME':'Interstate 287','SHLD_TYPE':'INT','SHLD_NUM':'287','SRI':'SYNTHETIC'}
+            respond(route,{'features':[{'type':'Feature','geometry':g,'properties':props}]})
         return
     if parsed.hostname in ('hazards.fema.gov', 'fwspublicservices.wim.usgs.gov'):
         if not parsed.path.endswith('/query'):

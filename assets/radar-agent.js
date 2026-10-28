@@ -45,8 +45,9 @@
      if(name==='Lehigh Valley'){intent.location='Allentown, PA';intent.region='full Lehigh Valley coverage (using an Allentown radius)';}
      if(name==='Northern New Jersey'){intent.location='Parsippany, NJ';intent.region='all of Northern New Jersey (using a Parsippany radius)';}
    }
-   intent.address=/^(?:where is|locate|find|show me)\s+(\d+\s+.+)/i.test(intent.q);
-   if(intent.address){intent.location=intent.q.replace(/^(?:where is|locate|find|show me)\s+/i,'');intent.search=true;}
+   const addressText=intent.q.replace(/^(?:where is|locate|find|show me|take me to)\s+/i,'');
+   intent.address=/^\d+(?:-\d+)?\s+.+\b(?:st|street|ave|avenue|rd|road|blvd|boulevard|hwy|highway|dr|drive|ln|lane|ct|court|way|pkwy|parkway)\b/i.test(addressText);
+   if(intent.address){intent.location=addressText;intent.search=true;}
    if(/\b(all types|any types)\b/.test(l)){intent.type='all';intent.search=true;}
    if(/\bios\b/.test(l)){intent.type=intent.type||'industrial';intent.ios=true;intent.search=true;}
    const year=l.match(/\b(?:built\s+)?(before|after|newer than|older than)\s+(\d{4})\b/);
@@ -138,7 +139,7 @@
  }
  function missingCriteria(intent){
    const missing=[...(intent.unsupported||[])];
-   if(intent.recommendation)missing.push('parcel-specific sale/lease offers, use approvals and infrastructure capacity where no official evidence is connected');
+
    if(intent.budget)missing.push('purchase budget matching');
    if(intent.questionDeadline)missing.push('acquisition deadline feasibility');
    if(intent.questionOZ)missing.push('OZ 2 designation and tax eligibility');
@@ -356,6 +357,7 @@
    if(options.restore){intent.location='';intent.state=options.restore.state;}
    clearOldResults();
    const missing=[...new Set([...(preserved?.unverified||[]),...missingCriteria(intent)])];
+   if(intent.recommendation)putMessage("I can’t confirm whether these are for sale, zoned for this use, or have utility capacity.");
    if(missing.length)putMessage("I couldn't apply: "+missing.join('; ')+'.');
    if(!intent.location&&!intent.countyLabel&&!intent.nearMe&&(!locationKnown||intent.state&&intent.state!==$("stateSelect").value)){
      clearOldResults();pendingSearch=intent;

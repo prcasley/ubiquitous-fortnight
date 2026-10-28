@@ -44,3 +44,5 @@ test('manufactured homes are residential, not industrial manufacturing',()=>{for
 test('generic NJ price request does not geocode an article as a town',()=>{assert.equal(parse('find me a NJ property up for sale that has approx $200 per sq foot').location,'');});
 
 test('multiword town spelling also requires confirmation',()=>{assert.equal(parse('industrial in Perth Ambboy NJ').suggestion,'industrial in perth amboy nj');assert.equal(parse('industrial in West Palm Beech FL').suggestion,'industrial in west palm beach fl');});
+
+test('plain spoken street address is an address, an acreage search is not',()=>{assert.equal(parse('40 Hilton St Easton PA').address,true);assert.equal(parse('Find 6 acre industrial parcels in Edison NJ').address,false);});

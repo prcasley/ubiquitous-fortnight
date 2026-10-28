@@ -17,7 +17,7 @@
       attribution: "Palm Beach County public GIS / property appraiser",
       date: "Live county property layer; property attributes have individual update vintages",
       geometry: "polygon", bounds: [-80.95,26.30,-79.95,27.10],
-      fields: "PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT",
+      fields: "PARID,SITE_ADDR_STR,MUNICIPALITY,ACRES,PROPERTY_USE,YRBLT,LAND_MARKET,IMPRV_MRKT,PRICE,SALE_DATE,TOTAL_MARKET",
       id: "PARID",orderField:"OBJECTID_1"
     },
     BRO: {
@@ -37,7 +37,7 @@
       attribution: "New Jersey Office of GIS / county assessors",
       date: "2026 statewide update; parcel vintages vary",
       geometry: "polygon", bounds: [-75.6, 38.8, -73.8, 41.4],
-      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL",
+      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL,LAND_VAL,IMPRVT_VAL,DEED_BOOK,DEED_PAGE,SALE_PRICE,DEED_DATE,NET_VALUE",
       id: "PAMS_PIN",orderField:"OBJECTID"
     }
   };
@@ -129,6 +129,8 @@
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
+      landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
+      deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
       use, lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
       locationPrecision:type==="Point"?"Published parcel centroid":"Point on published parcel geometry (map reference)",
@@ -516,15 +518,15 @@
     $("sourceName").textContent="No active scan";$("sourceDate").textContent="No active scan";$("sourceLink").removeAttribute("href");
     renderResults();
   }
-  function ingestOne(feature,state,center){
+  function ingestOne(feature,state,center,explicitSource){
     const props=feature?.properties||{};
-    const provider=state==="PA"?activeSource:state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state];
+    const provider=explicitSource||(state==="PA"?activeSource:state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state]);
     const item=normalize(feature,state,center,provider);if(!item)return null;
     item.retrievedAt=new Date().toISOString();item.scanStatus='identified';
     inspected=item;choose(item.key,{inspection:true});
     return item;
   }
-  window.PublicRadarBridge={scan,
+  window.PublicRadarBridge={scan,normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
     restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(r.state==='FL'&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),

@@ -41,3 +41,5 @@ Automated unit and mocked browser checks validate the implemented workflows; Pal
 Sprint 1 chat behavior, live observations and outstanding acceptance gates: [October 28 acceptance record](docs/SPRINT1_ACCEPTANCE_2026-10-28.md).
 
 [Acquisition shortlists: use, evidence rules and government-source coverage limits](docs/ACQUISITION_SHORTLISTS.md).
+
+[October 28 Deal Nav, flood/ranking corrections, KML and OZ evidence limits](docs/DEAL_NAV_AND_RELIABILITY_2026-10-28.md).

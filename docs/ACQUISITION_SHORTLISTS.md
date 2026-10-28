@@ -1,5 +1,7 @@
 # Public acquisition shortlists
 
+The initial ranking and top-three-check policy below describes commit `9496f02`. Physical proxies, environmental re-ranking, inherited acreage, Deal Nav and map behavior were subsequently updated; see [the October 28 reliability update](DEAL_NAV_AND_RELIABILITY_2026-10-28.md) for current behavior.
+
 Separate warehouse/distribution and industrial outdoor-storage research lists use the currently retrieved public parcel pool. Search first (for example, vacant land over 5 acres in Mangonia Park, FL), then use **Acquisition candidates**, or ask **Suggest acquisition candidates**. A combined request such as **Recommend industrial parcels over 5 acres in Edison NJ** searches and prepares both lists.
 
 Each profile has its own minimum/maximum reported acreage. These filters narrow the original search; they do not discover parcels excluded by its location, assessment type, size, radius or year filters. Industrial and vacant assessment indicators are accepted for research. Residential/other classes, unknown acreage and quarantined acreage conflicts do not rank. This is not a determination of legal industrial zoning, physical vacancy or buildability.

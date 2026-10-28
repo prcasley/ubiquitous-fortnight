@@ -13,7 +13,7 @@
     color:"#b4752e",limit:280}
  };
  const source=()=>window.PublicRadarBridge;
- let layers={},activeIdentify=false,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;
+ let layers={},activeIdentify=false,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();
  const map=()=>source()?.getMap();
  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const note=(message,type="info")=>{
@@ -46,26 +46,26 @@
    const m=map(),d=OZ[kind];
    if(!m||!d)return;
    requests[kind]?.abort();
-   const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;group.clearLayers();
-   if(m.getZoom()<10){
-      note("Zoom closer before loading tract boundaries. The current map covers too large an area for a complete layer.","warning");
-      layerStatus(kind,"Zoom closer to load (requested)");return;
-   }
+   const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;
+   const overview=m.getZoom()<10,center=m.getCenter(),state=center.lat>=24&&center.lat<=31.2&&center.lng>=-88&&center.lng<=-79?'FL':center.lat>=39.7&&center.lat<=42.3&&center.lng>=-80.6&&center.lng< -75.6?'PA':$('stateSelect')?.value||'NJ';
+   const cacheKey=kind+':'+state,cached=overviewCache.get(cacheKey);
+   if(overview&&cached&&Date.now()-cached.time<600000){group.clearLayers();for(const layer of cached.layers)group.addLayer(layer);layerStatus(kind,'On · '+state+' state overview (approximate)');note('OZ boundaries remain on. State overview is simplified; zoom in for boundary detail.');return;}
    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);
    requests[kind]=ctrl;layerStatus(kind,"Loading reference polygons…");note("Loading "+d.label+" from its public reference GIS layer…");
    try {
-     const base=queryParams(m);
+     const base=overview?{where:(kind==='oz2'?'STUSPS':'stusps')+" = '"+state+"'",outSR:'4326'}:queryParams(m);const limit=overview?6000:d.limit;
      const c=await queryLayer(d.url,{...base,returnCountOnly:"true",returnGeometry:"false"},ctrl.signal);
      const count=Number(c.count);
      if(!Number.isInteger(count)||count<0)throw Error("The layer returned an invalid feature count");
-     if(count>d.limit){
-       throw Error("Layer reports "+count+" tracts in view. Zoom in to retrieve at most "+d.limit+" completely.");
+     if(count>limit){
+       throw Error("Layer reports "+count+" tracts in this area. Keeping previously loaded boundaries; zoom closer to retrieve at most "+limit+" completely.");
      }
      // The returned count is compared with the actual feature count; truncated outputs are rejected.
-     const raw=await queryLayer(d.url,{...base,f:"geojson",outFields:kind==="oz2"?"GEOID,STUSPS,OZ_2_0_Eli":"geoid10,stusps,stname",
-       returnGeometry:"true",maxAllowableOffset:"0.00003",geometryPrecision:"5",resultRecordCount:String(d.limit)},ctrl.signal);
-     if(!Array.isArray(raw.features)||raw.exceededTransferLimit||raw.features.length!==count)
-       throw Error("The public service returned an incomplete set of tract geometries");
+     const raw={features:[]};
+     const size=overview?500:d.limit;
+     for(let offset=0;offset<Math.max(1,count);offset+=size){const page=await queryLayer(d.url,{...base,f:'geojson',outFields:kind==='oz2'?'GEOID,STUSPS,OZ_2_0_Eli':'geoid10,stusps,stname',returnGeometry:'true',maxAllowableOffset:overview?'0.003':'0.00003',geometryPrecision:overview?'4':'5',resultOffset:String(offset),resultRecordCount:String(size),...(overview?{orderByFields:(kind==='oz2'?'GEOID':'geoid10')+' ASC'}:{})},ctrl.signal);if(!Array.isArray(page.features)||!page.features.length&&count||!overview&&page.exceededTransferLimit)throw Error('The public service returned incomplete tract geometries');raw.features.push(...page.features);if(raw.features.length>=count)break;}
+     if(raw.features.length!==count)throw Error('The tract count did not reconcile; previous boundaries retained');
+     const ids=raw.features.map(f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20);if(overview&&new Set(ids).size!==ids.length)throw Error('Overview pages repeated tract identities; previous boundaries retained');
      if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
      const selected=kind==="oz2" ? raw.features.filter(f=>{
        const value=String(f.properties?.OZ_2_0_Eli??"").trim().toLowerCase();
@@ -77,7 +77,7 @@
      }
      const polygon=selected.filter(f=>f.geometry&&/polygon/i.test(f.geometry.type));
      if(polygon.length!==selected.length)throw Error("One or more tract geometries were missing");
-     for(const feat of polygon){
+     const staged=[];for(const feat of polygon){
        const attributes=feat.properties||{},geoid=attributes.GEOID||attributes.geoid10||attributes.GEOID10||attributes.GEOID20||"GEOID unavailable";
        const info=kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
            "Third-party 2027-round eligibility estimate only; validate GEOID against Treasury official eligibility files, and nominations/designations separately";
@@ -87,15 +87,16 @@
        const detail=document.createElement("p");detail.textContent="Tract "+geoid+" · "+info;
        const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent="Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
        popup.append(label,detail,anchor);
-       layer.bindPopup(popup);layer.addTo(group);
+       if(overview)popup.append(document.createTextNode(' State overview uses simplified boundaries; zoom in for detail.'));layer.bindPopup(popup);staged.push(layer);
      }
+     group.clearLayers();for(const layer of staged)layer.addTo(group);if(overview)overviewCache.set(cacheKey,{time:Date.now(),layers:staged});
      note(kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
-     layerStatus(kind,polygon.length+" reference tracts displayed; viewport coverage only");
+     layerStatus(kind,'On · '+polygon.length+(overview?' '+state+' overview tracts (approximate)':' detailed reference tracts displayed in this view'));
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
    }catch(e){
-     if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
-     group.clearLayers();layerStatus(kind,"Unavailable — requested, not displayed");
+     if(requests[kind]!==ctrl)return;
+     layerStatus(kind,group.getLayers().length?'On · previous boundaries displayed; new area Unavailable':'On · boundaries Unavailable — retry or choose another area');
      note("OZ layer could not be verified: "+String(e?.message||e)+". No tract-status conclusion was made.","warning");
    }finally{if(requests[kind]===ctrl)delete requests[kind];clearTimeout(timer);}
  }
@@ -172,7 +173,7 @@
    m.on("click",e=>{if(!activeIdentify||e.originalEvent?.detail>1)return;clearTimeout(identifyTimer);identifyTimer=setTimeout(()=>{if(activeIdentify)identifyAt(e.latlng.lat,e.latlng.lng);},450);});
    document.addEventListener("radar:scan-state",e=>{if(e.detail.state==='idle'){clearTimeout(identifyTimer);identifyRequest?.abort();}});
    m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){requests[k]?.abort();layers[k]?.clearLayers();layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
-   window.PublicRadarGeo={sources:OZ,loadOpportunityZone,identifyAt};
+   window.PublicRadarGeo={sources:OZ,loadOpportunityZone,identifyAt,getOverlayState:kind=>({requested:!!$(kind+'Toggle')?.checked,count:layers[kind]?.getLayers().length||0})};
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

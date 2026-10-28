@@ -28,7 +28,7 @@
     if(data.error)throw Error(data.error.message||'Screening service error');
     return data;
   }
-  async function screen(record,kind,{fetcher=root.fetch,geo=root.turf,domain=root.RadarDomain,signal}={}){
+  async function screenOnce(record,kind,{fetcher=root.fetch,geo=root.turf,domain=root.RadarDomain,signal}={}){
     const source=sources[kind];if(!source)throw Error('Unknown screening layer');
     const base={kind,source:source.name,sourceURL:source.url,retrievedAt:new Date().toISOString(),
       coverage:'not-established',caveat:source.caveat,parcelKey:record.key};
@@ -66,9 +66,10 @@
       const result=domain.summarizeScreen(feature.geometry,selected,geo);
       return {...base,...result,...classification,featureCount:count.count,sourceUpdatedAt:meta.editingInfo?.lastEditDate||null,
         sourceVersion:meta.currentVersion||null};
-    }catch(error){return {...base,status:'error',reason:controller.signal.aborted?'Screening cancelled or timed out':String(error.message||error)};}
+    }catch(error){const cancelled=signal?.aborted===true;return {...base,status:'error',retryable:!cancelled&&(controller.signal.aborted||/fetch|network|HTTP (?:408|429|5\d\d)/i.test(String(error.message||error))),reason:cancelled?'Screening cancelled':controller.signal.aborted?'Screening timed out':String(error.message||error)};}
     finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
   }
+  async function screen(record,kind,options={}){let result;for(let attempt=1;attempt<=2;attempt++){result=await screenOnce(record,kind,options);result.attempts=attempt;if(!result.retryable||options.signal?.aborted)break;}return result;}
   function review(check){return check.kind==='flood'&&check.classificationVersion!==classificationVersion?{...check,status:'outdated',overlapPercent:null,reason:'This older flood check counted all mapped zones. Rerun the corrected high-risk A/V-zone check.',caveat:'Previous overlap percentages must not be used as high-risk flood exposure.'}:check;}
   return {sources,screen,floodClass,classificationVersion,review};
 });
