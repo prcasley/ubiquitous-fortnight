@@ -23,3 +23,27 @@
 
 .oz-legend{padding:8px 14px;background:#f6fafb;border-top:1px solid #d5e4e8;font-size:11px}.oz-legend p{display:flex;align-items:center;gap:8px;margin:4px 0}.oz-legend small{margin-left:auto;color:#416375}.oz-swatch{width:14px;height:14px;flex:none;border:1px solid #193b49;border-radius:3px}.map-expanded .oz-legend{flex:none}@media(max-width:900px){.oz-legend p{flex-wrap:wrap}.oz-legend small{margin-left:22px}}
 .acreage-warning{background:#fff4dc;border-color:#dbb569;color:#5c431b}.chat-owner-observation{overflow-wrap:anywhere}
+
+/* Apply dark styling only to street tiles: parcel/OZ colors and imagery stay accurate. */
+.radar-dark-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.research-notice>summary{cursor:pointer;font-weight:700}.research-notice p{margin:8px 0 0;line-height:1.5}
+@media(max-width:900px){
+ .top{padding:8px 12px;min-height:48px}.mobile-nav{margin:4px 10px}.mobile-nav>summary{padding:10px 12px}.content{padding:8px 10px}
+ #scanner>.radar-agent{margin:4px 0 8px;padding:12px;border-radius:12px}
+ #scanner>.radar-agent .eyebrow{display:none}#scanner>.radar-agent .agent-top h2{font-size:20px;margin:0 0 4px}
+ #scanner>.radar-agent .agent-top p{font-size:12px;line-height:1.4;margin:0 0 6px}
+ #scanner>.radar-agent .agent-form{margin:6px 0;gap:6px}#scanner>.radar-agent .agent-form input{padding:10px;min-height:46px}
+ #scanner>.radar-agent .agent-form button{min-height:44px;padding:8px}
+ #scanner>.radar-agent .assistant-status{padding:6px 8px;margin:6px 0 0;font-size:11px;line-height:1.35}
+ #scanner>.radar-agent .agent-welcome{display:none}#scanner>.radar-agent .agent-log:has(>.agent-welcome:only-child){display:none}
+ .research-notice{padding:0 10px;margin:6px 0}.research-notice>summary{display:flex;align-items:center;font-size:11px}.research-notice>summary::before{content:'▸';margin-right:6px}.research-notice[open]>summary::before{content:'▾'}.research-notice p{padding-bottom:10px}
+ .filter-drawer{margin:6px 0}.scan-status{margin:6px 0;padding:8px 10px;font-size:11px}
+ .map-column #mapPanel .panel-sub{display:none}.map-column #mapPanel .panel-head{padding:8px 10px}.map-column #mapPanel .panel-head h2{font-size:17px}
+ .map-column .map-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.map-column #mapPanel{display:flex;flex-direction:column}.map-column #mapPanel .panel-head{order:0}.map-column #mapPanel .map-wrap{order:1}.map-column #mapPanel .oz-legend{order:2}.map-column #mapPanel .map-caption{order:3}.map-column #mapPanel .map-research-note{order:4}
+ .map-column .map-actions #basemap{grid-column:1;grid-row:1;width:100%;font-size:16px}.map-column .map-actions #expandMap{grid-column:2;grid-row:1}
+ .map-column .map-actions .layer-toggle{white-space:normal;line-height:1.3;font-size:11px;gap:5px}
+ .map-column .map-actions button{width:100%;padding:7px 5px;font-size:11px}
+ .oz-legend{padding:6px 10px}.oz-legend p{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:6px;font-size:10px;line-height:1.35}.oz-legend small{margin:0;max-width:100px;text-align:right}.oz-legend p:last-child{display:block;margin-bottom:0}
+ .map-column .map-wrap{height:60svh;min-height:320px}.map-expanded #mapPanel{inset:0;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+ .map-expanded #mapPanel .map-wrap{height:auto;min-height:0}.map-expanded .map-caption{display:none}
+}

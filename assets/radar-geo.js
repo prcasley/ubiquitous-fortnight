@@ -13,7 +13,7 @@
     color:"#b4752e",limit:280}
  };
  const source=()=>window.PublicRadarBridge;
- let layers={},activeIdentify=false,themeLayer=null,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;
+ let layers={},activeIdentify=false,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;
  const map=()=>source()?.getMap();
  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const note=(message,type="info")=>{
@@ -99,17 +99,6 @@
      note("OZ layer could not be verified: "+String(e?.message||e)+". No tract-status conclusion was made.","warning");
    }finally{if(requests[kind]===ctrl)delete requests[kind];clearTimeout(timer);}
  }
- function changeTheme(value){
-   const m=map();if(!m)return;
-   if(themeLayer){m.removeLayer(themeLayer);themeLayer=null;}
-   if(!["dark","topo"].includes(value))return;
-   m.eachLayer(layer=>{if(layer instanceof window.L.TileLayer)m.removeLayer(layer);});
-   const url=value==="dark"?"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png":
-     "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
-   const attr=value==="dark"?"© OpenStreetMap contributors · © CARTO":
-     "© OpenStreetMap contributors · SRTM | © OpenTopoMap (CC-BY-SA)";
-   themeLayer=window.L.tileLayer(url,{maxZoom:value==="topo"?17:19,attribution:attr}).addTo(m);
- }
  function pointInRing(ring,lon,lat){
     let inside=false;
     for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -172,7 +161,6 @@
        else{requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
      });
    }
-   $("basemap")?.addEventListener("change",e=>changeTheme(e.target.value));
    $("identifyParcel")?.addEventListener("click",()=>{
      activeIdentify=!activeIdentify;clearTimeout(identifyTimer);if(!activeIdentify)identifyRequest?.abort();if(activeIdentify)source().cancelCenterSelection();
      $("identifyParcel").setAttribute("aria-pressed",String(activeIdentify));

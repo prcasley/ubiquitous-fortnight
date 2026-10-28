@@ -11,7 +11,8 @@
     }
     const search=document.querySelector('.radar-agent'),sidebar=document.querySelector('.workbench-sidebar'),scanner=$('scanner');
     const mobile=window.matchMedia('(max-width:900px)');
-    function arrangeSearch(){if(mobile.matches)scanner.prepend(search);else sidebar.prepend(search);setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);}
+    const prompt=$('agentPrompt'),desktopPlaceholder=prompt.placeholder;
+    function arrangeSearch(){prompt.placeholder=mobile.matches?'Industrial 5+ acres in Edison, NJ':desktopPlaceholder;if(mobile.matches)scanner.prepend(search);else sidebar.prepend(search);setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);}
     mobile.addEventListener('change',arrangeSearch);arrangeSearch();
     $('mobileNav')?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{$('mobileNav').open=false;}));
     setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);

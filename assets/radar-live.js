@@ -546,11 +546,19 @@
     map=L.map("map",{zoomControl:true,preferCanvas:true}).setView([40.527,-74.363],12);
     street=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap contributors"});
     satellite=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:18,attribution:"Esri imagery; source providers"});
-    street.addTo(map);layers=L.layerGroup().addTo(map);
+    // Keep exactly one basemap. Dark uses styled public street tiles, without an account/key.
+    const basemaps={street,satellite,
+      dark:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,className:"radar-dark-tiles",attribution:"© OpenStreetMap contributors · dark styling"}),
+      topo:L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap contributors · SRTM | © OpenTopoMap (CC-BY-SA)"})};
+    function setBasemap(){
+      Object.values(basemaps).forEach(layer=>{if(map.hasLayer(layer))map.removeLayer(layer);});
+      (basemaps[$("basemap").value]||satellite).addTo(map);
+    }
+    setBasemap();layers=L.layerGroup().addTo(map);
     map.on("dblclick",()=>clearTimeout(clickTimer));
     map.on("click",e=>{if(!centerMode||e.originalEvent?.detail>1)return;clearTimeout(clickTimer);clickTimer=setTimeout(()=>{if(!centerMode)return;searchAnchor={lat:e.latlng.lat,lon:e.latlng.lng};map.panTo(e.latlng);window.PublicRadarBridge.cancelCenterSelection();document.dispatchEvent(new CustomEvent("radar:center-selected"));status("Search center set explicitly. Existing results retain their original search area until you scan again.","info");},450);});
     $("setSearchCenter").addEventListener('click',()=>{centerMode=!centerMode;if(centerMode&&$("identifyParcel").getAttribute('aria-pressed')==='true')$("identifyParcel").click();$("setSearchCenter").setAttribute('aria-pressed',String(centerMode));$("setSearchCenter").textContent=centerMode?'Tap map to set center · ON':'Set search center';});
-    $("basemap").addEventListener("change",()=>{if($("basemap").value==="satellite"){map.removeLayer(street);satellite.addTo(map);}else{map.removeLayer(satellite);street.addTo(map);}});
+    $("basemap").addEventListener("change",setBasemap);
     $("fitResults").addEventListener("click",()=>{
       if(!records.length)return;
       const bb=L.latLngBounds(records.map(p=>[p.lat,p.lon]));if(bb.isValid())map.fitBounds(bb.pad(.12),{maxZoom:15});

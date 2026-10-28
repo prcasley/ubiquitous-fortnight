@@ -57,3 +57,12 @@ RADAR_LIVE_SMOKE=1 RADAR_LIVE_PHRASE='industrial land over 10 acres in West Palm
 The optional check writes aggregate evidence to `/tmp/capital-radar-live-ceo-check.json`. It does not export owner names, parcel records or credentials. Browser microphone access is not part of this check.
 
 Before the CEO handoff, confirm the latest Pages deployment, hard-refresh and repeat these exact phrases on the published app, including a real phone. Confirm that flagged acreage stays out of rankings and that owner/OZ answers identify specific records with source dates. NJ owner names, listings/renewals/prices, final OZ2 qualification and the official release timetable remain separate data/evidence gaps. January 1 is a planning target here, not a verified publication or qualification deadline. Hosted model summaries still need a running authenticated backend.
+
+
+### Mobile map update — October 28
+
+Satellite is now the initial basemap on every fresh load. The previous CARTO dark endpoint returned a successful HTTP response containing an “API key required” image. Dark street map now styles public OpenStreetMap raster tiles in the browser; no key or new account is used. Attribution remains visible, and styling applies only to the basemap, preserving parcel/OZ overlay colors. One controller handles all four basemaps, retaining searches and overlay selections across changes.
+
+On phones the opening search panel is shorter, the full research notice expands on request, the example fits the input, and map actions use three compact rows with 44-pixel targets. The OZ legend follows the map on mobile. The map begins within the first 760 CSS pixels at the tested 360, 390, 430 and 768-pixel viewport widths. Expanded maps respect screen safe areas; desktop search returns to its sidebar when resized.
+
+Validation: 94 unit/API tests, the existing browser smoke and 55 executive checks passed. The CEO repro suite now includes mobile overflow, visible map position, caveat expansion, touch search, expansion, basemap transitions and retained OZ/search state. Browser fixtures cannot prove production tile availability; manual HTTP tile checks with browser headers returned public street imagery and Esri satellite imagery. Public tile service availability and usage policies still apply.
