@@ -19,6 +19,7 @@ try:
         def ask(text):
             page.fill('#agentPrompt',text)
             page.locator('#agentPrompt').press('Enter')
+            page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
         ask('Find industrial over 5 acres near West Palm Beach FL')
         page.wait_for_function('window.PublicRadarBridge.getMeta().complete')
         snapshot=page.evaluate('({search:PublicRadarBridge.getSearch(),meta:PublicRadarBridge.getMeta(),ids:PublicRadarBridge.getResults().map(r=>r.key),center:PublicRadarBridge.getSearchCenter()})')

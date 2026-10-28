@@ -10,6 +10,7 @@ import base64
 import struct
 import zlib
 import threading
+import math
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
@@ -26,6 +27,11 @@ threading.Thread(target=server.serve_forever, daemon=True).start()
 
 def polygon(lon, lat):
     return {'type': 'Polygon', 'coordinates': [[[lon-.0001, lat-.0001], [lon+.0001, lat-.0001], [lon+.0001, lat+.0001], [lon-.0001, lat+.0001], [lon-.0001, lat-.0001]]]}
+
+def parcel_polygon(lon,lat,acres):
+    dy=math.sqrt(max(acres,.001)*4046.8564224)/2/111195
+    dx=dy/math.cos(math.radians(lat))
+    return {'type':'Polygon','coordinates':[[[lon-dx,lat-dy],[lon+dx,lat-dy],[lon+dx,lat+dy],[lon-dx,lat+dy],[lon-dx,lat-dy]]]}
 
 mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False, 'cards': False, 'imageryFail': False}
 mode.update({'njPaging':False,'repeatPage':False,'countDrift':False,'njCap':False})
@@ -59,6 +65,9 @@ def network(route):
         if 'Albany' in query:
             respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-73.75,'y':42.65},'attributes':{'RegionAbbr':'NY','Subregion':'Albany County'}}]})
             return
+        if 'Secaucus' in query:
+            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-74.063,'y':40.789},'attributes':{'RegionAbbr':'NJ','Subregion':'Hudson County'}}]})
+            return
         nj_place=bool(re.search(r'\b(NJ|Edison|Parsippany)\b',params.get('SingleLine',[''])[0],re.I))
         respond(route, {'candidates': [{'score': 100, 'address': 'Edison, NJ' if nj_place else 'Palm Beach County, FL', 'location': {'x': -74.363 if nj_place else -80.13, 'y': 40.527 if nj_place else 26.72}, 'attributes': {'RegionAbbr': 'NJ' if nj_place else 'FL', 'Subregion': 'Middlesex County' if nj_place else 'Palm Beach County'}}]})
         return
@@ -86,7 +95,7 @@ def network(route):
         elif params.get('returnCountOnly')==['true']: respond(route,{'count':2})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
-            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),'ACREAGE':6,'USE_DESC':'Industrial warehouse','YEAR_BUILT':1984,'SITE_ADDRESS':'Synthetic PA property'},'geometry':polygon(-75.22 if north else -75.49,40.69 if north else 40.602)} for i in range(2)]
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),'ACREAGE':6,'USE_DESC':'Industrial warehouse','YEAR_BUILT':1984,'SITE_ADDRESS':'Synthetic PA property'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in range(2)]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return
     if parsed.hostname in ('hazards.fema.gov', 'fwspublicservices.wim.usgs.gov'):
@@ -95,7 +104,7 @@ def network(route):
         elif params.get('returnCountOnly') == ['true']:
             respond(route, {'count': 1})
         else:
-            respond(route, {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': polygon(-80.13,26.72), 'properties': {'FLD_ZONE': 'AE', 'ATTRIBUTE': 'PEM1'}}]})
+            respond(route, {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': parcel_polygon(-80.13,26.72,1000), 'properties': {'FLD_ZONE': 'AE', 'ATTRIBUTE': 'PEM1'}}]})
         return
     if parsed.hostname in ('services1.arcgis.com','services2.arcgis.com','services9.arcgis.com'):
         where = params.get('where', [''])[0]
@@ -120,8 +129,10 @@ def network(route):
         acres_values = ([3,4,5,6,6.4,7,10] if mode['chat'] else [3,4,5]) if not mode['partial'] else [3]*150
         if mode['cards']: acres_values=[6]*49
         if mode.get('executive') and not mode['partial']: acres_values=[6,12,8,20,5]
+        if mode.get('ceo'): acres_values=[6,12,25,40,5]
         if nj and mode['njPaging']: acres_values=[6]*350
-        if nj and mode['njCap']: acres_values=[6]*1101
+        if nj and mode['njCap']: acres_values=[6]*1137
+        if nj and mode.get('badAcreage'): acres_values=[6,44900,20]
         if mode['collision']:
             acres_values = [3,3]
         for i, acres in enumerate(acres_values):
@@ -131,12 +142,16 @@ def network(route):
             props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
             props['OBJECTID']=i
             if nj: props['YR_CONSTR']=1974 if i%2==0 else 0
-            geometry = polygon(-74.363,40.527) if nj else polygon(-80.13,26.72)
+            geometry = parcel_polygon(-74.363,40.527,acres) if nj else parcel_polygon(-80.13,26.72,acres)
+            if nj and mode.get('secaucus'): geometry=parcel_polygon(-74.063,40.789,acres)
             if fdor:
                 props = {'PARCEL_ID': 'SAME-ID', 'CO_NO': 53 if i==0 else 66, 'LND_SQFOOT': acres*43560, 'DOR_UC': '048'}
                 props['OBJECTID']=i
                 geometry = {'type':'Point','coordinates':[-80.13,26.72]}
             features.append({'type':'Feature','properties':props,'geometry':geometry})
+        if nj and mode.get('badAcreage'):
+            for f in features:
+                if f['properties']['CALC_ACRE']==44900: f['geometry']=parcel_polygon(-74.363,40.527,1.031)
         if mode.get('mapInspect') and params.get('resultRecordCount')==['7']:
             env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
             features=[{'type':'Feature','properties':{'PARID':'INSPECT-HOME','SITE_ADDR_STR':'Synthetic inspection home','PROPERTY_USE':'SINGLE FAMILY RESIDENTIAL','ACRES':.2,'YRBLT':1991},'geometry':polygon(lon,lat)}]

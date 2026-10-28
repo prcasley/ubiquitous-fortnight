@@ -22,8 +22,9 @@
     const sourceURL=text(record.sourceURL||record.source?.url,1000);
     const observation=record.ownership;
     const ownership=observation?.entityName&&(observation.classification==='organization-style'||observation.caveat==='Published assessment entity; not independently verified title or control.')?{entityName:text(observation.entityName,400),sourceURL:text(observation.sourceURL,1000),retrievedAt:text(observation.retrievedAt,80),assessmentYear:observation.assessmentYear??null,caveat:'Published assessment entity; not independently verified title or control.'}:null;
-    return {key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),provider:text(record.provider,40),jurisdiction:text(record.jurisdiction,20),ownership,address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
-      acres:number(record.acres),yearBuilt:number(record.yearBuilt),lat,lon,geometry:g,
+    const oz=record.ozObservation;const ozObservation=oz&&['reference-intersection','reference-point-intersection','no-reference-intersection'].includes(oz.status)?{kind:text(oz.kind,10),status:oz.status,tracts:(oz.tracts||[]).slice(0,10).map(t=>text(t,30)),sourceName:text(oz.sourceName,150),sourceURL:text(oz.sourceURL,1000),checkedAt:text(oz.checkedAt,80)}:null;
+    return {ozObservation,key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),provider:text(record.provider,40),jurisdiction:text(record.jurisdiction,20),ownership,address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
+      acres:number(record.acres),reportedAcres:number(record.reportedAcres),geometryAcres:number(record.geometryAcres),acreageQuality:text(record.acreageQuality,30),acreageWarning:text(record.acreageWarning,500),yearBuilt:number(record.yearBuilt),lat,lon,geometry:g,
       sourceName:text(record.sourceName||record.source?.name,300),sourceURL:/^https:\/\//i.test(sourceURL)?sourceURL:'',
       sourceVintage:text(record.sourceVintage||record.source?.date,300),retrievedAt:text(record.retrievedAt||meta.time,80),
       scanStatus:text(record.scanStatus||meta.status,30),unverifiedCriteria:(record.unverifiedCriteria||meta.unverified||[]).filter(x=>typeof x==='string').slice(0,5).map(x=>x.slice(0,100)),

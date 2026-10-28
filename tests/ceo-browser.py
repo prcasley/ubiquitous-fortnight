@@ -1,0 +1,86 @@
+"""Exact live-review repro phrases, fresh/warm history, source anomalies and specific evidence replies."""
+from browser_fixture import *
+checks=[]
+def check(label,value):
+    assert value,label
+    checks.append(label)
+def submit(page,q):
+    page.fill('#agentPrompt',q);page.locator('#agentPrompt').press('Enter')
+    page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
+try:
+ with sync_playwright() as p:
+    browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+    mode['ceo']=True
+    cases=[('industrial parcels over 5 acres in Edison NJ','NJ','>',5),('Edison NJ industrial 5 acres','NJ','>=',5),('warehouses near Edison, NJ','NJ','>=',0),('industrial land over 10 acres in West Palm Beach, FL','FL','>',10),('Find warehouses in Edison, NJ','NJ','>=',0),('industrial 5 acres near Edison NJ?','NJ','>=',5),('NJ Edison industrial 5 acres','NJ','>=',5),('West Palm Beach FL industrial 10 acres','FL','>=',10)]
+    for phrase,state,op,size in cases:
+        context=browser.new_context();page=context.new_page();page.route('**/*',network)
+        page.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
+        submit(page,phrase)
+        check('fresh request scans: '+phrase,page.evaluate('PublicRadarBridge.getMeta().complete'))
+        snapshot=page.evaluate('({query:PublicRadarBridge.getSearch(),ids:PublicRadarBridge.getResults().map(r=>r.key)})')
+        check('fresh request has the requested scope: '+phrase,snapshot['query']['state']==state and snapshot['query']['type']=='industrial' and snapshot['query']['acreage']['op']==op and snapshot['query']['acreage']['value']==size)
+        submit(page,phrase)
+        repeat=page.evaluate('({query:PublicRadarBridge.getSearch(),ids:PublicRadarBridge.getResults().map(r=>r.key)})')
+        check('same wording is independent of loaded history: '+phrase,repeat==snapshot)
+        check('every query renders property cards: '+phrase,page.locator('.chat-properties:not(.previous-search) .chat-property-card').count()>0)
+        context.close()
+    context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network)
+    errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page.goto(f'http://127.0.0.1:{server.server_port}/')
+    submit(page,'industrial parcels over 5 acres in Edison NJ')
+    previous=page.evaluate('PublicRadarBridge.getSearch()')
+    submit(page,'Show only parcels over 20 acres')
+    narrowed=page.evaluate('PublicRadarBridge.getSearch()')
+    check('narrowing preserves industrial, center, county and radius',all(narrowed[k]==previous[k] for k in ['state','type','center','county','radius']))
+    check('narrowed results obey size and type',page.evaluate('PublicRadarBridge.getResults().length===2&&PublicRadarBridge.getResults().every(r=>r.type==="Industrial"&&r.acres>20)'))
+    mode['badAcreage']=True
+    submit(page,'industrial at least 0 acres in Edison NJ')
+    check('reported acreage error is excluded',page.evaluate('PublicRadarBridge.getResults().every(r=>r.acres!==44900)&&PublicRadarBridge.getMeta().quarantinedCount===1'))
+    check('data quality warning identifies raw and polygon values','44,900' in page.locator('#dataQualityNotice').inner_text() and '1.03' in page.locator('#dataQualityNotice').inner_text())
+    submit(page,'Show the largest properties in this scan')
+    check('bad acreage never leads the ranking',page.evaluate('PublicRadarBridge.getResults()[0].acres===20'))
+    page.locator('#dataQualityNotice button').first.click();page.click('#addSelectedTrip')
+    with page.expect_download() as download: page.click('#generateFieldPack')
+    packet=Path(download.value.path()).read_text()
+    check('flagged property stays flagged in a field pack','ACREAGE REQUIRES SOURCE REVIEW' in packet)
+    mode['badAcreage']=False
+    mode['njCap']=True;mode['secaucus']=True
+    submit(page,'Show me warehouses in Secaucus NJ')
+    check('large search returns candidates with partial status',page.evaluate('PublicRadarBridge.getResults().length>0&&PublicRadarBridge.getMeta().status==="partial"'))
+    check('large search is bounded but does not return a zero-result error',page.evaluate('PublicRadarBridge.getResults().length<=1100') and 'safety cap' in page.locator('#statusText').inner_text())
+    mode['njCap']=False;mode['secaucus']=False
+    submit(page,'industrial over 5 acres in West Palm Beach FL')
+    before=page.evaluate('({id:PublicRadarBridge.getMeta().scanId,rows:PublicRadarBridge.getResults().map(r=>r.key)})')
+    largest=page.evaluate('PublicRadarBridge.getResults().reduce((a,b)=>a.acres>b.acres?a:b).id')
+    submit(page,'Who owns the largest one?')
+    check('largest-owner reply names the actual target and company',largest in page.locator('#agentLog').inner_text() and 'Published assessment entity: SYNTHETIC HOLDINGS LLC' in page.locator('#agentLog').inner_text())
+    check('owner question does not rescan or merely sort',page.evaluate('PublicRadarBridge.getMeta().scanId')==before['id'] and page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)')==before['rows'])
+    submit(page,'industrial over 5 acres in West Palm Beach FL')
+    check('dated cached entity names appear after a fresh scan',page.locator('#agentLog').get_by_text('Published assessment entity: SYNTHETIC HOLDINGS LLC',exact=False).count()>0)
+    mode['ownerIndividual']=True
+    submit(page,'Who owns the largest one?')
+    check('explicit single-parcel question displays its published unclassified name','Published assessment name: Synthetic Person' in page.locator('#agentLog').inner_text())
+    check('selected-name display does not create a personal owner directory',not page.evaluate('RadarOwnership.groups().some(g=>g.name==="Synthetic Person")'))
+    mode['ownerIndividual']=False
+    submit(page,'Which of these qualify for OZ 2?')
+    check('OZ answer attaches dated parcel-specific evidence',page.evaluate('PublicRadarBridge.getResults().every(r=>r.ozObservation?.checkedAt&&r.ozObservation.tracts.length>0)'))
+    check('OZ answer identifies candidate parcels without granting qualification','Final designation and tax qualification unverified' in page.locator('.chat-properties').last.inner_text())
+    before_reference=page.evaluate('PublicRadarBridge.getMeta().scanId')
+    submit(page,'Show only parcels in OZ 2')
+    check('OZ-only follow-up does not invent a new geographic search',page.evaluate('PublicRadarBridge.getMeta().scanId')==before_reference)
+    check('OZ-only follow-up retains the industrial scope',page.evaluate('PublicRadarBridge.getSearch().type')=='industrial')
+    mode['ozFail']=True
+    submit(page,'Which of these qualify for OZ 2?')
+    check('OZ outage never becomes an eligibility answer','No properties were labeled qualified or ineligible' in page.locator('#agentLog').inner_text())
+    mode['ozFail']=False
+    scoped_id=page.evaluate('PublicRadarBridge.getMeta().scanId')
+    submit(page,'Who owns the largest one in NJ?')
+    check('cross-state owner question requests the correct shortlist first','Search for properties in NJ first' in page.locator('#agentLog').inner_text())
+    check('cross-state owner question retains the current FL research',page.evaluate('PublicRadarBridge.getMeta().scanId')==scoped_id)
+    submit(page,'industrial over 5 acres in Edison NJ');submit(page,'Who owns the largest one?')
+    check('NJ owner reply names the property and explains actual redaction','redacted' in page.locator('#agentLog').inner_text().lower())
+    check('no uncaught errors in reported CEO workflow',not errors)
+    browser.close()
+ print('CEO repro suite passed:',len(checks),'fresh/history/evidence checks (synthetic fixtures).')
+finally:
+ server.shutdown();server.server_close()

@@ -48,3 +48,10 @@ Radius inclusion uses parcel-boundary intersection with the search circle. Displ
 ## Lehigh Valley adapters (prepared; live verification pending)
 
 Pennsylvania now appears in the source and market controls with Lehigh and Northampton county adapters. These are not statewide PA coverage. Source candidates are `https://gis.lehighcounty.org/arcgis/rest/services/ParcelSDE/MapServer/0` (PIN) and `https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0` (PARCEL_ID), discovered in OpenAddresses county catalogs. This environment cannot reach their hosts (proxy tunnel 403), so no live current schema, CORS or retrieval claim is made. See FREE_SOURCES_AND_FEATURES.md for exact validation gates, missing-field behavior and test limits. Other PA counties remain unsupported. PA ownership is not connected.
+
+
+## October 28 acreage and oversized-retrieval handling
+
+Published acres are quarantined from size filtering/ranking when they conflict with polygon area by more than fivefold and more than one acre. Neither value is silently corrected or treated as a survey. Quarantined records and raw/geometry figures remain inspectable and flagged in field packs. Point-only records cannot be validated by this comparison.
+
+NJ/statewide queries over the 1,100-source-feature cap now retrieve the bounded first pages and present accepted records as partial, with source-count and coverage warnings. They no longer return zero candidates solely because the count exceeds the cap. See CEO_REVIEW_2026-10-28.md for live examples and the separate parcel-specific OZ reference check.

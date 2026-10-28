@@ -57,7 +57,7 @@
   const MAX_FEATURES = 1100;
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
-  let inspected=null,searchAnchor={lat:40.527,lon:-74.363},centerMode=false,clickTimer=null;
+  let quarantined=new Map(),inspected=null,searchAnchor={lat:40.527,lon:-74.363},centerMode=false,clickTimer=null;
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
   let scanComplete=false, scanState="idle", scanId=0, activeSource=null, searchSnapshot=null;
   let lastGeocodeCounty=null;
@@ -122,11 +122,12 @@
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
     let use=useLabel(a,state);
     if(state==="PA"){const pa=window.RadarPA.attributes(a,publishedSource);address=pa.address;acres=pa.acres;cls=pa.type;yearBuilt=pa.yearBuilt;use=pa.use;}
+    const acreage=domain.acreageObservation(acres,feature.geometry);acres=acreage.acres;
     const countyProvider=state==="PA"?{code:publishedSource.jurisdiction,id:publishedSource.provider}:publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
-    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, acres, type:cls,
+    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       use, lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
       locationPrecision:type==="Point"?"Published parcel centroid":"Point on published parcel geometry (map reference)",
@@ -135,6 +136,18 @@
   function stateInBounds(lat,lon,state) {
     const b=SOURCES[state].bounds;
     return lat>=b[1]&&lat<=b[3]&&lon>=b[0]&&lon<=b[2];
+  }
+  function accept(item,matchesMode,acreFilter,center,radius){
+    if(!matchesMode(item)||!domain.intersectsRadius(item.geometry.geometry,center,radius))return false;
+    if(item.acreageQuality==='suspect'){quarantined.set(item.key,item);return false;}
+    return domain.matchesAcres(item.acres,acreFilter);
+  }
+  function renderQuality(){
+    const host=$('dataQualityNotice');if(!host)return;host.textContent='';host.hidden=!quarantined.size;
+    if(!quarantined.size)return;
+    const heading=document.createElement('strong');heading.textContent=quarantined.size+' records excluded from size matching and ranking because reported acreage conflicts with geometry.';host.append(heading);
+    for(const row of [...quarantined.values()].slice(0,10)){const p=document.createElement('p');p.textContent=(row.address||row.id)+' · source reports '+fmt(row.reportedAcres)+' ac; mapped polygon ≈ '+fmt(row.geometryAcres)+' ac. Neither is a surveyed verification. ';
+      const inspect=document.createElement('button');inspect.type='button';inspect.className='secondary';inspect.textContent='Inspect flagged source record';inspect.addEventListener('click',()=>{inspected=row;choose(row.key,{inspection:true});});p.append(inspect);host.append(p);}
   }
   function scanEnvelope(center,radius) {
     const dy=radius/69.0, dx=radius/(69.172*Math.max(.2,Math.cos(center.lat*Math.PI/180)));
@@ -243,7 +256,7 @@
           for(const feature of response.features){
             const item=normalize(feature,state,center,source);
             if(!item)throw Error("Source returned a parcel without stable identity or geometry");
-            if(matchesMode(item)&&domain.matchesAcres(item.acres,acreFilter)&&domain.intersectsRadius(item.geometry.geometry,center,radius)&&!seen.has(item.key)){
+            if(accept(item,matchesMode,acreFilter,center,radius)&&!seen.has(item.key)){
               seen.add(item.key);records.push(item);
             }
           }
@@ -269,12 +282,6 @@
       const total=count.count;
       if(!Number.isInteger(total)||total<0) throw Error("The public source did not return a reliable record count. Search was not accepted as complete.");
       countResult=total;
-      if(total>MAX_FEATURES){
-        scanState="partial";
-        status("The source reports "+fmt(total)+" parcels intersecting this search. That exceeds the "+fmt(MAX_FEATURES)+"-record safety cap. Narrow the radius or increase minimum acreage. This is NOT zero properties.","warning");
-        $("resultInfo").textContent=fmt(total)+" matching public-source parcels · refine search";
-        return;
-      }
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
       const batchSize=150,objectIds=new Set();let received=0,finished=false;
@@ -294,7 +301,7 @@
           objectIds.add(String(objectId));
           const item=normalize(feature,state,center,source);
           if(!item)throw Error("Source returned parcels without stable identity or geometry");
-          if(matchesMode(item)&&domain.matchesAcres(item.acres,acreFilter)&&domain.intersectsRadius(item.geometry.geometry,center,radius))records.push(item);
+          if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);
         }
         received+=data.features.length;
         scanState="partial";sourceTime=new Date();records.sort((a,b)=>a.distance-b.distance);
@@ -304,7 +311,7 @@
       }
       if(!finished){
         scanState="partial";
-        status("Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
+        status(total>MAX_FEATURES?"Retrieved "+received+" of "+total+" source features before the "+MAX_FEATURES+"-record safety cap. These are PARTIAL candidates, sorted within the retrieved subset; narrow the radius to retrieve more completely.":"Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
         return;
       }
       sourceState=state;sourceCenter=center;sourceTime=new Date();
@@ -326,6 +333,7 @@
   }
   let listLimit=300;
   function renderResults(){
+    renderQuality();
     filtered=currentFilters();$("resultInfo").textContent=records.length?
       fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+scanState+(searchSnapshot?.unverified?.length?" · Candidates only: "+searchSnapshot.unverified.join(", ")+" unverified":""):
       "No completed parcel results loaded";
@@ -383,9 +391,10 @@
   function choose(id,{inspection=false}={}){
     const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||(inspected?.key===id?inspected:null);if(!p)return;
     if(!inspection&&records.includes(p))inspected=null;
-    selectedId=id;renderResults();renderMap();$("details").hidden=false;
+    selectedId=id;renderResults();renderMap();$("details").hidden=false;$("details").dataset.parcelKey=id;
     const owner=p.owner||"Use the public-source lookup below";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
+      (p.acreageWarning?'<p class="acreage-warning">'+safe(p.acreageWarning)+' Source reports '+safe(fmt(p.reportedAcres))+' ac; mapped polygon approximately '+safe(fmt(p.geometryAcres))+' ac.</p>':'')+
       '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.id)+'</p>'+
       '<div class="detail-grid"><div><span>Reported site acreage</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
       '<div><span>Assessment use</span><strong>'+safe(p.use)+'</strong></div></div>'+
@@ -491,7 +500,7 @@
     scanId++;if(scanAbort)scanAbort.abort();
     scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;
     $("scanButton").disabled=!map;$("scanButton").textContent="Scan public parcels";
-    inspected=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
+    quarantined.clear();inspected=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
     $("details").hidden=true;
     if(layers)layers.clearLayers();
     if(circle&&map){map.removeLayer(circle);circle=null;}
@@ -512,10 +521,11 @@
     return item;
   }
   window.PublicRadarBridge={scan,
+    restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(r.state==='FL'&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
     focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
-    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,unverified:searchSnapshot?.unverified||[]}),
+    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");
       const select=$("radiusSelect");if(![...select.options].some(o=>Number(o.value)===radius))select.add(new Option(radius+" miles",String(radius)));

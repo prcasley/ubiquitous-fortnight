@@ -70,6 +70,11 @@
     const run=button('Look up published assessment name',async()=>{run.disabled=true;message('Checking the selected property’s published assessment record…');result.textContent='Checking the official public record…';try{const o=await lookup(record);message(o.status==='published'?(o.entityName?'Published organization observation saved with its source date.':'Published individual or unclassified name checked for the selected property; it is not saved to the company directory.'):o.message||'This source did not publish a name. No owner was inferred.');result.textContent=o.status==='published'?`Published assessment name: ${o.publishedName}. Retrieved ${o.retrievedAt}. ${o.caveat}`:o.message||'Name not published by this source.';}catch(error){result.textContent='Ownership lookup unavailable: '+error.message+'. No owner was inferred.';message(result.textContent);}finally{run.disabled=false;run.textContent='Refresh published assessment name';}});
     section.append(node('strong','Free public ownership research'),run,result);const source=S.sources[record.provider];if(source?.researchURL)section.append(link('Official property research',source.researchURL));$('details').append(section);
   }
+  function present(record,result){
+    if($('details').dataset.parcelKey!==record.key)return;
+    const target=$('details').querySelector('.public-owner-section .muted');
+    if(target)target.textContent=result.status==='published'?'Published assessment name: '+result.publishedName+'. Retrieved '+result.retrievedAt+'. '+result.caveat:result.message||'Name not published by this source.';
+  }
   async function batch(){
     if(busy)return;const rows=bridge().getVisible().filter(r=>S.sources[r.provider]?.owner).slice(0,25);
     if(!rows.length){message('This source does not publish an owner field. Use the official property-record link or choose a connected Florida source.');return;}
@@ -81,12 +86,15 @@
     if(!$('ownershipWorkbench'))return;
     try{const data=JSON.parse(localStorage.getItem(key));if(data?.version===1&&data.observations&&data.dossiers)store=data;}catch{message('Stored ownership research could not be read; existing storage was left intact.');}
     render();
+    const hydrate=()=>bridge().restoreOwnerObservations(store.observations);
+    document.addEventListener('radar:scan-complete',hydrate);
+    document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='partial')hydrate();});
     document.addEventListener('radar:parcel-selected',e=>{chosen=e.detail.key;const record=bridge().getRecord(chosen);if(record)attachLookup(record);$('researchSelectedOwner').disabled=false;});
     document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='idle'){chosen=null;$('researchSelectedOwner').disabled=true;controller?.abort();}});
     $('researchSelectedOwner').addEventListener('click',()=>{const record=bridge().getRecord(chosen);if(record){$('details').hidden=false;if(!$('details').querySelector('.public-owner-section'))attachLookup(record);$('details').querySelector('.public-owner-section button')?.click();$('details').scrollIntoView({behavior:'smooth'});}});
     $('loadBusinessOwners').addEventListener('click',batch);$('stopOwnerLookup').addEventListener('click',()=>controller?.abort());
     $('exportOwnershipResearch').addEventListener('click',()=>{const href=URL.createObjectURL(new Blob([JSON.stringify({...store,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=href;a.download='capital-radar-ownership-research.json';a.click();setTimeout(()=>URL.revokeObjectURL(href),1000);message('Ownership research and user-entered business notes exported. Keep this file private.');});
   }
-  window.RadarOwnership={lookup,groups};
+  window.RadarOwnership={lookup,groups,present};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

@@ -136,3 +136,6 @@ Deploy the built **`dist/` artifact**, rather than raw repository root. The incl
 ## Executive interaction regressions
 
 Run `python3 tests/executive-browser.py` after the existing browser smoke suite. It covers in-place sorting, stable map/search state, stale identifies, OZ legends/refresh/errors, partial-source research, mixed-state acquisition packs, storage failure and a mocked speech device. Fixture definitions live in `tests/browser_fixture.py`. See EXECUTIVE_ACQUISITION_QA.md for scope and verification limits; fixtures do not establish a tax deadline or source uptime.
+
+
+The October 28 suite adds `python3 tests/ceo-browser.py` for the exact live-review wording from a fresh context and after prior searches, plus acreage/owner/reference/cap regressions. `tests/live-ceo-smoke.py` is an opt-in live relay check gated by `RADAR_LIVE_SMOKE=1`; it is not a fixture test or an automatic CI step. The acceptance decision and remaining live-site checks are recorded in CEO_REVIEW_2026-10-28.md.

@@ -43,3 +43,10 @@ Map browsing and parcel inspection preserve the shortlist and its search anchor.
 A request such as “Find industrial over 5 acres near Edison NJ under $5 million before January 1 in OZ2” searches the available public parcel attributes. Budget matching, closing feasibility and OZ2 designation/tax eligibility remain explicitly unverified, including in a field pack. The date is a planning target, not a verified publication or qualification deadline. Sale/lease data is not supplied by the public scanner; local files are clearly labeled separately.
 
 See [the executive acquisition QA matrix](EXECUTIVE_ACQUISITION_QA.md) for automated cases and live-check limitations.
+
+
+## October 28 CEO wording and evidence fixes
+
+`industrial parcels over 5 acres in Edison NJ`, `Edison NJ industrial 5 acres`, `warehouses near Edison, NJ`, and `industrial land over 10 acres in West Palm Beach, FL` initiate searches without Find. Bare acreage in a shorthand fragment is announced as a minimum; use exactly for an exact reported acreage. `Show only parcels over 20 acres` retains the last search's property type, county, center and radius.
+
+`Who owns the largest one?` checks the target's published assessment record instead of only sorting. `Which of these qualify for OZ 2?` lists parcel-specific eligibility-reference intersections and dates; actual qualification remains unverified. NJ source redaction remains in place. See CEO_REVIEW_2026-10-28.md for exact live receipts, data-quality checks and the remaining CEO acceptance gate.

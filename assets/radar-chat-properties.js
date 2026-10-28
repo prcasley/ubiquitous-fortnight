@@ -22,6 +22,9 @@
         const article=document.createElement('article');article.className='chat-property-card';article.dataset.parcelKey=item.key;
         const title=document.createElement('h3');title.textContent=item.address||'Parcel '+item.id;
         const details=document.createElement('p');details.textContent=`${item.type} · ${item.acres==null?'Acreage unavailable':item.acres.toLocaleString()+' acres'}${Number.isFinite(record.distance)?' · '+record.distance.toFixed(2)+' miles to map point':''}${item.yearBuilt==null?' · Year built not published in source':' · Built '+item.yearBuilt}`;
+        const owner=document.createElement('p');owner.className='chat-owner-observation';owner.textContent=item.ownership?'Published assessment entity: '+item.ownership.entityName+' · observed '+item.ownership.retrievedAt+'. Title/control unverified.':item.state==='NJ'?'Owner name redacted in the connected NJ source.':'Published owner not checked yet.';
+        const ownerButton=button('Look up published owner',async()=>{ownerButton.disabled=true;owner.textContent='Checking this parcel’s official assessment record…';try{const result=await window.RadarOwnership.lookup(item);item.ownership=result.entityName?result:null;owner.textContent=result.entityName?'Published assessment entity: '+result.entityName+' · retrieved '+result.retrievedAt+'. Title/control unverified.':result.status==='published'?'Individual/unclassified assessment name: not indexed into the company directory. Open this property’s details to review.':result.message||'Name not published by this source.';if(result.status==='published'&&!result.entityName&&bridge().getMeta().scanId===meta.scanId){bridge().choose(item.key);window.RadarOwnership.present(item,result);}}catch{owner.textContent='Public owner lookup unavailable. No owner was inferred.';}finally{ownerButton.disabled=false;}});
+        const reference=document.createElement('p');if(record.ozObservation){const o=record.ozObservation;reference.textContent=o.kind.toUpperCase()+' '+(o.status==='no-reference-intersection'?'no matching reference polygon returned':'reference polygon intersects')+' · tracts '+(o.tracts.join(', ')||'none returned')+' · checked '+o.checkedAt+'. Final designation and tax qualification unverified.';}
         const picture=document.createElement('a');picture.className='property-picture';picture.href=P.links(item).satellite;picture.target='_blank';picture.rel='noopener noreferrer';picture.setAttribute('aria-label','Open Google satellite imagery for '+(item.address||item.id));
         const v=P.view(item),image=document.createElement('img');image.src=v.imageURL;image.alt='Satellite imagery near '+(item.address||item.id);image.loading='lazy';
         const overlay=document.createElement('div');overlay.className='property-outline';overlay.innerHTML=P.svg(item);overlay.querySelector('rect')?.remove();
@@ -40,7 +43,7 @@
         const citation=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Source and map accuracy';
         const source=document.createElement('p');source.textContent=item.sourceName+' · '+item.sourceVintage;
         citation.append(summary,source);if(item.sourceURL)citation.append(link('Official data layer (technical source)',item.sourceURL));
-        article.append(title,details,picture,precision,id,actions,citation);grid.append(article);
+        article.append(title,details,owner,ownerButton,reference,picture,precision,id,actions,citation);grid.append(article);
       }
       shown=end;more.hidden=shown>=rows.length;more.textContent=`Show more properties (${shown} of ${rows.length} shown)`;
     }
