@@ -148,6 +148,7 @@
      note(state==="FL"?
        (countyFL?"Clicked county parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):
        "One source polygon identified. This is a planning boundary, not a title survey.","success");
+     return rec;
    }catch(e){
      if(ctrl.signal.aborted||snapshotId!==b.getMeta().scanId)return;
      note("Parcel identification unavailable: "+String(e?.message||e)+". No parcel identity was guessed.","warning");

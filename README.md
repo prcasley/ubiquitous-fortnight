@@ -37,3 +37,5 @@ Palm Beach uses county parcel polygons; Broward and Miami-Dade have county adapt
 Public data is requested on demand; no bulk owner database is published here. Local dossiers, comps, notes and photos stay in the browser until the user exports them. Optional hosted summaries use a bounded allowlist of public parcel facts, excluding owner lookups, contacts, notes and imported files. A separate authenticated workspace supports explicitly permitted licensed imports without bundling vendor data.
 
 Automated unit and mocked browser checks validate the implemented workflows; Palm Beach live queries have also been sampled. They do not establish nationwide source accuracy, physical-phone behavior or successful deployment of a hosted backend. No production backend is provisioned yet.
+
+Sprint 1 chat behavior, live observations and outstanding acceptance gates: [October 28 acceptance record](docs/SPRINT1_ACCEPTANCE_2026-10-28.md).

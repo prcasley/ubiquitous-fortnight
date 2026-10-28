@@ -57,6 +57,7 @@
   const MAX_FEATURES = 1100;
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
+  let yearUnknown=new Map(),yearFilter=null;
   let quarantined=new Map(),inspected=null,searchAnchor={lat:40.527,lon:-74.363},centerMode=false,clickTimer=null;
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
   let scanComplete=false, scanState="idle", scanId=0, activeSource=null, searchSnapshot=null;
@@ -140,7 +141,9 @@
   function accept(item,matchesMode,acreFilter,center,radius){
     if(!matchesMode(item)||!domain.intersectsRadius(item.geometry.geometry,center,radius))return false;
     if(item.acreageQuality==='suspect'){quarantined.set(item.key,item);return false;}
-    return domain.matchesAcres(item.acres,acreFilter);
+    if(!domain.matchesAcres(item.acres,acreFilter))return false;
+    if(yearFilter){if(item.yearBuilt==null){yearUnknown.set(item.key,item);return false;}return yearFilter.op==='<'?item.yearBuilt<yearFilter.value:item.yearBuilt>yearFilter.value;}
+    return true;
   }
   function renderQuality(){
     const host=$('dataQualityNotice');if(!host)return;host.textContent='';host.hidden=!quarantined.size;
@@ -167,7 +170,7 @@
       // County schemas differ. Apply exact assessment/acreage filters after normalization.
     } else if(provider===SOURCES.PBC) {
       // The county assessor class is descriptive text (not Florida DOR's numbered codes).
-      if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%')");
+      if(mode==="industrial")terms.push("(PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%DISTRIBUTION%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%MANUF%' OR PROPERTY_USE LIKE '%INDUSTR%' OR PROPERTY_USE LIKE '%LUMBER YARD%' OR PROPERTY_USE LIKE '%OPEN STORAGE%') AND PROPERTY_USE NOT LIKE '%MANUFACTURED HOME%' AND PROPERTY_USE NOT LIKE '%MOBILE HOME%'");
       if(mode==="multifamily")terms.push("(PROPERTY_USE LIKE '%APART%' OR PROPERTY_USE LIKE '%MULTI%FAM%')");
       if(mode==="vacant")terms.push("(PROPERTY_USE LIKE '%VACANT%' OR PROPERTY_USE LIKE '%UNDEVELOPED%')");
       if(min>0||op!==">=")terms.push(domain.acreageSQL("ACRES",readAcreageFilter()));
@@ -229,7 +232,8 @@
     $("scanButton").textContent="Cancel scan";
     let source=providerFor(state,center.lat,center.lon);const env=scanEnvelope(center,radius);
     activeSource=source;sourceState=state;sourceCenter=center;
-    searchSnapshot={state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,5):[]};
+    yearFilter=request.year?{...request.year}:null;
+    searchSnapshot={year:yearFilter,state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,20):[]};
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
@@ -389,7 +393,7 @@
     return String(raw);
   }
   function choose(id,{inspection=false}={}){
-    const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||(inspected?.key===id?inspected:null);if(!p)return;
+    const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||yearUnknown.get(id)||(inspected?.key===id?inspected:null);if(!p)return;
     if(!inspection&&records.includes(p))inspected=null;
     selectedId=id;renderResults();renderMap();$("details").hidden=false;$("details").dataset.parcelKey=id;
     const owner=p.owner||"Use the public-source lookup below";
@@ -500,7 +504,7 @@
     scanId++;if(scanAbort)scanAbort.abort();
     scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;
     $("scanButton").disabled=!map;$("scanButton").textContent="Scan public parcels";
-    quarantined.clear();inspected=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
+    quarantined.clear();yearUnknown.clear();yearFilter=null;inspected=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
     $("details").hidden=true;
     if(layers)layers.clearLayers();
     if(circle&&map){map.removeLayer(circle);circle=null;}
@@ -524,8 +528,8 @@
     restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(r.state==='FL'&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
-    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
-    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
+    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getYearUnknown:()=>[...yearUnknown.values()],getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key)||yearUnknown.get(key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,yearUnknownCount:yearUnknown.size,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");
       const select=$("radiusSelect");if(![...select.options].some(o=>Number(o.value)===radius))select.add(new Option(radius+" miles",String(radius)));

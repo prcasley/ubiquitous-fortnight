@@ -11,8 +11,8 @@
     }
     const search=document.querySelector('.radar-agent'),sidebar=document.querySelector('.workbench-sidebar'),scanner=$('scanner');
     const mobile=window.matchMedia('(max-width:900px)');
-    const prompt=$('agentPrompt'),desktopPlaceholder=prompt.placeholder;
-    function arrangeSearch(){prompt.placeholder=mobile.matches?'Industrial 5+ acres in Edison, NJ':desktopPlaceholder;if(mobile.matches)scanner.prepend(search);else sidebar.prepend(search);setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);}
+    const prompt=$('agentPrompt'),desktopPlaceholder='Industrial 5+ acres in Edison, NJ';
+    function arrangeSearch(){const log=$('agentLog'),scroll=log.scrollTop;prompt.placeholder=mobile.matches?'5+ acres in Edison, NJ':desktopPlaceholder;if(mobile.matches)scanner.prepend(search);else sidebar.prepend(search);requestAnimationFrame(()=>{const board=log.dataset.scrollAnchor==='board'?[...log.querySelectorAll('.board-summary')].at(-1):null;log.scrollTop=board?board.offsetTop-log.offsetTop:scroll;});setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);}
     mobile.addEventListener('change',arrangeSearch);arrangeSearch();
     $('mobileNav')?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{$('mobileNav').open=false;}));
     setTimeout(()=>window.PublicRadarBridge.getMap()?.invalidateSize(),30);

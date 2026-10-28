@@ -9,7 +9,7 @@ permissions:
 jobs:
   static-public-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,3 +35,5 @@ jobs:
       - run: python tests/browser-smoke.py
       - run: python tests/executive-browser.py
       - run: python tests/ceo-browser.py
+
+      - run: python tests/sprint1-browser.py

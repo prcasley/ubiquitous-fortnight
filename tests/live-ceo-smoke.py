@@ -30,12 +30,13 @@ try:
     for question in phrases:
         context=browser.new_context();page=context.new_page();page.route('**/*',live)
         page.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
+        page.wait_for_function('!!window.PublicRadarBridge&&!!window.PublicRadarAgent')
         page.fill('#agentPrompt',question);page.locator('#agentPrompt').press('Enter')
         page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled',timeout=240000)
-        result=page.evaluate('''({query:PublicRadarBridge.getSearch(),status:PublicRadarBridge.getMeta().status,count:PublicRadarBridge.getResults().length,quarantined:PublicRadarBridge.getMeta().quarantinedCount,allIndustrial:PublicRadarBridge.getResults().every(r=>r.type==='Industrial'),largestAcceptedAcres:Math.max(0,...PublicRadarBridge.getResults().map(r=>r.acres||0)),cards:document.querySelectorAll('.chat-properties:not(.previous-search) .chat-property-card').length})''')
+        result=page.evaluate('''({query:PublicRadarBridge.getSearch(),status:PublicRadarBridge.getMeta().status,count:PublicRadarBridge.getResults().length,quarantined:PublicRadarBridge.getMeta().quarantinedCount,allIndustrial:PublicRadarBridge.getResults().every(r=>r.type==='Industrial'),yearNotPublished:PublicRadarBridge.getYearUnknown().length,yearFilterVerified:PublicRadarBridge.getResults().every(r=>{const y=PublicRadarBridge.getSearch().year;return !y||(r.yearBuilt!=null&&(y.op==='<'?r.yearBuilt<y.value:r.yearBuilt>y.value));}),largestAcceptedAcres:Math.max(0,...PublicRadarBridge.getResults().map(r=>r.acres||0)),cards:document.querySelectorAll('.chat-properties:not(.previous-search) .chat-property-card').length})''')
         result['phrase']=question;report['queries'].append(result)
-        print(json.dumps({'phrase':question,'status':result['status'],'count':result['count'],'quarantined':result['quarantined'],'allIndustrial':result['allIndustrial'],'largestAcceptedAcres':result['largestAcceptedAcres'],'cards':result['cards']}),flush=True)
-        assert result['status'] in ['complete','partial'] and result['count']>0 and result['cards']>0 and result['allIndustrial']
+        print(json.dumps({'phrase':question,'status':result['status'],'count':result['count'],'quarantined':result['quarantined'],'allIndustrial':result['allIndustrial'],'largestAcceptedAcres':result['largestAcceptedAcres'],'cards':result['cards'],'yearNotPublished':result['yearNotPublished'],'yearFilterVerified':result['yearFilterVerified']}),flush=True)
+        assert result['status'] in ['complete','partial'] and result['count']>0 and result['cards']>0 and result['allIndustrial'] and result['yearFilterVerified']
         if question.startswith('industrial parcels'):
             prior=result['query'];page.fill('#agentPrompt','Show only parcels over 20 acres');page.locator('#agentPrompt').press('Enter')
             page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled',timeout=240000)

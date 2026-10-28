@@ -3,7 +3,7 @@
   'use strict';
   const $=id=>document.getElementById(id),bridge=()=>window.PublicRadarBridge;
   let available=false,busy=false,controller=null;
-  function tell(text){$('assistantStatus').textContent=text;}
+  function tell(text){$('assistantStatus').textContent=text;$('assistantStatus').dataset.active=String(!text.startsWith('Search returns')&&!text.startsWith('Select Explain'));}
   function buttons(){
     const button=$('explainResults');
     button.hidden=!available;

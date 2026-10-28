@@ -57,19 +57,27 @@ def network(route):
         return
     if parsed.hostname == 'geocode.arcgis.com':
         query=params.get('SingleLine',[''])[0]
-        if re.search(r'\b(PA|Pennsylvania|Allentown|Easton|Erie)\b',query,re.I):
-            easton='Easton' in query
-            county='Erie' if 'Erie' in query else 'Northampton' if easton else 'Lehigh'
-            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-75.22 if easton else -75.49,'y':40.69 if easton else 40.602},'attributes':{'RegionAbbr':'PA','Subregion':county+' County'}}]})
-            return
-        if 'Albany' in query:
-            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-73.75,'y':42.65},'attributes':{'RegionAbbr':'NY','Subregion':'Albany County'}}]})
-            return
-        if 'Secaucus' in query:
-            respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':-74.063,'y':40.789},'attributes':{'RegionAbbr':'NJ','Subregion':'Hudson County'}}]})
-            return
-        nj_place=bool(re.search(r'\b(NJ|Edison|Parsippany)\b',params.get('SingleLine',[''])[0],re.I))
-        respond(route, {'candidates': [{'score': 100, 'address': 'Edison, NJ' if nj_place else 'Palm Beach County, FL', 'location': {'x': -74.363 if nj_place else -80.13, 'y': 40.527 if nj_place else 26.72}, 'attributes': {'RegionAbbr': 'NJ' if nj_place else 'FL', 'Subregion': 'Middlesex County' if nj_place else 'Palm Beach County'}}]})
+        normalized=re.sub(r'[,?.]', ' ',query).strip().lower()
+        normalized=re.sub(r'\s+', ' ',normalized)
+        places={
+            'edison':('NJ','Middlesex',-74.363,40.527), 'secaucus':('NJ','Hudson',-74.063,40.789),
+            'woodbridge':('NJ','Middlesex',-74.28,40.55), 'north bergen':('NJ','Hudson',-74.01,40.80),
+            'perth amboy':('NJ','Middlesex',-74.27,40.51), 'port newark':('NJ','Essex',-74.14,40.69),
+            'parsippany':('NJ','Morris',-74.42,40.86), 'south plainfield':('NJ','Middlesex',-74.41,40.58),
+            'west palm beach':('FL','Palm Beach',-80.13,26.72), 'palm beach':('FL','Palm Beach',-80.13,26.72),
+            'palm beach county':('FL','Palm Beach',-80.13,26.72), 'mangonia park':('FL','Palm Beach',-80.07,26.76),
+            'allentown':('PA','Lehigh',-75.49,40.602), 'easton':('PA','Northampton',-75.22,40.69),
+            'erie':('PA','Erie',-80.08,42.12), 'albany':('NY','Albany',-73.75,42.65)
+        }
+        # State abbreviations alone and unknown towns intentionally return no candidates.
+        place=re.sub(r'\s+(?:nj|fl|pa|ny|new jersey|florida|pennsylvania)$','',normalized)
+        if place=='5900 australian ave west palm beach': place='west palm beach'
+        found=places.get(place)
+        if not found:
+            respond(route,{'candidates':[]});return
+        state,county,lon,lat=found
+        if mode.get('persona'): mode['fixtureCenter']=(lon,lat)
+        respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
         return
     if parsed.hostname in ('geo.dot.gov','services6.arcgis.com'):
         if mode.get('ozFail'):
@@ -140,9 +148,15 @@ def network(route):
             if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
                 continue
             props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
+            if mode.get('persona'):
+                if nj and "PROP_CLASS = '4C'" in where: props['PROP_CLASS']='4C'
+                if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'
+                if not nj and '%MULTI%' in where: props['PROPERTY_USE']='MULTIFAMILY'
             props['OBJECTID']=i
             if nj: props['YR_CONSTR']=1974 if i%2==0 else 0
             geometry = parcel_polygon(-74.363,40.527,acres) if nj else parcel_polygon(-80.13,26.72,acres)
+            if mode.get('persona'):
+                lon,lat=mode.get('fixtureCenter',(-74.363,40.527));geometry=parcel_polygon(lon,lat,acres)
             if nj and mode.get('secaucus'): geometry=parcel_polygon(-74.063,40.789,acres)
             if fdor:
                 props = {'PARCEL_ID': 'SAME-ID', 'CO_NO': 53 if i==0 else 66, 'LND_SQFOOT': acres*43560, 'DOR_UC': '048'}
@@ -152,6 +166,9 @@ def network(route):
         if nj and mode.get('badAcreage'):
             for f in features:
                 if f['properties']['CALC_ACRE']==44900: f['geometry']=parcel_polygon(-74.363,40.527,1.031)
+        if mode.get('persona') and params.get('resultRecordCount')==['7']:
+            env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
+            features=[{'type':'Feature','properties':{'PARID':'ADDRESS-5900','SITE_ADDR_STR':'5900 Australian Ave','PROPERTY_USE':'DISTRIBUTION','ACRES':6,'YRBLT':1980},'geometry':parcel_polygon(lon,lat,6)}]
         if mode.get('mapInspect') and params.get('resultRecordCount')==['7']:
             env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
             features=[{'type':'Feature','properties':{'PARID':'INSPECT-HOME','SITE_ADDR_STR':'Synthetic inspection home','PROPERTY_USE':'SINGLE FAMILY RESIDENTIAL','ACRES':.2,'YRBLT':1991},'geometry':polygon(lon,lat)}]

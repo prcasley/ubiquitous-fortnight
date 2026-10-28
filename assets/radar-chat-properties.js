@@ -7,11 +7,11 @@
   function render(rows,meta){
     if(!rows.length)return;
     const host=document.getElementById('agentLog'),section=document.createElement('section');section.className='agent-message bot chat-properties';
-    section.dataset.scan=String(meta.scanId);
-    const heading=document.createElement('strong');heading.textContent=`${rows.length} ${meta.complete?'properties':'partial results'} · ${meta.complete?'select a property below':'search incomplete; more properties may exist'}`;
+    host.dataset.scrollAnchor='';section.dataset.scan=String(meta.scanId);
+    const heading=document.createElement('strong');heading.textContent=`${rows.length} ${meta.yearUnknown?'year not published — not year-filter matches':meta.complete?'properties':'partial results'} · ${meta.complete?'select a property below':'search incomplete; more properties may exist'}`;
     section.append(heading);
-    const radiusNote=document.createElement('p');radiusNote.textContent='Parcels touching the search circle qualify. Distances are to a map reference point, so edge parcels can show a distance beyond the radius.';section.append(radiusNote);
-    if(meta.unverified?.length){const note=document.createElement('p');note.textContent='Candidates only: '+meta.unverified.join(', ')+' remain unverified.';section.append(note);}
+    const radiusNote=document.createElement('p');radiusNote.textContent='Parcels touching the search circle qualify. Distances are to a map reference point, so edge parcels can show a distance beyond the radius.';
+    let criteriaNote=null;if(meta.unverified?.length){criteriaNote=document.createElement('p');criteriaNote.textContent='Candidates only: '+meta.unverified.join(', ')+' remain unverified.';}
     const grid=document.createElement('div');grid.className='chat-property-grid';section.append(grid);
     let shown=0;
     const more=button('Show more properties',()=>page());
@@ -47,7 +47,7 @@
       }
       shown=end;more.hidden=shown>=rows.length;more.textContent=`Show more properties (${shown} of ${rows.length} shown)`;
     }
-    section.append(more);host.append(section);page();
+    section.append(more,radiusNote);if(criteriaNote)section.append(criteriaNote);host.append(section);page();
     while(host.children.length>16)host.firstChild.remove();
     host.scrollTop=section.offsetTop-host.offsetTop;
   }

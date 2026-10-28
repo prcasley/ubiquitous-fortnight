@@ -31,6 +31,7 @@
   }
   function pbcCategory(value){
     const use=String(value||'').toUpperCase();
+    if(/\b(?:MOBILE|MANUFACTURED)\s+HOMES?\b/.test(use))return 'Other';
     if(/VACANT|UNDEVELOPED/.test(use))return 'Vacant';
     if(/WAREH|DISTRIBUTION|DIST\b|MFG|MANUF|INDUSTR|LUMBER YARD|OPEN STORAGE/.test(use))return 'Industrial';
     if(/APART|MULTI.?FAM/.test(use))return 'Multifamily';
