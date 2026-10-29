@@ -77,7 +77,7 @@ def network(route):
         if not found:
             respond(route,{'candidates':[]});return
         state,county,lon,lat=found
-        if mode.get('persona'): mode['fixtureCenter']=(lon,lat)
+        if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
         respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
         return
     if parsed.hostname in ('geo.dot.gov','services6.arcgis.com'):
@@ -98,16 +98,30 @@ def network(route):
             return
         north=parsed.hostname=='gis.northamptoncounty.org'
         idfield='PARCEL_ID' if north else 'PIN'
+        acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
+        size=320 if mode.get('paLarge') else 2
         if not parsed.path.endswith('/query'):
-            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':'ACREAGE','type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':'YEAR_BUILT','type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]
+            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
-        elif params.get('returnCountOnly')==['true']: respond(route,{'count':2})
+        elif params.get('returnCountOnly')==['true']: respond(route,{'count':size})
+        elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(size))) if not mode.get('paSnapshotFail') else [0]*size})
+        elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0]:
+            respond(route,{'features':[{'attributes':{'PARCEL_ID':'N0','OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
-            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),'ACREAGE':6,'USE_DESC':'Industrial warehouse','YEAR_BUILT':1984,'SITE_ADDRESS':'Synthetic PA property'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in range(2)]
+            ids=list(map(int,params['objectIds'][0].split(','))) if params.get('objectIds') else list(range(size))
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i==0 else 500000,'SALE_DATE':283996800000 if i==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
+            if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return
+    if parsed.hostname=='overpass-api.de':
+        data=parse_qs(route.request.post_data or '').get('data',[''])[0]
+        m=re.search(r'\]\(([-\d.,]+)\)',data)
+        if not m: respond(route,{'remark':'bad fixture query'});return
+        south,west,north,east=map(float,m.group(1).split(','));x=(west+east)/2;y=(south+north)/2;dx=(east-west)/4;dy=(north-south)/4
+        coords=[(x-dx,y-dy),(x+dx,y-dy),(x+dx,y+dy),(x-dx,y+dy),(x-dx,y-dy)]
+        respond(route,{'elements':[{'type':'way','id':1,'nodes':[1,2,3,4,1],'tags':{'building':'warehouse'},'geometry':[{'lon':x,'lat':y} for x,y in coords]}]});return
     if 'USA_Structures_View/FeatureServer/0' in parsed.path or 'Tran_road/FeatureServer/0' in parsed.path:
         building='USA_Structures' in parsed.path
         if not parsed.path.endswith('/query'):
@@ -174,6 +188,7 @@ def network(route):
             geometry = parcel_polygon(-74.363,40.527,acres) if nj else parcel_polygon(-80.13,26.72,acres)
             if mode.get('persona'):
                 lon,lat=mode.get('fixtureCenter',(-74.363,40.527));geometry=parcel_polygon(lon,lat,acres)
+            if nj and mode.get('crossBorder') and mode.get('fixtureCenter')==(-75.22,40.69): geometry=parcel_polygon(-75.18,40.69,acres)
             if nj and mode.get('secaucus'): geometry=parcel_polygon(-74.063,40.789,acres)
             if fdor:
                 props = {'PARCEL_ID': 'SAME-ID', 'CO_NO': 53 if i==0 else 66, 'LND_SQFOOT': acres*43560, 'DOR_UC': '048'}

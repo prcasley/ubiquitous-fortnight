@@ -6,7 +6,7 @@ def submit(page,q):
  page.fill('#agentPrompt',q);page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',network);mode['ceo']=True
+  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',network);mode['ceo']=True;mode['crossBorder']=True
   page.goto(f'http://127.0.0.1:{server.server_port}/')
   check('no selected-property actions before selection',page.locator('#dealNavNearby').is_disabled())
   submit(page,'Recommend industrial over 5 acres in Edison NJ')
@@ -25,10 +25,11 @@ try:
   page.fill('#dealNavZoningSource','https://example.gov/zoning');page.fill('#dealNavZoningDate','2026-10-28');page.fill('#dealNavFront','30');page.fill('#dealNavRear','20');page.fill('#dealNavSide','10');page.fill('#dealNavCoverage','40');page.fill('#dealNavFar','0.5');page.click('#dealNavEnvelopeButton')
   check('setback estimator is not a max-buildable claim','Not maximum developable acreage' in page.locator('#dealNavEnvelope').inner_text() and 'largest entered setback (30 ft)' in page.locator('#dealNavEnvelope').inner_text())
   page.fill('#dealNavFront','');page.click('#dealNavEnvelopeButton');check('missing rules cannot become a developable-area calculation','Enter all three' in page.locator('#dealNavEnvelope').inner_text())
-  page.fill('#dealNavAddress','40 Hilton St Easton PA');page.click('#dealNavAddressForm button');page.wait_for_function('!!RadarDealNav.selected()&&RadarDealNav.selected().state==="PA"&&PublicRadarBridge.getMeta().status!=="loading"')
+  page.fill('#dealNavAddress','40 Hilton St Easton PA');page.click('#dealNavAddressForm button');page.wait_for_function('!!RadarDealNav.selected()&&RadarDealNav.selected().state==="PA"&&!RadarDealNav.busy()')
   check('Easton address uses Northampton and five miles',page.evaluate('PublicRadarBridge.getSearch().state==="PA"&&PublicRadarBridge.getSearch().county==="Northampton"&&PublicRadarBridge.getSearch().radius===5'))
-  check('address point never becomes a fake parcel identity','parcel identity unverified' in page.locator('#dealNavSelected').inner_text())
-  check('address-only point cannot run polygon setback model',page.locator('#dealNavEnvelopeButton').is_disabled())
+  check('address point locks to one containing published parcel, with address discrepancy caveat','falls inside this published GIS parcel' in page.locator('#dealNavSelected').inner_text() and page.evaluate('RadarDealNav.selected().id==="N0"'))
+  check('identified parcel polygon enables setback worksheet',not page.locator('#dealNavEnvelopeButton').is_disabled())
+  check('nearby minimum is server-filtered and cross-border sources are merged',page.evaluate('PublicRadarBridge.getSearch().acreage.value===5 && new Set(PublicRadarBridge.getResults().map(r=>r.state)).size===2'))
   page.set_viewport_size({'width':390,'height':844});check('Deal Nav does not overflow phone width',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
   browser.close()
  print('Deal Nav browser suite passed:',len(checks),'selected-property and zoning-boundary checks.')

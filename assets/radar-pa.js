@@ -6,7 +6,7 @@
     Lehigh:{name:'Lehigh County public parcel GIS',url:'https://gis.lehighcounty.org/arcgis/rest/services/ParcelSDE/MapServer/0',id:'PIN',provider:'lehigh',jurisdiction:'42077',attribution:'Lehigh County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.91,40.40,-75.32,40.88]},
     Northampton:{name:'Northampton County public parcel GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'PARCEL_ID',provider:'northampton',jurisdiction:'42095',attribution:'Northampton County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.66,40.52,-75.05,41.03]}
   };
-  const candidates={acres:['ACRES','ACREAGE','CALC_ACRE','DEED_ACRES','GIS_ACRES','LAND_ACRES','ACREAGE_DEEDED'],year:['YEAR_BUILT','YR_BUILT','YR_CONSTR','YEARBUILT'],use:['LAND_USE_DESC','LANDUSE_DESC','USE_DESC','CLASS_DESC','PROPERTY_USE','LAND_USE','LANDUSE','USE_CODE'],address:['SITE_ADDRESS','SITUS_ADDRESS','FULL_ADDRESS','PROPERTY_ADDRESS','SITE_ADDR','PROP_LOC'],number:['SITUS_ADDR_NUM','ADDRNUM'],street:['SITUS_FDPRE','SITUS_FNAME','SITUS_FTYPE','SITUS_FDSUF','FULLNAME'],city:['SITUS_CITY','POST_COMM','MUNICIPALITY']};
+  const candidates={acres:['ASMT_ACREAGE','ACRES','ACREAGE','CALC_ACRE','DEED_ACRES','GIS_ACRES','LAND_ACRES','ACREAGE_DEEDED'],year:['COM_YEAR_BUILT','YEAR_BUILT','YR_BUILT','YR_CONSTR','YEARBUILT'],use:['LAND_USE_DESC','LANDUSE_DESC','USE_DESC','CLASS_DESC','PROPERTY_USE','LAND_USE','LANDUSE','USE_CODE','LUC','LAND_USE_CODE'],address:['SITE_ADDRESS','SITUS_ADDRESS','FULL_ADDRESS','PROPERTY_ADDRESS','SITE_ADDR','PROP_LOC','LOCATION','ADDRESS'],number:['SITUS_ADDR_NUM','ADDRNUM'],street:['SITUS_FDPRE','SITUS_FNAME','SITUS_FTYPE','SITUS_FDSUF','FULLNAME'],city:['SITUS_CITY','POST_COMM','MUNICIPALITY'],land:['LAND_VALUE'],improvement:['BLDG_VALUE'],salePrice:['SALE_PRICE'],saleDate:['SALE_DATE'],saleValidity:['SALE_VALIDITY_CODE'],koz:['FLAG_10_KOZ']};
   function schema(source,meta){
     if(meta.geometryType!=='esriGeometryPolygon')throw Error(source.name+' did not verify as a parcel polygon layer');
     const fields=new Map((meta.fields||[]).map(f=>[f.name.toUpperCase(),f]));
@@ -38,6 +38,14 @@
     }
     return terms.join(' AND ')||'1=1';
   }
+  function financial(a,source){
+    const value=kind=>source.mappings?.[kind]?.map(f=>a[f.name]).find(v=>v!=null&&String(v).trim()!=='');
+    const positive=v=>v!=null&&Number.isFinite(Number(v))&&Number(v)>0?Number(v):null;
+    const landValue=positive(value('land')),improvementValue=value('improvement')!=null&&Number(value('improvement'))>=0?Number(value('improvement')):null;
+    const rawDate=value('saleDate');let date=null;if(rawDate!=null){const d=new Date(typeof rawDate==='number'?rawDate:String(rawDate));if(Number.isFinite(d.getTime()))date=d.toISOString().slice(0,10);}
+    const price=positive(value('salePrice')),valid=price>1&&date&&date!=='1979-01-01';
+    const koz=value('koz');return {landValue,improvementValue,assessedValue:landValue!=null&&improvementValue!=null?landValue+improvementValue:null,recordedSalePrice:valid?price:null,recordedSaleDate:valid?date:null,saleValidityCode:value('saleValidity')??null,saleSuppressed:!valid&&(price!=null||rawDate!=null),kozFlag:koz==null?null:String(koz)};
+  }
   function attributes(a,source){
     const value=kind=>source.mappings?.[kind]?.map(f=>a[f.name]).find(v=>v!=null&&String(v).trim()!=='');
     const useField=source.mappings?.use[0],raw=useField?a[useField.name]:null;
@@ -47,5 +55,5 @@
     const address=value('address')||[value('number'),...(source.mappings?.street||[]).map(f=>a[f.name]),value('city')].filter(Boolean).join(' ');
     return {address:address?address+', PA':'',acres:Number.isFinite(acres)&&acres>0?acres:null,yearBuilt:Number.isInteger(year)&&year>=1800&&year<=new Date().getFullYear()?year:null,type,use:description||'Assessment classification not published'};
   }
-  return {sources,schema,prepare,attributes,where};
+  return {sources,schema,prepare,attributes,financial,where};
 });

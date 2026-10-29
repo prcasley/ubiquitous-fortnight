@@ -39,4 +39,5 @@ jobs:
       - run: python tests/sprint1-browser.py
       - run: python tests/acquisition-browser.py
       - run: python tests/deal-nav-browser.py
+      - run: python tests/easton-browser.py
       - run: python tests/kml-oz-browser.py

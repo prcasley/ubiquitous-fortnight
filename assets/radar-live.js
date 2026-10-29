@@ -130,6 +130,7 @@
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
+      ...(state==='PA'?window.RadarPA.financial(a,publishedSource):{}),
       deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
       use, lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
@@ -290,20 +291,29 @@
       countResult=total;
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
-      const batchSize=150,objectIds=new Set();let received=0,finished=false;
-      while(received<MAX_FEATURES){
+      const batchSize=150,objectIds=new Set();let received=0,finished=total===0;
+      // MapServer GeoJSON paging can repeat rows despite orderByFields. Freeze IDs,
+      // sort numerically, then fetch explicit batches; never advance by a guessed offset.
+      let snapshotIds=null;
+      if(state==='PA'){
+        const ids=await arcgisQuery(source,base,{returnIdsOnly:'true',returnGeometry:'false'},controller.signal);checkCurrent();
+        if(!Array.isArray(ids.objectIds)||ids.objectIds.length!==total||new Set(ids.objectIds).size!==total||ids.objectIds.some(x=>!Number.isSafeInteger(x)))throw Error('County parcel ID snapshot did not reconcile with the source count');
+        snapshotIds=ids.objectIds.sort((a,b)=>a-b);
+      }
+      while(received<MAX_FEATURES&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
         const data=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields+","+source.orderField,
           returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
-          orderByFields:source.orderField+" ASC"},controller.signal);
+          orderByFields:source.orderField+" ASC",...(snapshotIds?{objectIds:snapshotIds.slice(received,received+Math.min(batchSize,MAX_FEATURES-received)).join(","),resultOffset:"0"}:{})},controller.signal);
         checkCurrent();
         if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
         if(!data.features.length){finished=received===total&&!data.exceededTransferLimit;break;}
         for(const feature of data.features){
           const objectId=feature.properties?.[source.orderField]??feature.id;
           if(objectId==null||objectIds.has(String(objectId)))throw Error("Source paging repeated or omitted record identities; results remain incomplete");
+          if(snapshotIds&&!snapshotIds.slice(received,received+batchSize).includes(Number(objectId)))throw Error("County returned an identity outside the requested ID batch");
           objectIds.add(String(objectId));
           const item=normalize(feature,state,center,source);
           if(!item)throw Error("Source returned parcels without stable identity or geometry");
@@ -386,7 +396,7 @@
     node.innerHTML=groups.length?groups.map(g=>'<div class="owner"><strong>'+safe(g.owner)+'</strong><span>'+g.count+
       ' matching parcel'+(g.count===1?"":"s")+' in current scan'+(g.acresCount?' · '+fmt(g.acres)+' reported ac':'')+
       '</span></div>').join(""):'<div class="empty">'+(sourceState==="NJ"?
-      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":sourceState==="PA"?"PA ownership enrichment is not connected. Use the official county source to research records.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
+      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":sourceState==="PA"?"Bulk PA ownership enrichment is not connected. In Deal Nav, Northampton parcels support an on-demand published owner and mailing-address lookup.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
     $("ownerInfo").textContent="Organization-name research loads only on request from official sources. Individual lookups and the company research workspace retain source dates; NJ names remain redacted in this layer.";
   }
   function formatAsOf(raw){
@@ -526,7 +536,8 @@
     inspected=item;choose(item.key,{inspection:true});
     return item;
   }
-  window.PublicRadarBridge={scan,normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
+  window.PublicRadarBridge={scan,
+    mergeNearby:(rows,reports,primary)=>{records=[...new Map(rows.map(r=>[r.key,r])).values()].sort((a,b)=>a.distance-b.distance);sourceState=primary.state;sourceCenter=primary.center;searchSnapshot=primary;sourceTime=new Date();countResult=records.length;scanComplete=reports.every(r=>r.complete);scanState=scanComplete?'complete':'partial';activeSource={name:reports.map(r=>r.name).join(' + '),url:reports[0]?.url||SOURCES[primary.state].url,date:'Combined live retrieval; see each parcel for source vintage',attribution:'Public county GIS / NJ Office of GIS; source provenance retained on every parcel'};selectedId=null;renderResults();renderMap();renderOwners();renderSource();status(reports.map(r=>r.name+': '+(r.complete?'complete':'PARTIAL / unavailable')+' ('+r.count+' accepted)'+(r.complete?'':': '+r.message)).join(' · '),scanComplete?'success':'warning');document.dispatchEvent(new CustomEvent('radar:scan-complete',{detail:{count:records.length,state:sourceState,complete:scanComplete}}));},normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
     restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(r.state==='FL'&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),

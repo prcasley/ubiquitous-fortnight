@@ -30,3 +30,10 @@ test('PA source preparation omits credentials and rejects unavailable metadata',
  assert.equal(new URL(seen.url).hostname,'gis.lehighcounty.org');
  await assert.rejects(PA.prepare(PA.sources.Lehigh,{fetcher:async()=>({ok:false,status:503})}),/Pennsylvania coverage could not be verified/);
 });
+test('Northampton ASMT acreage and commercial year apply on server; financial placeholders excluded',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','ACREAGE','YEAR_BUILT'].includes(f.name));m.fields.push({name:'PARCEL_ID',type:'esriFieldTypeString'},{name:'ASMT_ACREAGE',type:'esriFieldTypeDouble'},{name:'COM_YEAR_BUILT',type:'esriFieldTypeInteger'},...['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ'].map(name=>({name,type:'esriFieldTypeDouble'})));
+ const source=PA.schema(PA.sources.Northampton,m);
+ assert.match(PA.where(source,'all',{value:5,op:'>='}),/ASMT_ACREAGE >= 5/);assert.equal(PA.attributes({ASMT_ACREAGE:14.4,COM_YEAR_BUILT:1987},source).yearBuilt,1987);
+ const a={SALE_PRICE:1660000,SALE_DATE:Date.UTC(2020,1,1),LAND_VALUE:100,BLDG_VALUE:200,FLAG_10_KOZ:1};const r=PA.financial(a,source);assert.equal(r.assessedValue,300);assert.equal(r.recordedSalePrice,1660000);assert.equal(r.kozFlag,'1');
+ assert.equal(PA.financial({...a,SALE_PRICE:1},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:Date.UTC(1979,0,1)},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:null},source).recordedSalePrice,null);assert.doesNotMatch(source.fields,/OWNER|MAIL/);
+});

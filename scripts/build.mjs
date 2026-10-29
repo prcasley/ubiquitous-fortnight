@@ -5,6 +5,8 @@ const vendor=root+'assets/vendor/';
 await mkdir(vendor,{recursive:true});
 await cp(root+'node_modules/leaflet/dist',vendor+'leaflet',{recursive:true});
 await copyFile(root+'node_modules/@turf/turf/turf.min.js',vendor+'turf.min.js');
+await copyFile(root+'node_modules/osmtogeojson/osmtogeojson.js',vendor+'osmtogeojson.js');
+await copyFile(root+'node_modules/osmtogeojson/LICENSE',vendor+'OSMTOGEOJSON-LICENSE.txt');
 await copyFile(root+'node_modules/leaflet/LICENSE',vendor+'LEAFLET-LICENSE.txt');
 await copyFile(root+'node_modules/@turf/turf/LICENSE',vendor+'TURF-LICENSE.txt');
 await rm(root+'dist',{recursive:true,force:true});

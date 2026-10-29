@@ -7,7 +7,7 @@ transport=[]
 def live(route):
  u=urlparse(route.request.url)
  if u.hostname=='127.0.0.1':route.continue_();return
- if u.hostname not in ['geocode.arcgis.com','gis.northamptoncounty.org','gis.lehighcounty.org']:route.abort();return
+ if u.hostname not in ['geocode.arcgis.com','gis.northamptoncounty.org','gis.lehighcounty.org','services2.arcgis.com']:route.abort();return
  try:
   with urllib.request.urlopen(urllib.request.Request(route.request.url,headers={'User-Agent':'Capital-Radar-public-read-only-check'}),timeout=22) as r:
    route.fulfill(status=r.status,content_type=r.headers.get('Content-Type','application/json'),headers={'access-control-allow-origin':'*'},body=r.read());transport.append({'host':u.hostname,'status':r.status})
