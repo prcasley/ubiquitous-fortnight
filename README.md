@@ -47,3 +47,7 @@ Sprint 1 chat behavior, live observations and outstanding acceptance gates: [Oct
 Latest reliability update: [Easton, cross-border neighborhoods and OSM screening](docs/EASTON_RELIABILITY_2026-10-29.md).
 
 Latest executive interface: [Entry screen, industrial brief and NJ record corrections](docs/EXECUTIVE_ENTRY_2026-10-29.md).
+
+Recovered historical reference data and local review: [setup and data boundaries](docs/LOCAL_RECOVERED_REFERENCE.md).
+
+Latest publication and reliability notes: [restored references, Northampton identity and batched footprints](docs/EASTON_AND_FOOTPRINT_BATCH_2026-10-29.md).

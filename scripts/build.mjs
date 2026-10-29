@@ -20,3 +20,10 @@ const {readFile,access}=await import('node:fs/promises');
 const html=await readFile(root+'dist/index.html','utf8');
 for(const match of html.matchAll(/<script[^>]+src="(assets\/[^"]+)"/g))await access(root+'dist/'+match[1].split('?')[0]);
 const vm=await import('node:vm');const sandbox={};vm.runInNewContext(await readFile(root+'dist/assets/osmtogeojson.js','utf8'),sandbox);if(typeof sandbox.osmtogeojson!=='function')throw Error('Published building converter unavailable');
+
+// The reviewed reference facts are published; the optional local override is explicit.
+if(process.argv.includes('--local-reference')){
+ await mkdir(root+'dist/assets/data',{recursive:true});
+ await copyFile(root+'.radar/recovered-reference.json',root+'dist/assets/data/recovered-reference.json');
+ console.log('LOCAL preview includes recovered reference facts; do not publish this dist directory.');
+}

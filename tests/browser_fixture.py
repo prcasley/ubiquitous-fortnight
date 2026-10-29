@@ -46,6 +46,8 @@ def respond(route, payload, status=200):
 
 def network(route):
     parsed = urlparse(route.request.url)
+    if parsed.hostname=='127.0.0.1' and parsed.path.endswith('/assets/data/recovered-reference.json'):
+        respond(route,{'format':'RadarRecoveredReference','version':1,'sourceFile':'synthetic-empty.html','fileGeneratedAt':'2026-09-28','groups':[],'records':[],'municipalOverlays':[],'ozReference':[]});return
     if parsed.hostname == '127.0.0.1':
         route.continue_()
         return
@@ -112,6 +114,10 @@ def network(route):
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
             ids=list(map(int,params['objectIds'][0].split(','))) if params.get('objectIds') else list(range(base,base+size))
             features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
+            if north:
+                for feature in features: feature['properties'].pop('OBJECTID',None)
+            if mode.get('paRepeatParcel'):
+                for feature in features: feature['properties'][idfield]='REPEATED'
             if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return

@@ -16,8 +16,9 @@ try:
   check('320 county rows span seven short explicit-ID batches without duplication',len([r for r in rows if r['state']=='PA'])==319 and len({r['id'] for r in rows if r['state']=='PA'})==319)
   county_queries=[parse_qs(urlparse(u).query) for u in requests if 'northamptoncounty.org' in u and '/query?' in u]
   pages=[q for q in county_queries if 'objectIds' in q]
-  check('server applies ASMT acreage before count and stable ordered ID retrieval',len(pages)==7 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['OBJECTID ASC'] and q['resultOffset']==['0'] for q in pages))
+  check('server applies ASMT acreage before count and stable ordered ID retrieval',len(pages)==7 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['PARCEL_ID ASC'] and q['resultOffset']==['0'] for q in pages))
   check('county feature GET URLs stay below the server length limit',all(len(u)<2000 for u in requests if 'northamptoncounty.org' in u and 'objectIds=' in u))
+  check('outFields contain each requested column only once',all(len(q['outFields'][0].split(','))==len(set(q['outFields'][0].split(','))) for q in pages))
   check('NJGIN contributes nearby border parcels',any(r['state']=='NJ' for r in rows))
   check('primary PA criteria and controls agree after NJ retrieval',page.evaluate('PublicRadarBridge.getSearch().state==="PA"') and page.input_value('#stateSelect')=='PA')
   text=page.locator('#dealNavSelected').inner_text()

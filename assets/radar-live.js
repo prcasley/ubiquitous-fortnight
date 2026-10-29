@@ -302,18 +302,18 @@
       }
       while(received<MAX_FEATURES&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
-        const data=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields+","+source.orderField,
+        const data=await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
           returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
-          orderByFields:source.orderField+" ASC",...(snapshotIds?{objectIds:snapshotIds.slice(received,received+Math.min(batchSize,MAX_FEATURES-received)).join(","),resultOffset:"0"}:{})},controller.signal);
+          orderByFields:(state==="PA"?source.id:source.orderField)+" ASC",...(snapshotIds?{objectIds:snapshotIds.slice(received,received+Math.min(batchSize,MAX_FEATURES-received)).join(","),resultOffset:"0"}:{})},controller.signal);
         checkCurrent();
         if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
         if(!data.features.length){finished=received===total&&!data.exceededTransferLimit;break;}
         for(const feature of data.features){
-          const objectId=feature.properties?.[source.orderField]??feature.id;
+          const objectId=state==="PA"?feature.properties?.[source.id]:(feature.properties?.[source.orderField]??feature.id);
           if(objectId==null||objectIds.has(String(objectId)))throw Error("Source paging repeated or omitted record identities; results remain incomplete");
-          if(snapshotIds&&!snapshotIds.slice(received,received+batchSize).includes(Number(objectId)))throw Error("County returned an identity outside the requested ID batch");
+          if(snapshotIds&&state!=="PA"&&!snapshotIds.slice(received,received+batchSize).includes(Number(objectId)))throw Error("County returned an identity outside the requested ID batch");
           objectIds.add(String(objectId));
           const item=normalize(feature,state,center,source);
           if(!item)throw Error("Source returned parcels without stable identity or geometry");

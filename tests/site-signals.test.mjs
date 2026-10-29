@@ -14,9 +14,12 @@ test('OSM multipolygon courtyard holes are excluded from mapped roof area',async
  const relation={type:'relation',id:9,tags:{type:'multipolygon',building:'industrial'},members:[{type:'way',ref:90,role:'outer',geometry:ring(0,0,.001,.001)},{type:'way',ref:91,role:'inner',geometry:ring(.00025,.00025,.00075,.00075)}]};
  const r=await S.check(record,'buildings',{geo:turf,convert,fetcher:fetcher([relation])});assert.equal(r.status,'complete');assert.ok(Math.abs(r.coveragePercent-75)<.1);
 });
-test('parallel parcel checks limit public Overpass traffic to two in-flight requests',async()=>{
+test('parallel parcel checks serialize public Overpass traffic',async()=>{
  let active=0,peak=0;
  const fetch=async()=>{active++;peak=Math.max(peak,active);await new Promise(r=>setTimeout(r,10));active--;return {ok:true,json:async()=>({elements:[way]})};};
  const rows=await Promise.all(Array.from({length:5},(_,i)=>S.check({...record,key:'parallel'+i},'buildings',{geo:turf,convert,fetcher:fetch})));
- assert.ok(rows.every(r=>r.status==='complete'));assert.equal(peak,2);
+ assert.ok(rows.every(r=>r.status==='complete'));assert.equal(peak,1);
 });
+test('a shortlist shares one building query and clips each parcel separately',async()=>{let calls=0;const rows=await S.prepareBuildings([{...record,key:'batchA'},{...record,key:'batchB'}],{geo:turf,convert,fetcher:async(...args)=>{calls++;return fetcher([way])(...args);}});assert.equal(calls,1);assert.equal(rows.batchA.status,'complete');assert.equal(rows.batchB.status,'complete');assert.ok(Math.abs(rows.batchA.coveragePercent-50)<.1);});
+test('batch sources fail over sequentially and never spawn a parcel request storm',async()=>{let calls=0,active=0,peak=0;const shifted=turf.transformTranslate(shape,1,90,{units:'kilometers'});const rows=await S.prepareBuildings(Array.from({length:9},(_,i)=>({...record,key:'fallback'+i,geometry:shifted})),{geo:turf,convert,fetcher:async(url,options)=>{calls++;active++;peak=Math.max(active,peak);await new Promise(r=>setTimeout(r,2));active--;if(url.includes('overpass-api.de'))throw Error('synthetic primary outage');return {ok:true,json:async()=>({elements:[]})};}});assert.equal(calls,2);assert.equal(peak,1);assert.ok(Object.values(rows).every(r=>r.status==='unavailable'&&r.footprintSqft==null));});
+test('two bounded batch timeouts cover all candidates without per-parcel retries',async()=>{let calls=0;const shifted=turf.transformTranslate(shape,2,90,{units:'kilometers'});const rows=await S.prepareBuildings(Array.from({length:9},(_,i)=>({...record,key:'timeout'+i,geometry:shifted})),{geo:turf,convert,timeoutMs:5,fetcher:async(url,options)=>{calls++;return new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>reject(Error('aborted')),{once:true}));}});assert.equal(calls,2);assert.ok(Object.values(rows).every(r=>r.status==='unavailable'&&/no per-parcel retries/.test(r.reason)));});
