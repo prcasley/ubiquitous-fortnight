@@ -45,3 +45,5 @@ Sprint 1 chat behavior, live observations and outstanding acceptance gates: [Oct
 [October 28 Deal Nav, flood/ranking corrections, KML and OZ evidence limits](docs/DEAL_NAV_AND_RELIABILITY_2026-10-28.md).
 
 Latest reliability update: [Easton, cross-border neighborhoods and OSM screening](docs/EASTON_RELIABILITY_2026-10-29.md).
+
+Latest executive interface: [Entry screen, industrial brief and NJ record corrections](docs/EXECUTIVE_ENTRY_2026-10-29.md).

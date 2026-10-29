@@ -11,12 +11,13 @@ try:
   def route(r):
    requests.append(r.request.url);network(r)
   page.route('**/*',route);page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(f'http://127.0.0.1:{server.server_port}/');address(page)
+  page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);address(page)
   rows=page.evaluate('PublicRadarBridge.getResults().map(r=>({id:r.id,state:r.state}))')
-  check('320 county rows span three explicit-ID batches without duplication',len([r for r in rows if r['state']=='PA'])==319 and len({r['id'] for r in rows if r['state']=='PA'})==319)
+  check('320 county rows span seven short explicit-ID batches without duplication',len([r for r in rows if r['state']=='PA'])==319 and len({r['id'] for r in rows if r['state']=='PA'})==319)
   county_queries=[parse_qs(urlparse(u).query) for u in requests if 'northamptoncounty.org' in u and '/query?' in u]
   pages=[q for q in county_queries if 'objectIds' in q]
-  check('server applies ASMT acreage before count and stable ordered ID retrieval',len(pages)==3 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['OBJECTID ASC'] and q['resultOffset']==['0'] for q in pages))
+  check('server applies ASMT acreage before count and stable ordered ID retrieval',len(pages)==7 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['OBJECTID ASC'] and q['resultOffset']==['0'] for q in pages))
+  check('county feature GET URLs stay below the server length limit',all(len(u)<2000 for u in requests if 'northamptoncounty.org' in u and 'objectIds=' in u))
   check('NJGIN contributes nearby border parcels',any(r['state']=='NJ' for r in rows))
   check('primary PA criteria and controls agree after NJ retrieval',page.evaluate('PublicRadarBridge.getSearch().state==="PA"') and page.input_value('#stateSelect')=='PA')
   text=page.locator('#dealNavSelected').inner_text()

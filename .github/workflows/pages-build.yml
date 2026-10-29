@@ -39,6 +39,7 @@ jobs:
           python tests/acquisition-browser.py
           python tests/deal-nav-browser.py
           python tests/easton-browser.py
+          python tests/executive-entry-browser.py
           python tests/kml-oz-browser.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

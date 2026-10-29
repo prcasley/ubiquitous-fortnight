@@ -5,7 +5,7 @@ def check(name,value):assert value,name;checks.append(name)
 KML='''<kml xmlns="http://www.opengis.net/kml/2.2"><Document><NetworkLink><Link><href>https://example.invalid/private-feed</href></Link></NetworkLink><Placemark><name>&lt;img src=x onerror=alert(1)&gt;</name><description>&lt;script&gt;alert(1)&lt;/script&gt;</description><MultiGeometry><Point><coordinates>-74.36,40.52,0</coordinates></Point><LineString><coordinates>-74.36,40.52 -74.35,40.53</coordinates></LineString><Polygon><outerBoundaryIs><LinearRing><coordinates>-74.36,40.52 -74.35,40.52 -74.35,40.53 -74.36,40.52</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark></Document></kml>'''
 try:
  with sync_playwright() as p:
-  b=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=b.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/');page.wait_for_function('!!window.RadarKML');errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+  b=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=b.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('!!window.RadarKML');errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   before=page.evaluate('({search:PublicRadarBridge.getSearch(),center:PublicRadarBridge.getSearchCenter()})')
   page.set_input_files('#kmlFile',{'name':'Research overlay.kml','mimeType':'application/vnd.google-earth.kml+xml','buffer':KML.encode()})
   page.wait_for_function('RadarKML.count()===1')

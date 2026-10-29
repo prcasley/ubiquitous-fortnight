@@ -44,7 +44,7 @@ try:
         context=browser.new_context(permissions=['geolocation'],geolocation={'latitude':40.527,'longitude':-74.363},accept_downloads=True)
         page=context.new_page();page.route('**/*',network)
         errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-        page.goto(f'http://127.0.0.1:{server.server_port}/')
+        page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
         parsed=page.evaluate('(q)=>PublicRadarAgent.parseIntent(q)',q)
         submit(page,q)
         if action=='suggest':
@@ -78,7 +78,7 @@ try:
     # All requested follow-ups are tested fresh, both without context and after a known search.
     followups=['the big one','go back','what does that mean','Which of these qualify for OZ2?','Who owns the largest one?','Show only the ones over 20 acres','only over 8 acres','sort by acreage','export these']
     for followup in followups:
-        context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/')
+        context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
         submit(page,followup)
         check('fresh follow-up is useful: '+followup,'No retrieved parcel results are loaded' not in page.locator('#agentLog').inner_text())
         submit(page,'industrial over 5 acres in Edison NJ');original=page.evaluate('PublicRadarBridge.getSearch()')
@@ -95,7 +95,7 @@ try:
         elif followup=='what does that mean':check('clarification explains the current acreage and type','more than 8 acres' in page.locator('#agentLog .bot').last.inner_text() and 'industrial' in page.locator('#agentLog .bot').last.inner_text())
         elif followup=='the big one':check('largest accepted card opened',page.locator('#details').is_visible() and page.locator('.chat-properties').last.locator('.chat-property-card').count()==1)
         context.close()
-    context=browser.new_context();page=context.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/')
+    context=browser.new_context();page=context.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
     submit(page,'industrial in Completely Unknown Town NJ')
     check('unknown place cannot become Palm Beach',page.evaluate('PublicRadarBridge.getSearch()===null') and 'No confident US location' in page.locator('#agentLog').inner_text())
     submit(page,'industrial in Edison NJ');submit(page,'Summarize this for the board')
@@ -119,7 +119,7 @@ try:
     # One-time inline consent and final-transcript preview with a speech test double.
     voice=context.new_page();voice.route('**/*',network)
     voice.add_init_script("""window.confirm=()=>{throw Error('No modal consent permitted')};window.voiceStarts=0;window.SpeechRecognition=class {start(){voiceStarts++;if(window.voiceThrows)throw Error('Unavailable');queueMicrotask(()=>{this.onresult({resultIndex:0,results:[Object.assign([{transcript:'industrial 5 acres in Edison NJ'}],{isFinal:true})]});this.onend()})}}""")
-    voice.goto(f'http://127.0.0.1:{server.server_port}/');voice.click('#agentMic')
+    voice.goto(f'http://127.0.0.1:{server.server_port}/');unlock(voice);voice.click('#agentMic')
     check('voice waits for inline consent',voice.evaluate('voiceStarts===0') and voice.locator('#voiceConsent').is_visible())
     voice.get_by_role('button',name='Allow voice',exact=True).click()
     check('consent is remembered locally',voice.evaluate("localStorage.getItem('capital-radar-voice-consent-v1')==='allow'"))
@@ -136,7 +136,7 @@ try:
     check('speech start failure restores typing','Voice input could not start' in voice.locator('#agentLog').inner_text())
     blocked=browser.new_context();no_storage=blocked.new_page();no_storage.route('**/*',network)
     no_storage.add_init_script("""Storage.prototype.getItem=function(){throw Error('Storage unavailable')};Storage.prototype.setItem=function(){throw Error('Storage unavailable')};window.SpeechRecognition=class {start(){queueMicrotask(()=>this.onend())}}""")
-    no_storage.goto(f'http://127.0.0.1:{server.server_port}/');no_storage.click('#agentMic');no_storage.get_by_role('button',name='Allow voice',exact=True).click();no_storage.click('#agentMic')
+    no_storage.goto(f'http://127.0.0.1:{server.server_port}/');unlock(no_storage);no_storage.click('#agentMic');no_storage.get_by_role('button',name='Allow voice',exact=True).click();no_storage.click('#agentMic')
     check('storage exceptions still remember consent for this tab',no_storage.locator('#voiceConsent').count()==0)
     no_storage.click('#textLarger');check('text controls work when storage is blocked',no_storage.evaluate('getComputedStyle(document.body).fontSize')=='19px')
     blocked.close()

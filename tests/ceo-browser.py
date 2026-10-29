@@ -14,7 +14,7 @@ try:
     cases=[('industrial parcels over 5 acres in Edison NJ','NJ','>',5),('Edison NJ industrial 5 acres','NJ','>=',5),('warehouses near Edison, NJ','NJ','>=',0),('industrial land over 10 acres in West Palm Beach, FL','FL','>',10),('Find warehouses in Edison, NJ','NJ','>=',0),('industrial 5 acres near Edison NJ?','NJ','>=',5),('NJ Edison industrial 5 acres','NJ','>=',5),('West Palm Beach FL industrial 10 acres','FL','>=',10)]
     for phrase,state,op,size in cases:
         context=browser.new_context();page=context.new_page();page.route('**/*',network)
-        page.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
+        page.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded');unlock(page)
         submit(page,phrase)
         check('fresh request scans: '+phrase,page.evaluate('PublicRadarBridge.getMeta().complete'))
         snapshot=page.evaluate('({query:PublicRadarBridge.getSearch(),ids:PublicRadarBridge.getResults().map(r=>r.key)})')
@@ -26,7 +26,7 @@ try:
         context.close()
     context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network)
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto(f'http://127.0.0.1:{server.server_port}/')
+    page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
     submit(page,'industrial parcels over 5 acres in Edison NJ')
     previous=page.evaluate('PublicRadarBridge.getSearch()')
     submit(page,'Show only parcels over 20 acres')
@@ -78,12 +78,12 @@ try:
     check('cross-state owner question requests the correct shortlist first','Search for properties in NJ first' in page.locator('#agentLog').inner_text())
     check('cross-state owner question retains the current FL research',page.evaluate('PublicRadarBridge.getMeta().scanId')==scoped_id)
     submit(page,'industrial over 5 acres in Edison NJ');submit(page,'Who owns the largest one?')
-    check('NJ owner reply names the property and explains actual redaction','redacted' in page.locator('#agentLog').inner_text().lower())
+    check('NJ owner reply names the property and explains missing source data','no owner name is published' in page.locator('#agentLog').inner_text().lower())
     check('no uncaught errors in reported CEO workflow',not errors)
     # Phone workflow and basemap transitions must preserve overlays and parcel searches.
     mobile=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
     phone=mobile.new_page();phone.route('**/*',network)
-    phone.goto(f'http://127.0.0.1:{server.server_port}/')
+    phone.goto(f'http://127.0.0.1:{server.server_port}/');unlock(phone)
     check('fresh map defaults to satellite',phone.locator('#basemap').input_value()=='satellite')
     tile_urls=lambda:phone.evaluate('PublicRadarBridge.getMap()._layers && Object.values(PublicRadarBridge.getMap()._layers).filter(l=>l instanceof L.TileLayer).map(l=>l._url)')
     check('default satellite is the only active basemap',len(tile_urls())==1 and 'World_Imagery' in tile_urls()[0])

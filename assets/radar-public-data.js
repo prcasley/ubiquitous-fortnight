@@ -6,7 +6,7 @@
     broward:{name:'Broward public property GIS',url:'https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0',id:'FOLIO_NUMBER',owner:'NAME_LINE_1',status:'Adapter present; current network verification pending'},
     miamidade:{name:'Miami-Dade public property GIS',url:'https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0',id:'FOLIO',owner:'TRUE_OWNER1',status:'Adapter present; current network verification pending'},
     fdor:{name:'Florida DOR assessment centroids',url:'https://services9.arcgis.com/Gh9awoU677aKree0/ArcGIS/rest/services/Florida_Statewide_Parcel_Centroid_Version/FeatureServer/0',id:'PARCEL_ID',owner:'OWN_NAME',status:'Source varies by county; individual query verification required'},
-    njgin:{name:'NJ statewide parcel composite',url:'https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0',owner:null,status:'Owner names redacted in this connected layer',researchURL:'https://www.nj.gov/transparency/property/'}
+    njgin:{name:'NJ statewide parcel composite',url:'https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0',id:'PAMS_PIN',owner:'OWNER_NAME',status:'Published owner availability varies; blank and protected records are not inferred',researchURL:'https://www.nj.gov/transparency/property/'}
   };
   const entity=name=>/\b(?:LLC|L\.?L\.?C\.?|INC\.?|CORP(?:ORATION)?\.?|LTD\.?|LLP|LP|AUTHORITY|COUNTY|CITY OF|STATE OF)\b/i.test(name)&&!/\b(?:FAMILY|REVOCABLE|LIVING|PERSONAL)\s+TRUST\b/i.test(name);
   const entityKey=(state,name)=>state+':'+String(name).toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
@@ -29,8 +29,8 @@
       if(data.exceededTransferLimit)throw Error('Official source truncated the ownership response; no owner selected');
       const rows=(data.features||[]).filter(f=>String(f.attributes?.[source.id]??'')===id&&(county==null||Number(f.attributes?.CO_NO)===county));
       if(rows.length!==1)throw Error(rows.length?'The source returned conflicting records; no owner selected':'The source did not return an exact parcel match');
-      const attributes=rows[0].attributes,name=String(attributes[source.owner]||'').trim().slice(0,400);
-      return {status:name?'published':'not-published',publishedName:name,entityName:name&&entity(name)?name:null,
+      const attributes=rows[0].attributes,rawName=String(attributes[source.owner]||'').trim().slice(0,400),name=/^(?:(?:REDACTED|WITHHELD|PROTECTED)(?:\b|$)|(?:PRIVATE|NOT AVAILABLE|N\/?A|UNKNOWN|NULL)$)/i.test(rawName)?'':rawName;
+      return {status:name?'published':'not-published',message:name?null:'No owner name is published in this exact source record. County tax/deed records may have additional published information; use the official records links. No owner was inferred.',publishedName:name,entityName:name&&entity(name)?name:null,
         classification:name&&entity(name)?'organization-style':'unclassified',sourceName:source.name,sourceURL:source.url,
         retrievedAt,assessmentYear:attributes.ASMNT_YR??record.assessment??null,parcelId:id,
         caveat:'Published assessment observation; not independently verified title or beneficial ownership.'};

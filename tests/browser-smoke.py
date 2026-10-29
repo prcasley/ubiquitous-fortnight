@@ -9,7 +9,7 @@ try:
         exceptions = []
         page.on('pageerror', lambda error: exceptions.append(str(error)))
         page.route('**/*', network)
-        page.goto(f'http://127.0.0.1:{server.server_port}/')
+        page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
         page.locator('#filterDrawer').evaluate('e=>e.open=true')
         assert page.evaluate('!!window.L && !!window.turf && !!window.PublicRadarBridge.getMap()')
         assert not re.search(r'nvidia|nemotron|webgpu|download.*model',page.locator('body').inner_text(),re.I)
@@ -184,7 +184,7 @@ try:
         missing = context.new_page()
         missing.route('**/*', network)
         missing.route('**/assets/vendor/leaflet/leaflet.js',lambda route: route.abort())
-        missing.goto(f'http://127.0.0.1:{server.server_port}/')
+        missing.goto(f'http://127.0.0.1:{server.server_port}/');unlock(missing)
         assert missing.locator('#scanButton').is_disabled()
         assert 'Map library unavailable' in missing.locator('#statusText').inner_text()
         missing.close()
@@ -194,7 +194,7 @@ try:
         natural.route('**/*',network)
         natural_errors=[]
         natural.on('pageerror',lambda error: natural_errors.append(str(error)))
-        natural.goto(f'http://127.0.0.1:{server.server_port}/')
+        natural.goto(f'http://127.0.0.1:{server.server_port}/');unlock(natural)
         before=len(queries)
         natural.fill('#agentPrompt','find me the nearest parcels with 5 acres and for industrial')
         natural.locator('#agentForm button[type=submit]').click()
@@ -241,7 +241,7 @@ try:
         field.route('**/*',network)
         field_errors=[]
         field.on('pageerror',lambda error: field_errors.append(str(error)))
-        field.goto(f'http://127.0.0.1:{server.server_port}/')
+        field.goto(f'http://127.0.0.1:{server.server_port}/');unlock(field)
         field.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
         field.locator('#agentForm button[type=submit]').click()
         field.wait_for_function('window.PublicRadarBridge.getMeta().complete && document.querySelectorAll(".chat-property-card").length===6')
@@ -289,7 +289,7 @@ try:
         phone_context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
         phone=phone_context.new_page()
         phone.route('**/*',network)
-        phone.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded')
+        phone.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded');unlock(phone)
         phone.wait_for_function('!!window.PublicRadarBridge?.getMap()')
         assert phone.locator('#agentPrompt').bounding_box()['y']<400
         assert phone.locator('#agentPrompt').bounding_box()['y']<phone.locator('#map').bounding_box()['y']
@@ -341,7 +341,7 @@ try:
         fresh=browser.new_context(accept_downloads=True)
         restored=fresh.new_page()
         restored.route('**/*',network)
-        restored.goto(f'http://127.0.0.1:{server.server_port}/')
+        restored.goto(f'http://127.0.0.1:{server.server_port}/');unlock(restored)
         restored.locator('#importFieldTrip').set_input_files({'name':'trip.json','mimeType':'application/json','buffer':json.dumps(backup).encode()})
         restored.wait_for_function('document.querySelectorAll(".field-trip-stop").length===2 && document.querySelectorAll(".field-photo-grid img").length===1')
         assert 'Check legal access' in restored.locator('.field-trip-stop textarea').first.input_value()
@@ -356,7 +356,7 @@ try:
         pa_errors=[]
         pa.on('pageerror',lambda error:pa_errors.append(str(error)))
         pa.route('**/*',network)
-        pa.goto(f'http://127.0.0.1:{server.server_port}/')
+        pa.goto(f'http://127.0.0.1:{server.server_port}/');unlock(pa)
         trip_before=pa.evaluate('localStorage.getItem("capital-radar-field-trip-v1")')
         pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
         pa.locator('#agentPrompt').press('Enter')
@@ -428,7 +428,7 @@ try:
             private_errors = []
             private.on('pageerror',lambda error: private_errors.append(str(error)))
             private.route('**/*',lambda route: route.continue_() if urlparse(route.request.url).hostname=='127.0.0.1' else route.abort())
-            private.goto(f'http://127.0.0.1:{port}/workspace.html')
+            private.goto(f'http://127.0.0.1:{port}/workspace.html');unlock(private)
             private.wait_for_function('document.getElementById("providerStatus").textContent.includes("1 imported parcels")')
             private.fill('#privateState','NJ')
             private.fill('#privateMax','4')
@@ -451,7 +451,7 @@ try:
             hosted.route('**/*',network)
             sent=[]
             hosted.on('request',lambda request: sent.append(request.post_data_json) if request.url.endswith('/api/radar-agent') and request.method=='POST' else None)
-            hosted.goto(f'http://127.0.0.1:{port}/')
+            hosted.goto(f'http://127.0.0.1:{port}/');unlock(hosted)
             hosted.wait_for_function('window.PublicRadarAssistant.isAvailable()')
             hosted.locator('#filterDrawer').evaluate('e=>e.open=true')
             hosted.fill('#minAcres','0')

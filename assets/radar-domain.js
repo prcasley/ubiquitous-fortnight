@@ -74,5 +74,14 @@
       precision:pointOnly?'point-only':'parcel-polygon',overlapPercent:percent,
       labels:[...new Set(hits.map(f=>String(f.properties?.FLD_ZONE||f.properties?.WETLAND_TYPE||f.properties?.ATTRIBUTE||'Mapped feature')))]};
   }
-  return {acreageFilter,matchesAcres,acreageSQL,parcelKey,pbcCategory,intersectsRadius,summarizeScreen,acreageObservation};
+  function saleDate(raw,now=new Date()){
+    if(raw==null||raw==='')return null;let value=String(raw).trim(),year,month,day;
+    if(/^\d{1,6}$/.test(value)){value=value.padStart(6,'0');const yy=Number(value.slice(0,2));year=(yy<=now.getUTCFullYear()%100?2000:1900)+yy;month=Number(value.slice(2,4));day=Number(value.slice(4,6));}
+    else if(/^\d{8}$/.test(value)){year=Number(value.slice(0,4));month=Number(value.slice(4,6));day=Number(value.slice(6,8));}
+    else {const d=new Date(typeof raw==='number'?raw:value);if(!Number.isFinite(d.getTime()))return null;year=d.getUTCFullYear();month=d.getUTCMonth()+1;day=d.getUTCDate();}
+    const date=new Date(Date.UTC(year,month-1,day));if(year<1800||date>now||date.getUTCFullYear()!==year||date.getUTCMonth()+1!==month||date.getUTCDate()!==day)return null;
+    const iso=date.toISOString().slice(0,10);return iso==='1979-01-01'?null:iso;
+  }
+  function recordedSale(price,date,now){const normalized=saleDate(date,now),amount=Number(price),valid=Number.isFinite(amount)&&amount>1&&normalized;return {recordedSalePrice:valid?amount:null,recordedSaleDate:valid?normalized:null,saleSuppressed:!valid&&(price!=null||date!=null)};}
+  return {saleDate,recordedSale,acreageFilter,matchesAcres,acreageSQL,parcelKey,pbcCategory,intersectsRadius,summarizeScreen,acreageObservation};
 });

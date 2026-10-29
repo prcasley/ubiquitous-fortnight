@@ -19,9 +19,8 @@ test('public owner lookup uses exact official IDs, omits credentials and escapes
   assert.equal(result.entityName,'SYNTHETIC HOLDINGS LLC');assert.ok(result.retrievedAt);
   assert.match(result.caveat,/not independently verified/);
 });
-test('redacted NJ sources never request names; statewide IDs require county identity',async()=>{
+test('statewide Florida IDs require county identity',async()=>{
   const fetcher=()=>{throw Error('unexpected network');};
-  assert.equal((await D.lookupOwner({provider:'njgin'},{fetcher})).status,'not-published');
   await assert.rejects(D.lookupOwner({provider:'fdor',id:'SAME-ID'},{fetcher}),/County identity/);
   let where;
   const result=await D.lookupOwner({provider:'fdor',jurisdiction:'60',id:'SAME-ID'},{fetcher:async url=>{

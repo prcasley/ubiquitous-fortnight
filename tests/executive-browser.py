@@ -14,7 +14,7 @@ try:
         errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))
         page.route('**/*',network)
-        page.goto(f'http://127.0.0.1:{server.server_port}/')
+        page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
         mode['executive']=True
         def ask(text):
             page.fill('#agentPrompt',text)
@@ -142,8 +142,8 @@ try:
         check('NJ acquisition search keeps budget, deadline and OZ eligibility unverified',set(unknowns)=={'purchase budget matching','acquisition deadline feasibility','OZ 2 designation and tax eligibility'})
         page.locator('.chat-properties:not(.previous-search)').last.locator('[data-action=focus-parcel]').first.click()
         page.click('#researchSelectedOwner')
-        page.wait_for_function('document.getElementById("ownershipStatus").textContent.includes("redacted")')
-        check('NJ redaction is explicit without inventing an owner',page.evaluate('RadarOwnership.groups().length')==companies_before)
+        page.wait_for_function('document.getElementById("ownershipStatus").textContent.includes("No owner name is published")')
+        check('Blank NJ source record is explicit without inventing an owner',page.evaluate('RadarOwnership.groups().length')==companies_before)
         page.click('#addSelectedTrip')
         with page.expect_download() as acquisition_pack: page.click('#generateFieldPack')
         packet=Path(acquisition_pack.value.path()).read_text()
@@ -163,7 +163,7 @@ try:
         voice=context.new_page()
         voice.route('**/*',network)
         voice.add_init_script('''window.voiceStarts=0;window.confirm=()=>true;window.SpeechRecognition=class {start(){voiceStarts++;if(window.voiceThrows)throw Error('Synthetic unavailable device');queueMicrotask(()=>{this.onresult({results:[[{transcript:'Find industrial over 5 acres near Edison NJ'}]]});this.onend()})}}''')
-        voice.goto(f'http://127.0.0.1:{server.server_port}/')
+        voice.goto(f'http://127.0.0.1:{server.server_port}/');unlock(voice)
         check('speech does not start on page load',voice.evaluate('voiceStarts')==0)
         voice.click('#agentMic')
         voice.get_by_role('button',name='Allow voice',exact=True).click()

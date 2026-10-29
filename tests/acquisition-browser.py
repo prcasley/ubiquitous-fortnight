@@ -11,7 +11,7 @@ try:
   browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
   context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   mode['ceo']=True
-  page.goto(f'http://127.0.0.1:{server.server_port}/')
+  page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
   page.wait_for_function('!!window.RadarAcquisition')
   page.click('#buildAcquisition')
   check('no shortlist from an empty or map-only context',page.locator('.acquisition-card').count()==0 and 'Run a public parcel search first' in page.locator('#acquisitionResults').inner_text())
@@ -20,7 +20,7 @@ try:
   check('both lists preserve the retrieved NJ location and acres',page.evaluate('Object.values(RadarAcquisition.getResults()).every(l=>l.rows.every(r=>r.record.state==="NJ"&&r.record.acres>5))'))
   check('no implicit offer or use approval',page.evaluate('Object.values(RadarAcquisition.getResults()).every(l=>l.rows.every(r=>r.status==="research-candidate"&&r.offer===null&&r.permit===null))'))
   check('each candidate has satellite imagery with a parcel reference',page.locator('.acquisition-card img').count()==page.locator('.acquisition-card').count() and page.locator('.acquisition-card .property-outline svg').count()>0)
-  check('NJ ownership redaction is explicit','Name redacted' in page.locator('.acquisition-card').first.inner_text())
+  check('NJ ownership is unchecked without assuming statewide suppression','Published assessment name not checked' in page.locator('.acquisition-card').first.inner_text())
   check('different use-specific next checks',page.evaluate('RadarAcquisition.getResults().warehouse.rows[0].nextChecks[0]!==RadarAcquisition.getResults().ios.rows[0].nextChecks[0]'))
   page.fill('#warehouseAcquisitionMin','10');page.fill('#warehouseAcquisitionMax','30');page.fill('#iosAcquisitionMin','5');page.fill('#iosAcquisitionMax','15');page.click('#buildAcquisition')
   check('independent profile ranges',page.evaluate('RadarAcquisition.getResults().warehouse.rows.every(x=>x.record.acres>=10&&x.record.acres<=30)&&RadarAcquisition.getResults().ios.rows.every(x=>x.record.acres>=5&&x.record.acres<=15)'))

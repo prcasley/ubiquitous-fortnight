@@ -7,7 +7,7 @@ def submit(page,q):
 try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',network);mode['ceo']=True;mode['crossBorder']=True
-  page.goto(f'http://127.0.0.1:{server.server_port}/')
+  page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
   check('no selected-property actions before selection',page.locator('#dealNavNearby').is_disabled())
   submit(page,'Recommend industrial over 5 acres in Edison NJ')
   check('strict source acreage is inherited in both profile controls',page.locator('#warehouseAcquisitionMin').input_value()=='5' and page.locator('#iosAcquisitionMin').input_value()=='5' and 'over 5 acres' in page.locator('.acquisition-card').first.inner_text())

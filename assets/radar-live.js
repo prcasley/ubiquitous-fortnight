@@ -37,7 +37,7 @@
       attribution: "New Jersey Office of GIS / county assessors",
       date: "2026 statewide update; parcel vintages vary",
       geometry: "polygon", bounds: [-75.6, 38.8, -73.8, 41.4],
-      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL,LAND_VAL,IMPRVT_VAL,DEED_BOOK,DEED_PAGE,SALE_PRICE,DEED_DATE,NET_VALUE",
+      fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL,LAND_VAL,IMPRVT_VAL,DEED_BOOK,DEED_PAGE,SALE_PRICE,DEED_DATE,NET_VALUE,PCLBLOCK,PCLLOT,PCL_MUN",
       id: "PAMS_PIN",orderField:"OBJECTID"
     }
   };
@@ -130,7 +130,7 @@
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
     return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
-      ...(state==='PA'?window.RadarPA.financial(a,publishedSource):{}),
+      ...(state==='PA'?window.RadarPA.financial(a,publishedSource):domain.recordedSale(state==='NJ'?a.SALE_PRICE:a.PRICE,state==='NJ'?a.DEED_DATE:a.SALE_DATE)),
       deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
       use, lat, lon, distance:mi(center.lat,center.lon,lat,lon),
       geometry:feature, assessment:state==="FL"?a.ASMNT_YR:null, yearBuilt,effectiveYear,buildingArea,residentialUnits,remodelYear:null,leaseTerm:null, source:publishedSource,
@@ -291,7 +291,7 @@
       countResult=total;
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
-      const batchSize=150,objectIds=new Set();let received=0,finished=total===0;
+      const batchSize=state==="PA"?50:150,objectIds=new Set();let received=0,finished=total===0;
       // MapServer GeoJSON paging can repeat rows despite orderByFields. Freeze IDs,
       // sort numerically, then fetch explicit batches; never advance by a guessed offset.
       let snapshotIds=null;
@@ -358,7 +358,7 @@
     node.innerHTML=filtered.slice(0,listLimit).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"NJ statewide owner name redacted":"PA owner enrichment not connected"))+'</span></button>').join("");
+       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"Open parcel details for published owner lookup":"PA owner enrichment not connected"))+'</span></button>').join("");
     if(filtered.length>listLimit){
       const more=document.createElement('button');more.type='button';more.className='secondary';
       more.textContent='Show more parcels ('+listLimit+' of '+filtered.length+' displayed)';
@@ -396,8 +396,8 @@
     node.innerHTML=groups.length?groups.map(g=>'<div class="owner"><strong>'+safe(g.owner)+'</strong><span>'+g.count+
       ' matching parcel'+(g.count===1?"":"s")+' in current scan'+(g.acresCount?' · '+fmt(g.acres)+' reported ac':'')+
       '</span></div>').join(""):'<div class="empty">'+(sourceState==="NJ"?
-      "NJGIN redacts owner names under Daniel’s Law. No county owner-name harvesting is performed.":sourceState==="PA"?"Bulk PA ownership enrichment is not connected. In Deal Nav, Northampton parcels support an on-demand published owner and mailing-address lookup.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
-    $("ownerInfo").textContent="Organization-name research loads only on request from official sources. Individual lookups and the company research workspace retain source dates; NJ names remain redacted in this layer.";
+      "NJ owner records may be published by state or county sources. Use the selected-parcel lookup; blank or protected names are not inferred.":sourceState==="PA"?"Bulk PA ownership enrichment is not connected. In Deal Nav, Northampton parcels support an on-demand published owner and mailing-address lookup.":"Florida assessment names are available on each parcel detail card using the official one-record lookup.")+'</div>';
+    $("ownerInfo").textContent="Published-owner research loads on request from official sources, with source dates. NJ availability varies by record and source; county records may publish names missing from NJGIN.";
   }
   function formatAsOf(raw){
     if(raw==null||raw==="")return "Not provided";
@@ -503,7 +503,7 @@
       const withOwner=rr.filter(p=>p.owner);
       return withOwner.length ? withOwner.slice(0,5).map(p=>p.id+": "+p.owner+" (assessment name, not verified title)").join("\n")+
         "\nShowing up to five results from your last public scan only.":
-        "No owner names are available in the current filtered scan. NJ publishes its statewide layer with names redacted.";
+        "No published owner observations have been loaded for these results. Open a parcel to check its official record.";
     }
     if(/how many|count|number/.test(txt))return rr.length+" matching parcels in the last COMPLETED public scan (not the whole state).";
     if(/source|verified|accuracy/.test(txt))return "Data source: "+activeSource.name+". "+activeSource.date+
@@ -538,7 +538,7 @@
   }
   window.PublicRadarBridge={scan,
     mergeNearby:(rows,reports,primary)=>{records=[...new Map(rows.map(r=>[r.key,r])).values()].sort((a,b)=>a.distance-b.distance);sourceState=primary.state;sourceCenter=primary.center;searchSnapshot=primary;sourceTime=new Date();countResult=records.length;scanComplete=reports.every(r=>r.complete);scanState=scanComplete?'complete':'partial';activeSource={name:reports.map(r=>r.name).join(' + '),url:reports[0]?.url||SOURCES[primary.state].url,date:'Combined live retrieval; see each parcel for source vintage',attribution:'Public county GIS / NJ Office of GIS; source provenance retained on every parcel'};selectedId=null;renderResults();renderMap();renderOwners();renderSource();status(reports.map(r=>r.name+': '+(r.complete?'complete':'PARTIAL / unavailable')+' ('+r.count+' accepted)'+(r.complete?'':': '+r.message)).join(' · '),scanComplete?'success':'warning');document.dispatchEvent(new CustomEvent('radar:scan-complete',{detail:{count:records.length,state:sourceState,complete:scanComplete}}));},normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
-    restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(r.state==='FL'&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
+    restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(['FL','NJ'].includes(r.state)&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
     focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getYearUnknown:()=>[...yearUnknown.values()],getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key)||yearUnknown.get(key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
@@ -602,7 +602,7 @@
     $("lastUpdated").textContent="No live scan yet";
     $("resultInfo").textContent="No live parcel records loaded";
     $("details").hidden=true;renderSource();
-    if(map)status("Ready. Choose a market, then scan public Florida or New Jersey parcel records.","info");
+    if(map)status("Ready. Choose a market or ask Radar.","info");
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();

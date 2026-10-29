@@ -99,19 +99,19 @@ def network(route):
         north=parsed.hostname=='gis.northamptoncounty.org'
         idfield='PARCEL_ID' if north else 'PIN'
         acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
-        size=320 if mode.get('paLarge') else 2
+        size=320 if mode.get('paLarge') else 2;base=1000000000 if mode.get('paLarge') else 0
         if not parsed.path.endswith('/query'):
             fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
         elif params.get('returnCountOnly')==['true']: respond(route,{'count':size})
-        elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(size))) if not mode.get('paSnapshotFail') else [0]*size})
+        elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(base,base+size))) if not mode.get('paSnapshotFail') else [0]*size})
         elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0]:
             respond(route,{'features':[{'attributes':{'PARCEL_ID':'N0','OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
-            ids=list(map(int,params['objectIds'][0].split(','))) if params.get('objectIds') else list(range(size))
-            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i==0 else 500000,'SALE_DATE':283996800000 if i==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
+            ids=list(map(int,params['objectIds'][0].split(','))) if params.get('objectIds') else list(range(base,base+size))
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
             if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return
@@ -149,6 +149,9 @@ def network(route):
         where = params.get('where', [''])[0]
         queries.append((parsed.hostname, where))
         ownerfields=params.get('outFields',[''])[0]
+        if 'OWNER_NAME' in ownerfields and 'OWNER_NAME1' not in ownerfields:
+            match=re.search(r"PAMS_PIN = '([^']+)'",where)
+            respond(route,{'features':[{'attributes':{'PAMS_PIN':match.group(1) if match else '', 'OWNER_NAME':mode.get('njOwnerName','')}}]});return
         if any(name in ownerfields for name in ['OWNER_NAME1','NAME_LINE_1','TRUE_OWNER1','OWN_NAME']):
             idfield='PARID' if 'OWNER_NAME1' in ownerfields else 'FOLIO_NUMBER' if 'NAME_LINE_1' in ownerfields else 'FOLIO' if 'TRUE_OWNER1' in ownerfields else 'PARCEL_ID'
             ownerfield='OWNER_NAME1' if idfield=='PARID' else 'NAME_LINE_1' if idfield=='FOLIO_NUMBER' else 'TRUE_OWNER1' if idfield=='FOLIO' else 'OWN_NAME'
@@ -215,3 +218,10 @@ def network(route):
             respond(route, {'type':'FeatureCollection','features':features,'exceededTransferLimit':mode['partial']})
         return
     route.abort()
+
+
+def unlock(page):
+    """Exercise the real courtesy-screen form; never bypass application code."""
+    if page.locator('#accessGate').count() and page.locator('#accessGate').is_visible():
+        page.fill('#accessPassword','WP123');page.click('#accessForm button')
+        page.wait_for_function('!document.documentElement.hasAttribute("data-radar-locked")')
