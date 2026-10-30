@@ -19,7 +19,7 @@ Target rankings, priority/order, strategy, seller-readiness inferences, draft en
 Prepare the reviewed fact bundle from the extraction:
 
 ```
-python3 scripts/prepare-recovered-reference.py /path/to/woodmont-recovered-complete.json
+python3 scripts/prepare-recovered-reference.py /path/to/recovered-complete.json
 npm run preview:local
 ```
 

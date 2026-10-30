@@ -11,10 +11,22 @@ import struct
 import zlib
 import threading
 import math
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page, TimeoutError as PlaywrightTimeoutError
+
+# Playwright's page-side waiter uses eval, which strict script-src correctly blocks.
+# Poll through DevTools evaluation instead; keep CSP enforced in every browser suite.
+def csp_wait_for_function(page, expression, *, arg=None, timeout=None, polling=None):
+    deadline=time.monotonic()+(30 if timeout is None else timeout/1000) if timeout!=0 else float('inf')
+    while True:
+        value=page.evaluate(expression,arg)
+        if value:return value
+        if time.monotonic()>=deadline:raise PlaywrightTimeoutError('Timed out waiting for browser state: '+expression[:180])
+        page.wait_for_timeout(polling if isinstance(polling,(int,float)) else 50)
+Page.wait_for_function=csp_wait_for_function
 
 ROOT = Path(__file__).resolve().parents[1]
 

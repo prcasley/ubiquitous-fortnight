@@ -120,6 +120,7 @@ try:
         page.click('#scanButton')
         page.wait_for_function('window.PublicRadarBridge.getMeta().status==="partial" && !document.getElementById("scanButton").textContent.includes("Cancel")')
         assert not page.evaluate('window.PublicRadarBridge.getMeta().complete')
+        page.locator('#statusText summary').click()
         assert 'repeated or omitted' in page.locator('#statusText').inner_text()
         mode['repeatPage']=False
         mode['countDrift']=True

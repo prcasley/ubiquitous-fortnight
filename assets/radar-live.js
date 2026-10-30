@@ -197,18 +197,9 @@
     // Every request owns its own timeout. Aborts from another scan do not masquerade as zero parcels.
     const params=new URLSearchParams(Object.assign({f:"json"},base,extra));
     const uri=src.url+"/query?"+params.toString();
-    const timer=new AbortController();
-    const onAbort=()=>timer.abort();
-    if(signal?.aborted)timer.abort();
-    else signal?.addEventListener("abort",onAbort,{once:true});
-    const timeout=setTimeout(()=>timer.abort(new Error("GIS request exceeded 40 seconds; try a smaller scan area or county source")),40000);
-    try {
-      const response=await fetch(uri,{signal:timer.signal,credentials:"omit",mode:"cors"});
-      if(!response.ok) throw Error("Public GIS service returned HTTP "+response.status);
-      const data=await response.json();
-      if(data.error)throw Error("GIS service: "+(data.error.message||"unspecified server error"));
-      return data;
-    } finally {clearTimeout(timeout);signal?.removeEventListener("abort",onAbort);}
+    return window.RadarGISTransport.request(uri,{signal,onRetry:({attempt,maxAttempts})=>{
+      if(scanState==='loading')status('The parcel source is slow or temporarily unavailable. Retrying '+attempt+' of '+(maxAttempts-1)+'…','info');
+    }});
   }
   async function scan(request={}) {
     if(scannerBusy) { clearResults();scanState="cancelled";status("Search cancelled.","warning");return; }
@@ -340,7 +331,7 @@
       if(currentScan!==scanId)return;
       scanComplete=false;scanState=controller.signal.aborted?"cancelled":records.length?"partial":"failed";
       if(controller.signal.aborted) status("Search cancelled.","warning");
-      else status("Public GIS lookup failed: "+errText(e)+". This is NOT a report of zero properties.","danger");
+      else {status((records.length?'Showing '+records.length+' retrieved parcels; the source stopped before the search finished.':'The parcel source could not complete this search. Try again or review recovered map data.')+' More properties may exist.','warning');const detail=document.createElement('details'),summary=document.createElement('summary'),message=document.createElement('p');summary.textContent='Source details';message.textContent=errText(e);detail.append(summary,message);$('statusText').append(detail);}
     } finally {if(currentScan===scanId){scannerBusy=false;if(records.length)renderResults();$("scanButton").disabled=false;$("scanButton").textContent="Scan public parcels";scanAbort=null;document.dispatchEvent(new CustomEvent("radar:scan-state",{detail:{state:scanState,scanId}}));}}
   }
   function currentFilters(){
@@ -429,8 +420,8 @@
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. No comps or sale-price records are loaded.</p>';
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
-    if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon')map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19});
-    else map.setView([p.lat,p.lon],17);
+    if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon'){map.invalidateSize({animate:false});map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19,animate:false});}
+    else map.setView([p.lat,p.lon],17,{animate:false});
     setTimeout(()=>map.invalidateSize(),0);
     document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }

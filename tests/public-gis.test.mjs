@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readFileSync,readdirSync} from "node:fs";
 import {fileURLToPath,pathToFileURL} from "node:url";
 import path from "node:path";
 import vm from "node:vm";
@@ -106,4 +106,8 @@ test("executive interface has no vendor branding or local model flow; public sum
  assert.equal(gateway.validSource("https://services6.arcgis.com/BAJNi3EgCdtQ1BCG"),true);
  assert.equal(gateway.validSource("https://example.com/private"),false);
  assert.equal(gateway.validSource("http://services6.arcgis.com"),false);
+});
+test('published reference metadata and documentation do not identify the firm',()=>{
+ const data=JSON.parse(read('assets/data/recovered-reference.json'));assert.doesNotMatch(JSON.stringify(data),/\bWoodmont\b/i);assert.equal(data.sourceSHA256,undefined);
+ for(const name of readdirSync(path.join(ROOT,'docs'))){if(name.endsWith('.md'))assert.doesNotMatch(read('docs/'+name),/\bWoodmont\b/i);}
 });

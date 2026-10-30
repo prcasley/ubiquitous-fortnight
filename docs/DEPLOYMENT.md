@@ -21,3 +21,9 @@ The free test service uses an **ephemeral database** under `/tmp`. Imports, serv
 The server defaults to loopback locally. Render sets `HOST=0.0.0.0` behind its HTTPS ingress; application routes remain password protected. `/healthz` exposes only a minimal health status so the hosting service can check readiness. The provider key stays server-side.
 
 This is a single-user test login. Executive production deployment still needs organizational access controls and a durable data plan.
+
+## Optional persistent-storage proposal
+
+`render.production.yaml` proposes a paid service and 1 GB disk mounted at `/var/data`. It is not deployed automatically by this work and requires separate approval of account, plan and storage charges. Set `NODE_ENV=production`, an explicit durable `RADAR_DB_PATH`, and `RADAR_STORAGE_PERSISTENT=true` only after persistent storage is attached. Production startup refuses default or temporary paths. The free test blueprint explicitly uses development mode and remains ephemeral.
+
+Shared Basic authentication now has failed-login throttling and generic errors, but it still lacks named users, per-user revocation and a durable audit trail. Proxy deployments must configure trusted client identity appropriately; current throttling uses the socket peer rather than trusting arbitrary forwarded headers. See [the review first pass](REVIEW_FIRST_PASS_2026-10-30.md) for scope and limits.

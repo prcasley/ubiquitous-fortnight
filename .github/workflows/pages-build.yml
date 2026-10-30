@@ -41,6 +41,7 @@ jobs:
           python tests/easton-browser.py
           python tests/executive-entry-browser.py
           python tests/archive-browser.py
+          python tests/reliability-browser.py
           python tests/kml-oz-browser.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

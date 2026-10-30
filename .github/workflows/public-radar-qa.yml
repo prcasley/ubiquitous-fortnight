@@ -42,4 +42,5 @@ jobs:
       - run: python tests/easton-browser.py
       - run: python tests/executive-entry-browser.py
       - run: python tests/archive-browser.py
+      - run: python tests/reliability-browser.py
       - run: python tests/kml-oz-browser.py

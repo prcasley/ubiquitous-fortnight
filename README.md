@@ -51,3 +51,5 @@ Latest executive interface: [Entry screen, industrial brief and NJ record correc
 Recovered historical reference data and local review: [setup and data boundaries](docs/LOCAL_RECOVERED_REFERENCE.md).
 
 Latest publication and reliability notes: [restored references, Northampton identity and batched footprints](docs/EASTON_AND_FOOTPRINT_BATCH_2026-10-29.md).
+
+Latest tested improvements: [review first pass — GIS resilience, focus and backend hardening](docs/REVIEW_FIRST_PASS_2026-10-30.md).

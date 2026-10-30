@@ -1,0 +1,31 @@
+# OPTIONAL paid deployment proposal. This file does not purchase or deploy hosting.
+# Select this blueprint only after approving the hosting account and disk costs.
+services:
+  - type: web
+    name: capital-radar-private
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --ignore-scripts && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    disk:
+      name: radar-research
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: RADAR_DB_PATH
+        value: /var/data/capital-radar/research.sqlite
+      - key: RADAR_STORAGE_PERSISTENT
+        value: 'true'
+      - key: RADAR_WORKSPACE_PASSWORD
+        generateValue: true
+      - key: NIM_API_KEY
+        sync: false
+      - key: NIM_MODEL
+        value: nvidia/nemotron-3.5-lightning-30b-a3b

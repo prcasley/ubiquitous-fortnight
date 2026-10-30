@@ -1,7 +1,8 @@
 // Produce a private, self-contained local review page. Never part of Pages deployment.
 import {readFile,writeFile} from 'node:fs/promises';import path from 'node:path';import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url)),dist=path.join(root,'dist');
-let html=await readFile(path.join(dist,'index.html'),'utf8');const data=JSON.parse(await readFile(path.join(root,'.radar/recovered-reference.json'),'utf8'));
+let html=await readFile(path.join(dist,'index.html'),'utf8');html=html.replace(/<meta\b[^>]*http-equiv="Content-Security-Policy"[^>]*>/gi,''); // The self-contained local copy deliberately embeds scripts; no access-control claim.
+const data=JSON.parse(await readFile(path.join(root,'.radar/recovered-reference.json'),'utf8'));
 const safeScript=s=>s.replace(/<\/script/gi,'<\\/script');
 for(const match of [...html.matchAll(/<link\b[^>]*href="(assets\/[^"?]+)(?:\?[^\"]*)?"[^>]*>/g)]){
  const filename=path.join(dist,match[1]);let css=await readFile(filename,'utf8');
