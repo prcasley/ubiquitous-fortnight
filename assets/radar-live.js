@@ -283,33 +283,28 @@
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
       const batchSize=state==="PA"?50:150,objectIds=new Set();let received=0,finished=total===0;
-      // MapServer GeoJSON paging can repeat rows despite orderByFields. Freeze IDs,
-      // sort numerically, then fetch explicit batches; never advance by a guessed offset.
-      let snapshotIds=null;
-      if(state==='PA'){
-        const ids=await arcgisQuery(source,base,{returnIdsOnly:'true',returnGeometry:'false'},controller.signal);checkCurrent();
-        if(!Array.isArray(ids.objectIds)||ids.objectIds.length!==total||new Set(ids.objectIds).size!==total||ids.objectIds.some(x=>!Number.isSafeInteger(x)))throw Error('County parcel ID snapshot did not reconcile with the source count');
-        snapshotIds=ids.objectIds.sort((a,b)=>a-b);
-      }
+      // Seek by the published parcel key instead of relying on returned OIDs
+      // or server-specific handling of objectIds and offsets.
+      let lastParcelId=null;
       while(received<MAX_FEATURES&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
         const data=await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
           returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
-          orderByFields:(state==="PA"?source.id:source.orderField)+" ASC",...(snapshotIds?{objectIds:snapshotIds.slice(received,received+Math.min(batchSize,MAX_FEATURES-received)).join(","),resultOffset:"0"}:{})},controller.signal);
+          orderByFields:(state==="PA"?source.id:source.orderField)+" ASC",...(state==="PA"?{where:window.RadarPA.pageWhere(base.where,source,lastParcelId),resultOffset:"0"}:{})},controller.signal);
         checkCurrent();
         if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
         if(!data.features.length){finished=received===total&&!data.exceededTransferLimit;break;}
         for(const feature of data.features){
           const objectId=state==="PA"?feature.properties?.[source.id]:(feature.properties?.[source.orderField]??feature.id);
           if(objectId==null||objectIds.has(String(objectId)))throw Error("Source paging repeated or omitted record identities; results remain incomplete");
-          if(snapshotIds&&state!=="PA"&&!snapshotIds.slice(received,received+batchSize).includes(Number(objectId)))throw Error("County returned an identity outside the requested ID batch");
           objectIds.add(String(objectId));
           const item=normalize(feature,state,center,source);
           if(!item)throw Error("Source returned parcels without stable identity or geometry");
           if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);
         }
+        if(state==="PA")lastParcelId=data.features.at(-1).properties[source.id];
         received+=data.features.length;
         scanState="partial";sourceTime=new Date();records.sort((a,b)=>a.distance-b.distance);
         renderResults();renderMap();renderOwners();renderSource();
@@ -395,7 +390,7 @@
     if(typeof raw==="number" && raw>1000000000) return new Date(raw).toLocaleDateString();
     return String(raw);
   }
-  function choose(id,{inspection=false}={}){
+  function choose(id,{inspection=false,navigation=false}={}){
     const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||yearUnknown.get(id)||(inspected?.key===id?inspected:null);if(!p)return;
     if(!inspection&&records.includes(p))inspected=null;
     selectedId=id;renderResults();renderMap();$("details").hidden=false;$("details").dataset.parcelKey=id;
@@ -418,12 +413,12 @@
       '<div class="detail-label">Source</div><div class="detail-value">'+safe(p.source.name)+'</div>'+
       '<div class="detail-actions"><a target="_blank" rel="noopener" href="'+safe(p.source.url)+'">Official source ↗</a>'+
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
-      '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. No comps or sale-price records are loaded.</p>';
+      '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. Recorded sales, where published, are historical facts, not current asking prices or verified comparable sales.</p>';
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
     if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon'){map.invalidateSize({animate:false});map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19,animate:false});}
     else map.setView([p.lat,p.lon],17,{animate:false});
     setTimeout(()=>map.invalidateSize(),0);
-    document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key}}));if(window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
+    document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key,navigation}}));if(!navigation&&window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
   function renderSource(){
     const s=activeSource||(records[0]?.source)||SOURCES[sourceState];
@@ -529,10 +524,10 @@
   }
   window.PublicRadarBridge={scan,
     mergeNearby:(rows,reports,primary)=>{records=[...new Map(rows.map(r=>[r.key,r])).values()].sort((a,b)=>a.distance-b.distance);sourceState=primary.state;sourceCenter=primary.center;searchSnapshot=primary;sourceTime=new Date();countResult=records.length;scanComplete=reports.every(r=>r.complete);scanState=scanComplete?'complete':'partial';activeSource={name:reports.map(r=>r.name).join(' + '),url:reports[0]?.url||SOURCES[primary.state].url,date:'Combined live retrieval; see each parcel for source vintage',attribution:'Public county GIS / NJ Office of GIS; source provenance retained on every parcel'};selectedId=null;renderResults();renderMap();renderOwners();renderSource();status(reports.map(r=>r.name+': '+(r.complete?'complete':'PARTIAL / unavailable')+' ('+r.count+' accepted)'+(r.complete?'':': '+r.message)).join(' · '),scanComplete?'success':'warning');document.dispatchEvent(new CustomEvent('radar:scan-complete',{detail:{count:records.length,state:sourceState,complete:scanComplete}}));},normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
-    restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(['FL','NJ'].includes(r.state)&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
+    restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(['FL','NJ','PA'].includes(r.state)&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
-    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key);if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getYearUnknown:()=>[...yearUnknown.values()],getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key)||yearUnknown.get(key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
+    focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key,{navigation:true});if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getYearUnknown:()=>[...yearUnknown.values()],getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key)||yearUnknown.get(key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
     getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,yearUnknownCount:yearUnknown.size,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");

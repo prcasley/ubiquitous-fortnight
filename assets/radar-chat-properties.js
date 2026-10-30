@@ -8,7 +8,7 @@
     if(!rows.length)return;
     const host=document.getElementById('agentLog'),section=document.createElement('section');section.className='agent-message bot chat-properties';
     host.dataset.scrollAnchor='';section.dataset.scan=String(meta.scanId);
-    const heading=document.createElement('strong');heading.textContent=`${rows.length} ${meta.yearUnknown?'year not published — not year-filter matches':meta.complete?'properties':'partial results'} · ${meta.complete?'select a property below':'search incomplete; more properties may exist'}`;
+    const heading=document.createElement('strong');heading.textContent=meta.selectedParcel?'Selected parcel · search results retained':`${rows.length} ${meta.yearUnknown?'year not published — not year-filter matches':meta.complete?'properties':'partial results'} · ${meta.complete?'select a property below':'search incomplete; more properties may exist'}`;
     section.append(heading);
     const radiusNote=document.createElement('p');radiusNote.textContent='Parcels touching the search circle qualify. Distances are to a map reference point, so edge parcels can show a distance beyond the radius.';
     let criteriaNote=null;if(meta.unverified?.length){criteriaNote=document.createElement('p');criteriaNote.textContent='Candidates only: '+meta.unverified.join(', ')+' remain unverified.';}

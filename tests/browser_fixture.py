@@ -118,13 +118,20 @@ def network(route):
             fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
-        elif params.get('returnCountOnly')==['true']: respond(route,{'count':size})
+        elif params.get('returnCountOnly')==['true']: respond(route,{'count':size if not mode.get('paSnapshotFail') else -1})
         elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(base,base+size))) if not mode.get('paSnapshotFail') else [0]*size})
-        elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0]:
-            respond(route,{'features':[{'attributes':{'PARCEL_ID':'N0','OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
+        elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0] or params.get('outFields')==['*']:
+            owner_id=re.search(r"PARCEL_ID = '([^']+)'",params.get('where',[''])[0])
+            respond(route,{'features':[{'attributes':{'PARCEL_ID':owner_id.group(1) if owner_id else 'N0','OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
-            ids=list(map(int,params['objectIds'][0].split(','))) if params.get('objectIds') else list(range(base,base+size))
+            ids=list(range(base,base+size))
+            # Simulate the actual troublesome server: no OIDs, objectIds ignored.
+            seek=re.search(r"(?:PARCEL_ID|PIN) > '([^']+)'",params.get('where',[''])[0])
+            if seek and not mode.get('paRepeatParcel'):
+                ids=[i for i in ids if ('N' if north else 'L')+str(i-base)>seek.group(1)]
+            ids=sorted(ids,key=lambda i:('N' if north else 'L')+str(i-base))
+            ids=ids[:int(params.get('resultRecordCount',[str(size)])[0])]
             features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
             if north:
                 for feature in features: feature['properties'].pop('OBJECTID',None)

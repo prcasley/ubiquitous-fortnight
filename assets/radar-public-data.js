@@ -2,6 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarPublicData=api;})(globalThis,()=>{
   'use strict';
   const sources={
+    northampton:{name:'Northampton County public assessment GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'PARCEL_ID',owner:'OWNERS_NAME_1',status:'Exact parcel lookup; published fields only'},
     pbc:{name:'Palm Beach public property GIS',url:'https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0',id:'PARID',owner:'OWNER_NAME1',status:'Owner field and one record verified October 26, 2026'},
     broward:{name:'Broward public property GIS',url:'https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0',id:'FOLIO_NUMBER',owner:'NAME_LINE_1',status:'Adapter present; current network verification pending'},
     miamidade:{name:'Miami-Dade public property GIS',url:'https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0',id:'FOLIO',owner:'TRUE_OWNER1',status:'Adapter present; current network verification pending'},
@@ -18,8 +19,8 @@
     const county=record.provider==='fdor'?Number(record.jurisdiction):null;
     if(record.provider==='fdor'&&![6,13,53,60,66].includes(county))throw Error('County identity is required for the statewide owner lookup');
     const where=source.id+" = '"+id.replace(/'/g,"''")+"'"+(county!=null?' AND CO_NO = '+county:'');
-    const fields=[source.id,source.owner,...(county!=null?['CO_NO','ASMNT_YR']:[])];
-    const url=source.url+'/query?'+new URLSearchParams({f:'json',where,outFields:fields.join(','),returnGeometry:'false',resultRecordCount:'2'});
+    const fields=[source.id,source.owner,...(record.provider==='northampton'?['OWNERS_NAME_2','MAIL_ADDRESS','MAIL_ADDRESS_1','MAIL_ADDRESS_2','MAIL_ADDRESS_3']:[]),...(county!=null?['CO_NO','ASMNT_YR']:[])];
+    const url=source.url+'/query?'+new URLSearchParams({f:'json',where,outFields:record.provider==='northampton'?'*':fields.join(','),returnGeometry:'false',resultRecordCount:'2'});
     const controller=new AbortController(),cancel=()=>controller.abort();signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
     const timeout=setTimeout(cancel,20000);
     try{
@@ -29,9 +30,9 @@
       if(data.exceededTransferLimit)throw Error('Official source truncated the ownership response; no owner selected');
       const rows=(data.features||[]).filter(f=>String(f.attributes?.[source.id]??'')===id&&(county==null||Number(f.attributes?.CO_NO)===county));
       if(rows.length!==1)throw Error(rows.length?'The source returned conflicting records; no owner selected':'The source did not return an exact parcel match');
-      const attributes=rows[0].attributes,rawName=String(attributes[source.owner]||'').trim().slice(0,400),name=/^(?:(?:REDACTED|WITHHELD|PROTECTED)(?:\b|$)|(?:PRIVATE|NOT AVAILABLE|N\/?A|UNKNOWN|NULL)$)/i.test(rawName)?'':rawName;
+      const attributes=rows[0].attributes,rawName=(record.provider==='northampton'?[attributes.OWNERS_NAME_1,attributes.OWNERS_NAME_2].filter(Boolean).join(' / '):String(attributes[source.owner]||'')).trim().slice(0,400),name=/^(?:(?:REDACTED|WITHHELD|PROTECTED)(?:\b|$)|(?:PRIVATE|NOT AVAILABLE|N\/?A|UNKNOWN|NULL)$)/i.test(rawName)?'':rawName;
       return {status:name?'published':'not-published',message:name?null:'No owner name is published in this exact source record. County tax/deed records may have additional published information; use the official records links. No owner was inferred.',publishedName:name,entityName:name&&entity(name)?name:null,
-        classification:name&&entity(name)?'organization-style':'unclassified',sourceName:source.name,sourceURL:source.url,
+        mailingAddress:record.provider==='northampton'?[attributes.MAIL_ADDRESS,attributes.MAIL_ADDRESS_1,attributes.MAIL_ADDRESS_2,attributes.MAIL_ADDRESS_3].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ').slice(0,1000):null,classification:name&&entity(name)?'organization-style':'unclassified',sourceName:source.name,sourceURL:source.url,
         retrievedAt,assessmentYear:attributes.ASMNT_YR??record.assessment??null,parcelId:id,
         caveat:'Published assessment observation; not independently verified title or beneficial ownership.'};
     }finally{clearTimeout(timeout);signal?.removeEventListener('abort',cancel);}

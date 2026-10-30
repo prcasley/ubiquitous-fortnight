@@ -64,3 +64,9 @@ test('public snapshots retain dated organization observations but exclude contac
   const pack=F.packetHTML([{property:snapshot,screenings:[{kind:'manual-flood',status:'source-observation',retrievedAt:'2026-10-26',sourceURL:'https://example.org/evidence',caveat:'Verify the flood observation'},{kind:'manual-power',sourceURL:'javascript:alert(1)',caveat:'Not checked'}]}]);
   assert.match(pack,/TEST LLC/);assert.match(pack,/https:\/\/example.org\/evidence/);assert.doesNotMatch(pack,/javascript:|contacts|private/);
 });
+test('Northampton owner adapter exact-matches parcel and includes published mailing fields on request',async()=>{
+ let seen;const r=await D.lookupOwner({provider:'northampton',id:'M9 9 2',state:'PA'},{fetcher:async u=>{seen=new URL(u);return {ok:true,json:async()=>({features:[{attributes:{PARCEL_ID:'M9 9 2',OWNERS_NAME_1:'SYNTHETIC LLC',OWNERS_NAME_2:'SECOND LLC',MAIL_ADDRESS_1:'123 Example',MAIL_ADDRESS_2:'Example Town'}}]})};}});
+ assert.equal(seen.searchParams.get('where'),"PARCEL_ID = 'M9 9 2'");assert.equal(seen.searchParams.get('returnGeometry'),'false');
+ assert.equal(r.publishedName,'SYNTHETIC LLC / SECOND LLC');assert.equal(r.mailingAddress,'123 Example, Example Town');assert.ok(r.retrievedAt);
+ await assert.rejects(D.lookupOwner({provider:'northampton',id:'M9 9 2'},{fetcher:async()=>({ok:true,json:async()=>({features:[{attributes:{PARCEL_ID:'wrong',OWNERS_NAME_1:'Wrong LLC'}}]})})}),/exact parcel match/);
+});

@@ -37,3 +37,22 @@ test('Northampton ASMT acreage and commercial year apply on server; financial pl
  const a={SALE_PRICE:1660000,SALE_DATE:Date.UTC(2020,1,1),LAND_VALUE:100,BLDG_VALUE:200,FLAG_10_KOZ:1};const r=PA.financial(a,source);assert.equal(r.assessedValue,300);assert.equal(r.recordedSalePrice,1660000);assert.equal(r.kozFlag,'1');
  assert.equal(PA.financial({...a,SALE_PRICE:1},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:Date.UTC(1979,0,1)},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:null},source).recordedSalePrice,null);assert.doesNotMatch(source.fields,/OWNER|MAIL/);
 });
+test('parcel-key seeks escape IDs and do not depend on missing OIDs',()=>{
+ const source={id:'PARCEL_ID'};
+ assert.equal(PA.pageWhere('ASMT_ACREAGE >= 5',source,null),'ASMT_ACREAGE >= 5');
+ assert.equal(PA.pageWhere('ASMT_ACREAGE >= 5',source,"M9 ' 2"),"(ASMT_ACREAGE >= 5) AND PARCEL_ID > 'M9 '' 2'");
+});
+test('county municipal/use domain codes translate without inventing meanings',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','USE_DESC'].includes(f.name));m.fields.push({name:'PARCEL_ID',type:'esriFieldTypeString'},{name:'MUNI',type:'esriFieldTypeInteger',domain:{codedValues:[{code:99,name:'Synthetic Township'}]}},{name:'LUC',type:'esriFieldTypeInteger'});
+ m.types=[{domains:{LUC:{codedValues:[{code:7,name:'Industrial warehouse'},{code:8,name:'Commercial office'},{code:9,name:'Vacant land'}]}}}];
+ const source=PA.schema(PA.sources.Northampton,m);
+ assert.equal(PA.attributes({MUNI:99,LUC:7,SITE_ADDRESS:'123 Example Rd ,'},source).address,'123 Example Rd, Synthetic Township, PA');
+ assert.equal(PA.attributes({LUC:7},source).type,'Industrial');assert.equal(PA.attributes({LUC:8},source).type,'Commercial');assert.equal(PA.attributes({LUC:9},source).type,'Vacant');
+ assert.match(PA.where(source,'industrial',{op:'>=',value:5}),/LUC IN \('7'\)/);
+ assert.match(PA.attributes({LUC:999},source).use,/meaning unverified/);
+});
+test('conflicting subtype code labels remain unverified',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>f.name!=='USE_DESC');m.fields.push({name:'LUC',type:'esriFieldTypeInteger'});
+ m.types=[{domains:{LUC:{codedValues:[{code:1,name:'Industrial'}]}}},{domains:{LUC:{codedValues:[{code:1,name:'Residential'}]}}}];
+ const s=PA.schema(PA.sources.Lehigh,m);assert.equal(s.supportsUse,false);assert.equal(PA.attributes({LUC:1},s).type,'Other');
+});
