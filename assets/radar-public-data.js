@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarPublicData=api;})(globalThis,()=>{
   'use strict';
   const sources={
-    northampton:{name:'Northampton County public assessment GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'PARCEL_ID',owner:'OWNERS_NAME_1',status:'Exact parcel lookup; published fields only'},
+    northampton:{name:'Northampton County public assessment GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'CAMA_ID',owner:'OWNERS_NAME_1',status:'Exact parcel lookup; published fields only'},
     pbc:{name:'Palm Beach public property GIS',url:'https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0',id:'PARID',owner:'OWNER_NAME1',status:'Owner field and one record verified October 26, 2026'},
     broward:{name:'Broward public property GIS',url:'https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0',id:'FOLIO_NUMBER',owner:'NAME_LINE_1',status:'Adapter present; current network verification pending'},
     miamidade:{name:'Miami-Dade public property GIS',url:'https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0',id:'FOLIO',owner:'TRUE_OWNER1',status:'Adapter present; current network verification pending'},
@@ -18,7 +18,9 @@
     const id=String(record.id||'').trim();if(!id||id.length>200)throw Error('A valid parcel ID is required');
     const county=record.provider==='fdor'?Number(record.jurisdiction):null;
     if(record.provider==='fdor'&&![6,13,53,60,66].includes(county))throw Error('County identity is required for the statewide owner lookup');
-    const where=source.id+" = '"+id.replace(/'/g,"''")+"'"+(county!=null?' AND CO_NO = '+county:'');
+    const numericId=record.provider==='northampton'&&/Integer|SmallInteger|Double|Single|OID/.test(record.sourceIdType||record.source?.idType||'');
+    if(numericId&&(!/^\d+$/.test(id)||!Number.isSafeInteger(Number(id))))throw Error('A valid numeric assessment key is required');
+    const where=source.id+" = "+(numericId?id:"'"+id.replace(/'/g,"''")+"'")+(county!=null?' AND CO_NO = '+county:'');
     const fields=[source.id,source.owner,...(record.provider==='northampton'?['OWNERS_NAME_2','MAIL_ADDRESS','MAIL_ADDRESS_1','MAIL_ADDRESS_2','MAIL_ADDRESS_3']:[]),...(county!=null?['CO_NO','ASMNT_YR']:[])];
     const url=source.url+'/query?'+new URLSearchParams({f:'json',where,outFields:record.provider==='northampton'?'*':fields.join(','),returnGeometry:'false',resultRecordCount:'2'});
     const controller=new AbortController(),cancel=()=>controller.abort();signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();

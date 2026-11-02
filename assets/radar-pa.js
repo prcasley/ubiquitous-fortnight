@@ -4,7 +4,7 @@
   'use strict';
   const sources={
     Lehigh:{name:'Lehigh County public parcel GIS',url:'https://gis.lehighcounty.org/arcgis/rest/services/ParcelSDE/MapServer/0',id:'PIN',provider:'lehigh',jurisdiction:'42077',attribution:'Lehigh County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.91,40.40,-75.32,40.88]},
-    Northampton:{name:'Northampton County public parcel GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'PARCEL_ID',provider:'northampton',jurisdiction:'42095',attribution:'Northampton County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.66,40.52,-75.05,41.03]}
+    Northampton:{name:'Northampton County public parcel GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'CAMA_ID',parcelField:'PARCEL_ID',provider:'northampton',jurisdiction:'42095',attribution:'Northampton County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.66,40.52,-75.05,41.03]}
   };
   const candidates={acres:['ASMT_ACREAGE','ACRES','ACREAGE','CALC_ACRE','DEED_ACRES','GIS_ACRES','LAND_ACRES','ACREAGE_DEEDED'],year:['COM_YEAR_BUILT','YEAR_BUILT','YR_BUILT','YR_CONSTR','YEARBUILT'],use:['LAND_USE_DESC','LANDUSE_DESC','USE_DESC','CLASS_DESC','PROPERTY_USE','LAND_USE','LANDUSE','USE_CODE','LUC','LAND_USE_CODE'],address:['SITE_ADDRESS','SITUS_ADDRESS','FULL_ADDRESS','PROPERTY_ADDRESS','SITE_ADDR','PROP_LOC','LOCATION','ADDRESS'],number:['SITUS_ADDR_NUM','ADDRNUM'],street:['SITUS_FDPRE','SITUS_FNAME','SITUS_FTYPE','SITUS_FDSUF','FULLNAME'],city:['SITUS_CITY','POST_COMM','MUNICIPALITY','MUNI'],land:['LAND_VALUE'],improvement:['BLDG_VALUE'],salePrice:['SALE_PRICE'],saleDate:['SALE_DATE'],saleValidity:['SALE_VALIDITY_CODE'],koz:['FLAG_10_KOZ']};
   function schema(source,meta){
@@ -26,8 +26,8 @@
       }
     }
     const supportsUse=!!use&&(!!use.domain?.codedValues?.length||/DESC|PROPERTY_USE/.test(use.name.toUpperCase()));
-    const projected=[id.name,oid.name,...Object.values(mappings).flat().map(f=>f.name)];
-    return {...source,id:id.name,orderField:oid.name,fields:[...new Set(projected)].join(','),mappings,supportsUse,
+    const projected=[id.name,oid.name,...(fields.has(source.parcelField)?[source.parcelField]:[]),...Object.values(mappings).flat().map(f=>f.name)];
+    return {...source,id:id.name,idType:id.type,orderField:oid.name,fields:[...new Set(projected)].join(','),mappings,supportsUse,
       date:meta.editingInfo?.lastEditDate?'Source last edit '+new Date(meta.editingInfo.lastEditDate).toISOString():'Source last-edit date not published',verifiedAt:new Date().toISOString()};
   }
   async function prepare(source,{fetcher=globalThis.fetch,signal}={}){
@@ -70,7 +70,9 @@
     if(last==null)return where;
     const field=source.id,value=String(last);
     if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(field)||!value.trim())throw Error('County parcel paging key unavailable');
-    return '('+where+') AND '+field+" > '"+value.replaceAll("'","''")+"'";
+    const numeric=/Integer|SmallInteger|Double|Single|OID/.test(source.idType||'');
+    if(numeric&&(!/^\d+$/.test(value)||!Number.isSafeInteger(Number(value))))throw Error('County numeric paging key invalid');
+    return '('+where+') AND '+field+' > '+(numeric?value:"'"+value.replaceAll("'","''")+"'");
   }
   return {sources,schema,prepare,attributes,financial,where,pageWhere};
 });

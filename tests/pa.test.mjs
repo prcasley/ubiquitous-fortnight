@@ -31,19 +31,19 @@ test('PA source preparation omits credentials and rejects unavailable metadata',
  await assert.rejects(PA.prepare(PA.sources.Lehigh,{fetcher:async()=>({ok:false,status:503})}),/Pennsylvania coverage could not be verified/);
 });
 test('Northampton ASMT acreage and commercial year apply on server; financial placeholders excluded',()=>{
- const m=meta();m.fields=m.fields.filter(f=>!['PIN','ACREAGE','YEAR_BUILT'].includes(f.name));m.fields.push({name:'PARCEL_ID',type:'esriFieldTypeString'},{name:'ASMT_ACREAGE',type:'esriFieldTypeDouble'},{name:'COM_YEAR_BUILT',type:'esriFieldTypeInteger'},...['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ'].map(name=>({name,type:'esriFieldTypeDouble'})));
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','ACREAGE','YEAR_BUILT'].includes(f.name));m.fields.push({name:'CAMA_ID',type:'esriFieldTypeString'},{name:'ASMT_ACREAGE',type:'esriFieldTypeDouble'},{name:'COM_YEAR_BUILT',type:'esriFieldTypeInteger'},...['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ'].map(name=>({name,type:'esriFieldTypeDouble'})));
  const source=PA.schema(PA.sources.Northampton,m);
  assert.match(PA.where(source,'all',{value:5,op:'>='}),/ASMT_ACREAGE >= 5/);assert.equal(PA.attributes({ASMT_ACREAGE:14.4,COM_YEAR_BUILT:1987},source).yearBuilt,1987);
  const a={SALE_PRICE:1660000,SALE_DATE:Date.UTC(2020,1,1),LAND_VALUE:100,BLDG_VALUE:200,FLAG_10_KOZ:1};const r=PA.financial(a,source);assert.equal(r.assessedValue,300);assert.equal(r.recordedSalePrice,1660000);assert.equal(r.kozFlag,'1');
  assert.equal(PA.financial({...a,SALE_PRICE:1},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:Date.UTC(1979,0,1)},source).recordedSalePrice,null);assert.equal(PA.financial({...a,SALE_DATE:null},source).recordedSalePrice,null);assert.doesNotMatch(source.fields,/OWNER|MAIL/);
 });
 test('parcel-key seeks escape IDs and do not depend on missing OIDs',()=>{
- const source={id:'PARCEL_ID'};
+ const source={id:'CAMA_ID'};
  assert.equal(PA.pageWhere('ASMT_ACREAGE >= 5',source,null),'ASMT_ACREAGE >= 5');
- assert.equal(PA.pageWhere('ASMT_ACREAGE >= 5',source,"M9 ' 2"),"(ASMT_ACREAGE >= 5) AND PARCEL_ID > 'M9 '' 2'");
+ assert.equal(PA.pageWhere('ASMT_ACREAGE >= 5',source,"M9 ' 2"),"(ASMT_ACREAGE >= 5) AND CAMA_ID > 'M9 '' 2'");
 });
 test('county municipal/use domain codes translate without inventing meanings',()=>{
- const m=meta();m.fields=m.fields.filter(f=>!['PIN','USE_DESC'].includes(f.name));m.fields.push({name:'PARCEL_ID',type:'esriFieldTypeString'},{name:'MUNI',type:'esriFieldTypeInteger',domain:{codedValues:[{code:99,name:'Synthetic Township'}]}},{name:'LUC',type:'esriFieldTypeInteger'});
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','USE_DESC'].includes(f.name));m.fields.push({name:'CAMA_ID',type:'esriFieldTypeString'},{name:'MUNI',type:'esriFieldTypeInteger',domain:{codedValues:[{code:99,name:'Synthetic Township'}]}},{name:'LUC',type:'esriFieldTypeInteger'});
  m.types=[{domains:{LUC:{codedValues:[{code:7,name:'Industrial warehouse'},{code:8,name:'Commercial office'},{code:9,name:'Vacant land'}]}}}];
  const source=PA.schema(PA.sources.Northampton,m);
  assert.equal(PA.attributes({MUNI:99,LUC:7,SITE_ADDRESS:'123 Example Rd ,'},source).address,'123 Example Rd, Synthetic Township, PA');
@@ -55,4 +55,10 @@ test('conflicting subtype code labels remain unverified',()=>{
  const m=meta();m.fields=m.fields.filter(f=>f.name!=='USE_DESC');m.fields.push({name:'LUC',type:'esriFieldTypeInteger'});
  m.types=[{domains:{LUC:{codedValues:[{code:1,name:'Industrial'}]}}},{domains:{LUC:{codedValues:[{code:1,name:'Residential'}]}}}];
  const s=PA.schema(PA.sources.Lehigh,m);assert.equal(s.supportsUse,false);assert.equal(PA.attributes({LUC:1},s).type,'Other');
+});
+test('numeric CAMA seek uses numeric ordering and rejects unsafe keys',()=>{
+ const s={id:'CAMA_ID',idType:'esriFieldTypeInteger'};
+ assert.equal(PA.pageWhere('1=1',s,12345),'(1=1) AND CAMA_ID > 12345');
+ assert.throws(()=>PA.pageWhere('1=1',s,'123 OR 1=1'),/invalid/);
+ assert.throws(()=>PA.pageWhere('1=1',s,'9007199254740993'),/invalid/);
 });

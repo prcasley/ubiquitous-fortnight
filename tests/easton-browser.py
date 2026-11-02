@@ -13,12 +13,13 @@ try:
   page.route('**/*',route);page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);address(page)
   rows=page.evaluate('PublicRadarBridge.getResults().map(r=>({id:r.id,state:r.state}))')
-  check('320 county rows span seven parcel-key pages with OIDs absent and objectIds ignored without duplication',len([r for r in rows if r['state']=='PA'])==319 and len({r['id'] for r in rows if r['state']=='PA'})==319)
+  check('320 county rows span seven CAMA-key pages despite shared PARCEL_ID values and absent OIDs',len([r for r in rows if r['state']=='PA'])==319 and len({r['id'] for r in rows if r['state']=='PA'})==319)
   county_queries=[parse_qs(urlparse(u).query) for u in requests if 'northamptoncounty.org' in u and '/query?' in u]
-  pages=[q for q in county_queries if q.get('f')==['geojson'] and q.get('orderByFields')==['PARCEL_ID ASC']]
-  check('server applies ASMT acreage before count and stable parcel-key seek retrieval',len(pages)==7 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['PARCEL_ID ASC'] and q['resultOffset']==['0'] for q in pages))
-  check('county feature GET URLs stay below the server length limit',all(len(u)<2000 for u in requests if 'northamptoncounty.org' in u and 'objectIds=' in u))
+  pages=[q for q in county_queries if q.get('f')==['geojson'] and q.get('orderByFields')==['CAMA_ID ASC']]
+  check('server applies ASMT acreage before count and stable parcel-key seek retrieval',len(pages)==7 and all('ASMT_ACREAGE >= 5' in q['where'][0] and q['orderByFields']==['CAMA_ID ASC'] and q['resultOffset']==['0'] for q in pages))
+  check('county feature GET URLs stay below the server length limit',all(len(u)<2000 for u in requests if 'northamptoncounty.org' in u and 'orderByFields=' in u))
   check('outFields contain each requested column only once',all(len(q['outFields'][0].split(','))==len(set(q['outFields'][0].split(','))) for q in pages))
+  check('Northampton deed parcel number is preserved apart from assessment identity',page.evaluate('PublicRadarBridge.getResults().filter(r=>r.state==="PA").every(r=>r.parcelNumber.startsWith("SHARED-PARCEL-") && r.id!==r.parcelNumber)'))
   check('NJGIN contributes nearby border parcels',any(r['state']=='NJ' for r in rows))
   check('primary PA criteria and controls agree after NJ retrieval',page.evaluate('PublicRadarBridge.getSearch().state==="PA"') and page.input_value('#stateSelect')=='PA')
   text=page.locator('#dealNavSelected').inner_text()

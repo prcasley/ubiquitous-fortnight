@@ -27,7 +27,7 @@ try:
   page.fill('#dealNavFront','');page.click('#dealNavEnvelopeButton');check('missing rules cannot become a developable-area calculation','Enter all three' in page.locator('#dealNavEnvelope').inner_text())
   page.fill('#dealNavAddress','40 Hilton St Easton PA');page.click('#dealNavAddressForm button');page.wait_for_function('!!RadarDealNav.selected()&&RadarDealNav.selected().state==="PA"&&!RadarDealNav.busy()')
   check('Easton address uses Northampton and five miles',page.evaluate('PublicRadarBridge.getSearch().state==="PA"&&PublicRadarBridge.getSearch().county==="Northampton"&&PublicRadarBridge.getSearch().radius===5'))
-  check('address point locks to one containing published parcel, with address discrepancy caveat','falls inside this published GIS parcel' in page.locator('#dealNavSelected').inner_text() and page.evaluate('RadarDealNav.selected().id==="N0"'))
+  check('address point locks to one containing published parcel, with address discrepancy caveat','falls inside this published GIS parcel' in page.locator('#dealNavSelected').inner_text() and page.evaluate('RadarDealNav.selected().id==="0"'))
   check('identified parcel polygon enables setback worksheet',not page.locator('#dealNavEnvelopeButton').is_disabled())
   check('nearby minimum is server-filtered and cross-border sources are merged',page.evaluate('PublicRadarBridge.getSearch().acreage.value===5 && new Set(PublicRadarBridge.getResults().map(r=>r.state)).size===2'))
   page.set_viewport_size({'width':390,'height':844});check('Deal Nav does not overflow phone width',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))

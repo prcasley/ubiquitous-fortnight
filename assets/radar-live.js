@@ -110,7 +110,7 @@
       const point=window.turf.pointOnFeature(feature).geometry.coordinates;[lon,lat]=point;
     }
     if(!Number.isFinite(lat)||!Number.isFinite(lon)) return null;
-    const rawId=String(a[publishedSource.id] || (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)||"").trim();
+    const rawId=String(a[publishedSource.id] ?? (state==="FL"?a.PARCEL_ID:a.PAMS_PIN)??"").trim();
     if(!rawId) return null;
     let address=state==="FL"?[a.SITE_ADDR_STR||a.TRUE_SITE_ADDR||[a.SITUS_STREET_NUMBER,a.SITUS_STREET_NAME,a.SITUS_STREET_TYPE].filter(Boolean).join(" ")||a.PHY_ADDR1,a.MUNICIPALITY||a.PHY_CITY,"FL"].filter(Boolean).join(", "):
        [a.PROP_LOC,a.MUN_NAME,"NJ"].filter(Boolean).join(", ");
@@ -128,7 +128,7 @@
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
-    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
+    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, parcelNumber:state==="PA"?String(a[publishedSource.parcelField]||rawId):rawId, sourceIdType:publishedSource.idType||null, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
       ...(state==='PA'?window.RadarPA.financial(a,publishedSource):domain.recordedSale(state==='NJ'?a.SALE_PRICE:a.PRICE,state==='NJ'?a.DEED_DATE:a.SALE_DATE)),
       deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
@@ -397,7 +397,7 @@
     const owner=p.owner||"Use the public-source lookup below";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
       (p.acreageWarning?'<p class="acreage-warning">'+safe(p.acreageWarning)+' Source reports '+safe(fmt(p.reportedAcres))+' ac; mapped polygon approximately '+safe(fmt(p.geometryAcres))+' ac.</p>':'')+
-      '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.id)+'</p>'+
+      '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.parcelNumber||p.id)+'</p>'+
       '<div class="detail-grid"><div><span>Reported site acreage</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
       '<div><span>Assessment use</span><strong>'+safe(p.use)+'</strong></div></div>'+
       '<div class="detail-label">Assessment owner name</div><div class="detail-value">'+safe(owner)+'</div>'+

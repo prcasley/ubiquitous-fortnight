@@ -111,30 +111,34 @@ def network(route):
             respond(route,{'error':{'message':'Synthetic PA outage'}},503)
             return
         north=parsed.hostname=='gis.northamptoncounty.org'
-        idfield='PARCEL_ID' if north else 'PIN'
+        idfield='CAMA_ID' if north else 'PIN'
         acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
         size=320 if mode.get('paLarge') else 2;base=1000000000 if mode.get('paLarge') else 0
         if not parsed.path.endswith('/query'):
-            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
+            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeInteger' if north else 'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
+            if north: fields.append({'name':'PARCEL_ID','type':'esriFieldTypeString'})
             if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
         elif params.get('returnCountOnly')==['true']: respond(route,{'count':size if not mode.get('paSnapshotFail') else -1})
         elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(base,base+size))) if not mode.get('paSnapshotFail') else [0]*size})
         elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0] or params.get('outFields')==['*']:
-            owner_id=re.search(r"PARCEL_ID = '([^']+)'",params.get('where',[''])[0])
-            respond(route,{'features':[{'attributes':{'PARCEL_ID':owner_id.group(1) if owner_id else 'N0','OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
+            owner_id=re.search(r"CAMA_ID = (?:'([^']+)'|(\d+))",params.get('where',[''])[0])
+            owner_value=(owner_id.group(1) or owner_id.group(2)) if owner_id else str(base)
+            respond(route,{'features':[{'attributes':{'CAMA_ID':owner_value,'OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
             ids=list(range(base,base+size))
             # Simulate the actual troublesome server: no OIDs, objectIds ignored.
-            seek=re.search(r"(?:PARCEL_ID|PIN) > '([^']+)'",params.get('where',[''])[0])
+            seek=re.search(r"(?:CAMA_ID|PIN) > (?:'([^']+)'|(\d+))",params.get('where',[''])[0])
             if seek and not mode.get('paRepeatParcel'):
-                ids=[i for i in ids if ('N' if north else 'L')+str(i-base)>seek.group(1)]
-            ids=sorted(ids,key=lambda i:('N' if north else 'L')+str(i-base))
+                ids=[i for i in ids if (i if north else 'L'+str(i-base))>(int(seek.group(2)) if north else seek.group(1))]
+            ids=sorted(ids,key=lambda i:i if north else 'L'+str(i-base))
             ids=ids[:int(params.get('resultRecordCount',[str(size)])[0])]
-            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:('N' if north else 'L')+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:i if north else 'L'+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
             if north:
-                for feature in features: feature['properties'].pop('OBJECTID',None)
+                for i,feature in zip(ids,features):
+                    feature['properties'].pop('OBJECTID',None)
+                    feature['properties']['PARCEL_ID']='SHARED-PARCEL-'+str((i-base)//3)
             if mode.get('paRepeatParcel'):
                 for feature in features: feature['properties'][idfield]='REPEATED'
             if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
@@ -163,12 +167,14 @@ def network(route):
             respond(route,{'features':[{'type':'Feature','geometry':g,'properties':props}]})
         return
     if parsed.hostname in ('hazards.fema.gov', 'fwspublicservices.wim.usgs.gov'):
+        if mode.get('screeningFail'):
+            respond(route,{'error':{'message':'Synthetic screening outage'}},503);return
         if not parsed.path.endswith('/query'):
             respond(route, {'geometryType': 'esriGeometryPolygon', 'fields': [{'name': 'FLD_ZONE'}, {'name': 'ATTRIBUTE'}], 'maxRecordCount': 1000})
         elif params.get('returnCountOnly') == ['true']:
-            respond(route, {'count': 1})
+            respond(route, {'count': 0 if mode.get('screeningClear') else 1})
         else:
-            respond(route, {'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'geometry': parcel_polygon(-80.13,26.72,1000), 'properties': {'FLD_ZONE': 'AE', 'ATTRIBUTE': 'PEM1'}}]})
+            respond(route, {'type': 'FeatureCollection', 'features': [] if mode.get('screeningClear') else [{'type': 'Feature', 'geometry': parcel_polygon(-80.13,26.72,1000), 'properties': {'FLD_ZONE': 'AE', 'ATTRIBUTE': 'PEM1'}}]})
         return
     if parsed.hostname in ('services1.arcgis.com','services2.arcgis.com','services9.arcgis.com'):
         where = params.get('where', [''])[0]

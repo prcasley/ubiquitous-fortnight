@@ -17,6 +17,16 @@ try:
   for market,state in [('palm','FL'),('northbergen','NJ'),('edison','NJ')]:
    page.select_option('#executiveMarket',market);page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
    check('top preset scans the actual industrial market '+market,page.evaluate('PublicRadarBridge.getSearch().state')==state and page.evaluate('PublicRadarBridge.getSearch().type==="industrial" && PublicRadarBridge.getResults().length>0'))
+   if market=='palm':
+    check('West Palm Beach brief explains neighboring municipalities','Riviera Beach' in page.locator('#executiveScanSummary').inner_text() and 'not restricted to city limits' in page.locator('#executiveScanSummary').inner_text())
+    mode['screeningClear']=True;page.click('#executiveCheck');page.wait_for_function('document.getElementById("acquisitionStatus").textContent.includes("Public checks finished")')
+    check('finished checks refresh the brief with measured building facts','reference checks completed without a mapped constraint' in page.locator('#executiveScanSummary').inner_text() and 'sq ft' in page.locator('#executiveScanSummary').inner_text() and 'Site checks not run yet' not in page.locator('#executiveScanSummary').inner_text())
+    mode['screeningClear']=False;mode['screeningFail']=True;page.click('#executiveCheck');page.wait_for_function('document.getElementById("acquisitionStatus").textContent.includes("Public checks finished")')
+    check('failed checks update brief without claiming a clean site','Site checks attempted; some environmental results remain unavailable' in page.locator('#executiveScanSummary').inner_text() and 'checks completed without a mapped constraint' not in page.locator('#executiveScanSummary').inner_text())
+    mode['screeningFail']=False
+
+  page.evaluate('const r={...PublicRadarBridge.getResults()[0],acres:17.308}; RadarChatProperties.render([r],PublicRadarBridge.getMeta())')
+  check('Ask Radar acreage rounds to two decimals','17.31 acres' in page.locator('.chat-properties').last.inner_text() and '17.308' not in page.locator('.chat-properties').last.inner_text())
   check('NJ nominal sales are excluded by the actual parcel normalizer',page.evaluate("""()=>{const r=PublicRadarBridge.getResults()[0],f=structuredClone(r.geometry);f.properties.SALE_PRICE=1;f.properties.DEED_DATE='210818';const n=PublicRadarBridge.normalizeRecord(f,'NJ',{lat:r.lat,lon:r.lon},r.source);return n.recordedSalePrice===null&&n.saleSuppressed;}"""))
   for raw,expected in [('210818','Aug 18, 2021'),('030806','Aug 6, 2003')]:
    page.evaluate("""raw=>{const r=PublicRadarBridge.getResults()[0],f=structuredClone(r.geometry);f.properties.SALE_PRICE=1000000;f.properties.DEED_DATE=raw;PublicRadarBridge.ingestOne(f,'NJ',{lat:r.lat,lon:r.lon},r.source);}""",raw)
