@@ -51,7 +51,7 @@
    if(!m||!d)return;
    requests[kind]?.abort();
    const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;
-   const overview=m.getZoom()<10,center=m.getCenter(),state=center.lat>=24&&center.lat<=31.2&&center.lng>=-88&&center.lng<=-79?'FL':center.lat>=39.7&&center.lat<=42.3&&center.lng>=-80.6&&center.lng< -75.6?'PA':$('stateSelect')?.value||'NJ';
+   const overview=m.getZoom()<10,center=m.getCenter(),state=center.lat>=24&&center.lat<=31.2&&center.lng>=-88&&center.lng<=-79?'FL':center.lat>=39.7&&center.lat<=42.3&&center.lng>=-80.6&&center.lng< -75.6?'PA':center.lat>=38.9&&center.lat<=41.4&&center.lng>=-75.6&&center.lng<=-73.88?'NJ':$('stateSelect')?.value||'NJ';
    const cacheKey=kind+':'+state,cached=overviewCache.get(cacheKey);
    if(overview&&cached&&Date.now()-cached.time<600000){group.clearLayers();for(const layer of cached.layers)group.addLayer(layer);layerStatus(kind,'On · '+state+' state overview (approximate)');note('OZ boundaries remain on. State overview is simplified; zoom in for boundary detail.');return;}
    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);

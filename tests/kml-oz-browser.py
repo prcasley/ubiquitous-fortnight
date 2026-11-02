@@ -22,9 +22,17 @@ try:
    page.evaluate('(z)=>PublicRadarBridge.getMap().setZoom(z,{animate:false})',zoom);page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("overview")');check('OZ geometry and toggle remain on at zoom '+str(zoom),page.evaluate('PublicRadarGeo.getOverlayState("oz2").count>0') and page.is_checked('#oz2Toggle'))
   page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})');page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("displayed")');mode['ozFail']=True;page.evaluate('PublicRadarGeo.loadOpportunityZone("oz2")');check('source error retains old valid geometry with an explanation',page.evaluate('PublicRadarGeo.getOverlayState("oz2").count>0') and 'previous' in page.locator('#oz2LegendStatus').inner_text());mode['ozFail']=False
   page.set_viewport_size({'width':390,'height':844});check('overlay tools fit phone width',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
-  mode['njNomination']=True
-  page.set_viewport_size({'width':1280,'height':900});page.evaluate('PublicRadarBridge.getMap().setView([40.527,-74.363],13,{animate:false})')
-  page.check('#ozNJToggle');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1')
+  mode['njNomination']=True;mode['executive']=True
+  page.set_viewport_size({'width':1280,'height':900})
+  page.fill('#agentPrompt','Find industrial over 5 acres near West Palm Beach FL');page.press('#agentPrompt','Enter')
+  page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled && PublicRadarBridge.getSearch()?.state==="FL"')
+  florida=page.evaluate('({criteria:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')
+  check('Florida scan loaded before cross-state map browsing',page.input_value('#stateSelect')=='FL' and len(florida['keys'])>0)
+  page.check('#ozNJToggle');page.wait_for_function('document.getElementById("ozNJLegendStatus").textContent.includes("covers NJ only")')
+  check('NJ overlay explains its geographic coverage while centered in Florida',page.is_checked('#ozNJToggle') and page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===0'))
+  page.evaluate('PublicRadarBridge.getMap().setView([40.51,-74.27],13,{animate:false})')
+  page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1',timeout=5000)
+  check('panning FL to Perth Amboy loads nominations without changing the Florida search',page.input_value('#stateSelect')=='FL' and page.evaluate('({criteria:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')==florida)
   check('NJ nomination layer is separate from eligibility',page.is_checked('#oz2Toggle') and 'federal certification not verified' in page.locator('#ozNJLegendStatus').locator('..').inner_text())
   page.evaluate('PublicRadarBridge.getMap().setZoom(7,{animate:false})');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===130')
   check('all 130 nomination reference boundaries survive zoom out',page.is_checked('#ozNJToggle'))
