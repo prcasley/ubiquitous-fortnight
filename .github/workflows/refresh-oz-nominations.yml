@@ -1,0 +1,64 @@
+name: Refresh official state nomination evidence
+on:
+  schedule:
+    - cron: '17 11 * * 1' # Mondays, 11:17 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-oz-nominations.yml'
+      - 'scripts/build-nj-oz-nominations.py'
+      - 'tests/test_oz_nomination_refresh.py'
+permissions:
+  contents: read
+concurrency:
+  group: refresh-oz-nominations
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test refresh integrity and failure handling
+        run: python -m unittest discover -s tests -p 'test_oz_nomination_refresh.py'
+      - name: Retrieve and validate NJ state nominations
+        run: python scripts/build-nj-oz-nominations.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Validate refreshed evidence and public build
+        run: |
+          npm test
+          npm run build
+      - name: Commit changed or renewed evidence only
+        id: commit
+        run: |
+          file=assets/data/oz-designation-evidence.json
+          if git diff --quiet -- "$file"; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$file"
+          git commit -m 'Refresh verified NJ state-nomination evidence'
+          git push origin HEAD:main
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+      # GITHUB_TOKEN commits do not trigger push workflows. Explicitly invoke
+      # the existing publication workflow, including all 13 browser suites.
+      - name: Validate and publish refreshed site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages-build.yml --ref main
