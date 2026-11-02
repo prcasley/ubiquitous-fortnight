@@ -8,7 +8,7 @@ def routes(r):
  else:network(r)
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',routes);errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('RadarArchive.getBundle()?.records.length===2')
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',routes);errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('RadarArchive.getBundle()?.records.length===2')
   check('archive observations are distinct from live scan results',page.evaluate('PublicRadarBridge.getResults().length===0') and 'historical' in page.locator('#archiveStatus').inner_text())
   page.fill('#agentPrompt','industrial over 5 acres in Edison NJ');page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled');live=page.evaluate('({search:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')
   before=page.evaluate('PublicRadarBridge.getSearchCenter()');page.locator('[data-archive-query="mangonia"]').click();check('Mangonia quick view locates recovered data',len(page.evaluate('RadarArchive.getVisible()'))==1)

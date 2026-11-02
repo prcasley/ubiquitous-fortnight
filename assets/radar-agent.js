@@ -27,7 +27,7 @@
  const lower=s=>clean(s).toLowerCase();
  const stateFrom=q=>/\b(NJ|new jersey)\b/i.test(q)?"NJ":/\b(FL|florida)\b/i.test(q)?"FL":/\b(PA|pennsylvania)\b/i.test(q)?"PA":null;
  // Explicit supported-place vocabulary; unknown places still need a confident geocoder result.
- const towns=[['West Palm Beach','FL'],['Palm Beach County','FL'],['Palm Beach','FL'],['Mangonia Park','FL'],['Edison','NJ'],['Secaucus','NJ'],['Woodbridge','NJ'],['North Bergen','NJ'],['Perth Amboy','NJ'],['Port Newark','NJ'],['Newark','NJ'],['South Plainfield','NJ'],['Piscataway','NJ'],['Parsippany','NJ'],['Riviera Beach','FL'],['Allentown','PA'],['Easton','PA'],['Lehigh Valley','PA'],['Northern New Jersey','NJ'],['Fort Lauderdale','FL'],['Miami','FL'],['Stuart','FL'],['Port St. Lucie','FL']];
+ const towns=[['Delray Beach','FL'],['West Palm Beach','FL'],['Palm Beach County','FL'],['Palm Beach','FL'],['Mangonia Park','FL'],['Edison','NJ'],['Secaucus','NJ'],['Woodbridge','NJ'],['North Bergen','NJ'],['Perth Amboy','NJ'],['Port Newark','NJ'],['Newark','NJ'],['South Plainfield','NJ'],['Piscataway','NJ'],['Parsippany','NJ'],['Riviera Beach','FL'],['Allentown','PA'],['Easton','PA'],['Lehigh Valley','PA'],['Northern New Jersey','NJ'],['Fort Lauderdale','FL'],['Miami','FL'],['Stuart','FL'],['Port St. Lucie','FL']];
  const rx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  function distance(a,b){const row=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=row[0];row[0]=i;for(let j=1;j<=b.length;j++){const old=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return row[b.length];}
  function language(intent){
@@ -40,7 +40,7 @@
    if(places.length===1){
      const [name,state]=places[0];intent.state=state;intent.recognizedPlace=name;
      const validLocation=new RegExp('^'+rx(name)+'(?:[,\\s]+(?:NJ|FL|PA|new jersey|florida|pennsylvania))?$','i');
-     if(!validLocation.test(intent.location))intent.location=name+', '+state;
+     if(!validLocation.test(intent.location)&&!(radiusOf&&/\b(?:airport|business park|industrial park|station|university)\b/i.test(intent.location)))intent.location=name+', '+state;
      intent.search=true;
      if(name==='Lehigh Valley'){intent.location='Allentown, PA';intent.region='full Lehigh Valley coverage (using an Allentown radius)';}
      if(name==='Northern New Jersey'){intent.location='Parsippany, NJ';intent.region='all of Northern New Jersey (using a Parsippany radius)';}

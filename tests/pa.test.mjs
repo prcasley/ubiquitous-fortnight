@@ -68,3 +68,32 @@ test('Northampton multipart collector merges disjoint pieces without adding whol
  c.add(f(0,1));c.add(f(.002,2));c.add(f(.002,3));const rows=c.features();assert.equal(rows.length,1);assert.equal(rows[0].properties.ASMT_ACREAGE,31);assert.equal(rows[0].geometry.type,'MultiPolygon');assert.equal(rows[0].radarSourceParts,2);assert.ok(Math.abs(turf.area(rows[0])-turf.area(f(0,1))*2)<.01);
  assert.throws(()=>c.add(f(.004,4,32)),/Conflicting county attributes/);
 });
+test('official single-field LUC renderer labels map types without guessing numeric codes',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>f.name!=='USE_DESC');m.fields.push({name:'LUC',type:'esriFieldTypeString'});
+ m.drawingInfo={renderer:{type:'uniqueValue',field1:'LUC',uniqueValueInfos:[{value:'SYN-I',label:'Industrial warehouse'},{value:'SYN-C',label:'Commercial office'},{value:'SYN-V',label:'Vacant land'},{value:'SYN-R',label:'Residential dwelling'}]}};
+ const s=PA.schema(PA.sources.Lehigh,m);
+ for(const [code,type] of [['SYN-I','Industrial'],['SYN-C','Commercial'],['SYN-V','Vacant'],['SYN-R','Residential']])assert.equal(PA.attributes({LUC:code},s).type,type);
+ assert.match(PA.where(s,'industrial',{op:'>=',value:5}),/LUC IN \('SYN-I'\)/);
+ assert.equal(PA.attributes({LUC:'UNKNOWN'},s).type,'Other');
+ m.drawingInfo.renderer.field2='OTHER_FIELD';assert.equal(PA.schema(PA.sources.Lehigh,{...m,fields:m.fields.map(f=>({...f,domain:null}))}).supportsUse,false);
+});
+test('Northampton fallbacks: county boundary municipality names and evidence-backed LUC families when no domain is published',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','USE_DESC','SITE_ADDRESS'].includes(f.name));m.fields.push({name:'CAMA_ID',type:'esriFieldTypeString'},{name:'MUNI',type:'esriFieldTypeString'},{name:'LUC',type:'esriFieldTypeString'},{name:'LOCATION',type:'esriFieldTypeString'});
+ const s=PA.schema(PA.sources.Northampton,m);
+ assert.equal(s.useFamilyFallback,true);assert.equal(s.supportsUse,true);
+ assert.equal(PA.attributes({MUNI:'36',LOCATION:'LINE ST '},s).address,'LINE ST, Williams Township, PA');
+ assert.equal(PA.attributes({MUNI:'10',LOCATION:'900 PACKER ST'},s).address,'900 PACKER ST, Easton City, PA');
+ assert.match(PA.attributes({MUNI:'77'},s).address,/Municipality code 77 \(name unverified\)/);
+ const ind=PA.attributes({LUC:'701'},s);assert.equal(ind.type,'Industrial');assert.match(ind.use,/700-series.*code 701/);
+ assert.equal(PA.attributes({LUC:'301'},s).type,'Multifamily');assert.equal(PA.attributes({LUC:'560'},s).type,'Commercial');
+ for(const unknown of ['210','90','850','993'])assert.equal(PA.attributes({LUC:unknown},s).type,'Other');
+ assert.match(PA.where(s,'industrial',{value:5,op:'>='}),/^ACREAGE >= 5 AND \(LUC LIKE '7__'\)$/);
+ assert.equal(PA.supportsMode(s,'industrial'),true);assert.equal(PA.supportsMode(s,'vacant'),false);assert.equal(PA.supportsMode(s,'all'),true);
+ const lehigh=PA.schema(PA.sources.Lehigh,{...meta(),fields:meta().fields.filter(f=>f.name!=='USE_DESC').concat([{name:'LUC',type:'esriFieldTypeString'}])});
+ assert.equal(lehigh.supportsUse,false,'families are Northampton-only');
+});
+test('Northampton family fallback cannot override conflicting official code definitions',()=>{
+ const m=meta();m.fields=m.fields.filter(f=>!['PIN','USE_DESC'].includes(f.name));m.fields.push({name:'CAMA_ID',type:'esriFieldTypeString'},{name:'LUC',type:'esriFieldTypeString'});
+ m.types=[{domains:{LUC:{codedValues:[{code:'701',name:'Industrial'}]}}},{domains:{LUC:{codedValues:[{code:'701',name:'Residential'}]}}}];
+ const s=PA.schema(PA.sources.Northampton,m);assert.equal(s.useFamilyFallback,false);assert.equal(PA.attributes({LUC:'701'},s).type,'Other');
+});

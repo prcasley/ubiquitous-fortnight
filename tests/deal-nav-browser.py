@@ -6,7 +6,7 @@ def submit(page,q):
  page.fill('#agentPrompt',q);page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',network);mode['ceo']=True;mode['crossBorder']=True
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',network);mode['ceo']=True;mode['crossBorder']=True
   page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
   check('no selected-property actions before selection',page.locator('#dealNavNearby').is_disabled())
   submit(page,'Recommend industrial over 5 acres in Edison NJ')

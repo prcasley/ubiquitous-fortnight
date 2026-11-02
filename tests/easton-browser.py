@@ -6,7 +6,7 @@ def address(page):
  page.fill('#dealNavAddress','40 Hilton St Easton PA');page.click('#dealNavAddressForm button');page.wait_for_function('!RadarDealNav.busy() && !!RadarDealNav.selected()')
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page();mode['ceo']=True;mode['crossBorder']=True;mode['paLarge']=True
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page();mode['ceo']=True;mode['crossBorder']=True;mode['paLarge']=True
   requests=[];errors=[]
   def route(r):
    requests.append(r.request.url);network(r)

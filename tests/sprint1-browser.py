@@ -37,7 +37,7 @@ cases=[
 ]
 try:
  with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+    browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox'])
     mode['persona']=True;mode['ceo']=True
     for q,state,kind,op,acres,upper,radius,place,action in cases:
         mode.pop('fixtureCenter',None)

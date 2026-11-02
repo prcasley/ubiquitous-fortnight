@@ -9,7 +9,7 @@ def submit(page,q):
     page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
 try:
  with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+    browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox'])
     mode['ceo']=True
     cases=[('industrial parcels over 5 acres in Edison NJ','NJ','>',5),('Edison NJ industrial 5 acres','NJ','>=',5),('warehouses near Edison, NJ','NJ','>=',0),('industrial land over 10 acres in West Palm Beach, FL','FL','>',10),('Find warehouses in Edison, NJ','NJ','>=',0),('industrial 5 acres near Edison NJ?','NJ','>=',5),('NJ Edison industrial 5 acres','NJ','>=',5),('West Palm Beach FL industrial 10 acres','FL','>=',10)]
     for phrase,state,op,size in cases:
@@ -47,7 +47,7 @@ try:
     mode['njCap']=True;mode['secaucus']=True
     submit(page,'Show me warehouses in Secaucus NJ')
     check('large search returns candidates with partial status',page.evaluate('PublicRadarBridge.getResults().length>0&&PublicRadarBridge.getMeta().status==="partial"'))
-    check('large search is bounded but does not return a zero-result error',page.evaluate('PublicRadarBridge.getResults().length<=1100') and 'safety cap' in page.locator('#statusText').inner_text())
+    check('large search is bounded but does not return a zero-result error',page.evaluate('PublicRadarBridge.getResults().length<=1600') and 'safety cap' in page.locator('#statusText').inner_text())
     mode['njCap']=False;mode['secaucus']=False
     submit(page,'industrial over 5 acres in West Palm Beach FL')
     before=page.evaluate('({id:PublicRadarBridge.getMeta().scanId,rows:PublicRadarBridge.getResults().map(r=>r.key)})')

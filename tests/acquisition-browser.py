@@ -8,7 +8,7 @@ def submit(page,q):
  page.fill('#agentPrompt',q);page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox'])
   context=browser.new_context(accept_downloads=True);page=context.new_page();page.route('**/*',network);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   mode['ceo']=True
   page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)

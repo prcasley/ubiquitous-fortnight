@@ -8,7 +8,7 @@ def check(label,condition):
 
 try:
     with sync_playwright() as p:
-        browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox'])
+        browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox'])
         context=browser.new_context(accept_downloads=True)
         page=context.new_page()
         errors=[]

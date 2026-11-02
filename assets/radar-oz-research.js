@@ -3,7 +3,7 @@
  'use strict';
  const sources={oz1:{name:'Federal OZ 1 tract reference',url:'https://geo.dot.gov/server/rest/services/Hosted/OZ_Opportunity_Zones/FeatureServer/0',fields:'geoid10,stusps'},oz2:{name:'Third-party OZ 2 eligibility reference',url:'https://services6.arcgis.com/BAJNi3EgCdtQ1BCG/ArcGIS/rest/services/Opportunity_Zone_2_Eligible_Tracts/FeatureServer/0',fields:'GEOID,STUSPS,OZ_2_0_Eli'}};
  async function check(rows,{kind='oz2',fetcher=globalThis.fetch,geo=globalThis.turf,signal}={}){
-   const source=sources[kind];if(!source||!rows.length||rows.length>1100)throw Error('Select 1–1,100 retrieved parcels for a reference check');
+   const source=sources[kind];if(!source||!rows.length||rows.length>1600)throw Error('Select 1–1,600 retrieved parcels for a reference check');
    const controller=new AbortController(),abort=()=>controller.abort();signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();const timer=setTimeout(abort,25000);
    try{
      const features=rows.map(r=>geo.feature(r.geometry.geometry||r.geometry));const bounds=geo.bbox(geo.featureCollection(features));

@@ -28,8 +28,26 @@ def csp_wait_for_function(page, expression, *, arg=None, timeout=None, polling=N
         page.wait_for_timeout(polling if isinstance(polling,(int,float)) else 50)
 Page.wait_for_function=csp_wait_for_function
 
-def focused_parcel_fits(page):
-    return page.evaluate("""()=>{const b=PublicRadarBridge,p=b.getRecord(document.getElementById('details').dataset.parcelKey),map=b.getMap(),bounds=L.geoJSON(p.geometry).getBounds(),expected=['Polygon','MultiPolygon'].includes(p.geometry.geometry.type)?Math.min(19,map.getBoundsZoom(bounds,false,L.point(70,70))):17;return !map._animatingZoom && map.getBounds().contains(bounds) && (bounds.contains(map.getCenter())||map.getCenter().distanceTo(bounds.getCenter())<1) && map.getZoom()===expected;}""")
+def chromium_executable(p):
+    if os.environ.get('RADAR_USE_MANAGED_CHROMIUM')=='1':return p.chromium.executable_path
+    return os.environ.get('RADAR_CHROMIUM_PATH') or shutil.which('chromium') or p.chromium.executable_path
+
+def focused_parcel_fits(page, timeout_ms=8000):
+    # Wait on observed Leaflet/layout state: moveend can fire before a test attaches.
+    deadline=time.monotonic()+timeout_ms/1000
+    state=None
+    while True:
+        state=page.evaluate("""()=>{const b=window.PublicRadarBridge,p=b?.getRecord(document.getElementById('details')?.dataset.parcelKey),map=b?.getMap();if(!p||!map)return {fits:false,reason:'selection not ready'};const bounds=L.geoJSON(p.geometry).getBounds(),size=map.getSize(),nw=map.latLngToContainerPoint(bounds.getNorthWest()),se=map.latLngToContainerPoint(bounds.getSouthEast()),center=map.latLngToContainerPoint(bounds.getCenter()),polygon=['Polygon','MultiPolygon'].includes(p.geometry.geometry.type),expected=polygon?Math.min(19,map.getBoundsZoom(bounds,false,L.point(70,70))):Math.min(17,map.getMaxZoom()),zoom=map.getZoom(),visible=nw.x>=-2&&nw.y>=-2&&se.x<=size.x+2&&se.y<=size.y+2,centered=Math.abs(center.x-size.x/2)<=3&&Math.abs(center.y-size.y/2)<=3,idle=!map._animatingZoom&&!map._panAnim?._inProgress,fits=idle&&size.x>0&&size.y>0&&visible&&centered&&zoom>=expected-(polygon?1:0)-.01&&zoom<=expected+.01;return {fits,zoom,expected,idle,visible,centered,size:[size.x,size.y],nw:[nw.x,nw.y],se:[se.x,se.y],center:[center.x,center.y],viewport:[innerWidth,innerHeight],rect:map.getContainer().getBoundingClientRect().toJSON(),parcel:p.key};}""")
+        if state.get('fits'):return True
+        if time.monotonic()>=deadline:break
+        page.wait_for_timeout(50)
+    artifact=Path(os.environ.get('RADAR_BROWSER_ARTIFACT_DIR','/tmp/radar-browser-artifacts'))
+    artifact.mkdir(parents=True,exist_ok=True)
+    (artifact/'map-focus.json').write_text(json.dumps(state,indent=2))
+    page.screenshot(path=str(artifact/'map-focus.png'),full_page=True)
+    print('Map focus did not settle within 8 seconds:',json.dumps(state),flush=True)
+    return False
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -84,6 +102,7 @@ def network(route):
             'woodbridge':('NJ','Middlesex',-74.28,40.55), 'north bergen':('NJ','Hudson',-74.01,40.80),
             'perth amboy':('NJ','Middlesex',-74.27,40.51), 'port newark':('NJ','Essex',-74.14,40.69),
             'parsippany':('NJ','Morris',-74.42,40.86), 'south plainfield':('NJ','Middlesex',-74.41,40.58),
+            'palm beach international airport west palm beach':('FL','Palm Beach',-80.0956,26.6832), 'delray beach':('FL','Palm Beach',-80.072,26.461),
             'west palm beach':('FL','Palm Beach',-80.13,26.72), 'palm beach':('FL','Palm Beach',-80.13,26.72),
             'palm beach county':('FL','Palm Beach',-80.13,26.72), 'mangonia park':('FL','Palm Beach',-80.07,26.76),
             'allentown':('PA','Lehigh',-75.49,40.602), 'easton':('PA','Northampton',-75.22,40.69),
@@ -112,6 +131,12 @@ def network(route):
             lat=(env.get('ymin',40.51 if nj else 26.71)+env.get('ymax',40.53 if nj else 26.73))/2
             respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':polygon(lon,lat),'properties':{'geoid10':'34023000100' if lat>35 else '12099000100','GEOID':'34023000100' if lat>35 else '12099000100','OZ_2_0_Eli':'unknown' if mode.get('ozUnknown') else 'eligible'}}],'exceededTransferLimit':bool(mode.get('ozTruncated'))})
         return
+    if parsed.hostname=='gis.northamptoncounty.org' and '/Administration/OperationalLayers/' in parsed.path:
+        if not parsed.path.endswith('/query'):
+            respond(route,{'geometryType':'esriGeometryPolygon','fields':[{'name':'FULLNAME','type':'esriFieldTypeString'},{'name':'MUNI_CODE','type':'esriFieldTypeString'}]})
+        elif params.get('returnCountOnly')==['true']:respond(route,{'count':1})
+        else:respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-75.22,40.69,50000),'properties':{'FULLNAME':'Synthetic Williams Township','MUNI_CODE':'36'}}]})
+        return
     if parsed.hostname in ('gis.lehighcounty.org','gis.northamptoncounty.org'):
         if mode.get('paFail'):
             respond(route,{'error':{'message':'Synthetic PA outage'}},503)
@@ -123,7 +148,7 @@ def network(route):
             n=i-base-(1 if multipart and i-base>=50 else 0)-(1 if multipart and i-base>=101 else 0)
             return 'J10 3 '+str(n).zfill(4)+' 0311' if multipart else i
         acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
-        size=320 if mode.get('paLarge') else 2;base=1000000000 if mode.get('paLarge') else 0
+        size=mode.get('paSize') or (320 if mode.get('paLarge') else 2);base=1000000000 if mode.get('paLarge') else 0
         if not parsed.path.endswith('/query'):
             fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeInteger' if north and not multipart else 'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if north: fields.append({'name':'PARCEL_ID','type':'esriFieldTypeString'})
@@ -216,7 +241,7 @@ def network(route):
         if mode.get('executive') and not mode['partial']: acres_values=[6,12,8,20,5]
         if mode.get('ceo'): acres_values=[6,12,25,40,5]
         if nj and mode['njPaging']: acres_values=[6]*350
-        if nj and mode['njCap']: acres_values=[6]*1137
+        if nj and mode['njCap']: acres_values=[6]*1637
         if nj and mode.get('badAcreage'): acres_values=[6,44900,20]
         if mode['collision']:
             acres_values = [3,3]
@@ -224,7 +249,7 @@ def network(route):
             conditions = re.findall(r'(?:ACRES|CALC_ACRE) (>=|<=|>|<|=) ([\d.]+)', where)
             if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
                 continue
-            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where else 'DISTRIBUTION', 'YRBLT': 1990}
+            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where or mode.get('flVacantIndustrial') else 'DISTRIBUTION', 'YRBLT': 1990}
             if mode.get('persona'):
                 if nj and "PROP_CLASS = '4C'" in where: props['PROP_CLASS']='4C'
                 if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'

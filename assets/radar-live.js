@@ -54,7 +54,7 @@
     broward: {name:"Broward County",state:"FL",lat:26.122,lon:-80.143,zoom:12},
     miami: {name:"Miami-Dade",state:"FL",lat:25.775,lon:-80.195,zoom:12}
   };
-  const MAX_FEATURES = 1100;
+  const MAX_FEATURES = 1600; // Easton 5-mile (PA+NJ) returns ~1,263 Northampton rows; keep headroom while staying bounded.
   let map, street, satellite, layers, circle;
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
   let yearUnknown=new Map(),yearFilter=null;
@@ -121,14 +121,14 @@
     const effectiveYear=state==="FL"?officialYear(a.EFF_YR_BLT):null;
     const buildingArea=state==="FL"&&Number(a.TOT_LVG_AR)>0?Number(a.TOT_LVG_AR):null;
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
-    let use=useLabel(a,state);
-    if(state==="PA"){const pa=window.RadarPA.attributes(a,publishedSource);address=pa.address;acres=pa.acres;cls=pa.type;yearBuilt=pa.yearBuilt;use=pa.use;}
+    let use=useLabel(a,state),municipalityObservation=null;
+    if(state==="PA"){const pa=window.RadarPA.attributes(a,publishedSource);address=pa.address;municipalityObservation=pa.municipalityObservation||null;acres=pa.acres;cls=pa.type;yearBuilt=pa.yearBuilt;use=pa.use;}
     const acreage=domain.acreageObservation(acres,feature.geometry);acres=acreage.acres;
     const countyProvider=state==="PA"?{code:publishedSource.jurisdiction,id:publishedSource.provider}:publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
-    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, sourceParts:feature.radarSourceParts||1, parcelNumber:state==="PA"?String(a[publishedSource.parcelField]||rawId):rawId, sourceIdType:publishedSource.idType||null, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
+    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, municipalityObservation, sourceParts:feature.radarSourceParts||1, parcelNumber:state==="PA"?String(a[publishedSource.parcelField]||rawId):rawId, sourceIdType:publishedSource.idType||null, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
       ...(state==='PA'?window.RadarPA.financial(a,publishedSource):domain.recordedSale(state==='NJ'?a.SALE_PRICE:a.PRICE,state==='NJ'?a.DEED_DATE:a.SALE_DATE)),
       deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
@@ -209,7 +209,7 @@
     const radius=Number($("radiusSelect").value);
     let acreFilter;try{acreFilter=readAcreageFilter();}catch(e){status(e.message,"warning");return;}
     const min=acreFilter.value;
-    const matchesMode=item=>mode==="all"||({industrial:"Industrial",multifamily:"Multifamily",vacant:"Vacant"}[mode]===item.type);
+    const matchesMode=item=>mode==="all"||({industrial:"Industrial",multifamily:"Multifamily",vacant:"Vacant"}[mode]===item.type)||(mode==="industrial"&&item.type==="Vacant"&&/INDUSTR/i.test(String(item.use||"")));// vacant industrial land is an industrial target
     const mode=$("typeSelect").value;
     
     if(!stateInBounds(center.lat,center.lon,state)){
@@ -228,6 +228,7 @@
     activeSource=source;sourceState=state;sourceCenter=center;
     yearFilter=request.year?{...request.year}:null;
     searchSnapshot={year:yearFilter,state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,20):[]};
+    let municipalityLookup=null;
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source)};
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
@@ -236,8 +237,9 @@
         if(!source.url)throw Error("Pennsylvania searches require Lehigh or Northampton County; other PA counties are not connected");
         source=await window.RadarPA.prepare(source,{signal:controller.signal});checkCurrent();activeSource=source;
         base.where=window.RadarPA.where(source,mode,acreFilter);
+        if(source.provider==='northampton')municipalityLookup=window.RadarPAReference?.fetchForExtent(env,{signal:controller.signal});
         if(!source.mappings.acres.length&&(min!==0||acreFilter.op!==">="))throw Error(source.name+" does not publish a recognized acreage field. Choose At least 0 acres to inspect records, or verify the county schema");
-        if(mode!=="all"&&!source.supportsUse)throw Error(source.name+" does not publish a verified descriptive assessment classification. Choose All assessment types; industrial zoning cannot be inferred");
+        if(mode!=="all"&&!(window.RadarPA.supportsMode?window.RadarPA.supportsMode(source,mode):source.supportsUse))throw Error(source.name+" does not publish a verified descriptive assessment classification. Choose All assessment types; industrial zoning cannot be inferred");
       }
       if([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
         // County layer is demonstrably fast. Page directly instead of asking FDOR for an
@@ -282,17 +284,18 @@
       countResult=total;
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
+      const featureLimit=MAX_FEATURES;
       const multipart=state==="PA"&&source.provider==="northampton",collector=multipart?window.RadarPA.createCollector(source,window.turf):null,pagesSeen=new Set();
       const batchSize=state==="PA"?50:150,objectIds=new Set();let received=0,finished=total===0;
       // Seek by the published parcel key instead of relying on returned OIDs
       // or server-specific handling of objectIds and offsets.
       let lastParcelId=null;
-      while(received<MAX_FEATURES&&received<total){
+      while(received<featureLimit&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
         const data=await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
           returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
-          resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
+          resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,featureLimit-received)),
           orderByFields:multipart?source.id+" ASC,"+source.orderField+" ASC":(state==="PA"?source.id:source.orderField)+" ASC",...(state==="PA"&&!multipart?{where:window.RadarPA.pageWhere(base.where,source,lastParcelId),resultOffset:"0"}:{})},controller.signal);
         checkCurrent();
         if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
@@ -317,9 +320,10 @@
       }
       if(!finished){
         scanState="partial";
-        status(total>MAX_FEATURES?"Retrieved "+received+" of "+total+" source features before the "+MAX_FEATURES+"-record safety cap. These are PARTIAL candidates, sorted within the retrieved subset; narrow the radius to retrieve more completely.":"Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
+        status(total>featureLimit?"Retrieved "+received+" of "+total+" source features before the "+featureLimit+"-record safety cap. These are PARTIAL candidates, sorted within the retrieved subset; narrow the radius to retrieve more completely.":"Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
         return;
       }
+      if(municipalityLookup){const reference=await municipalityLookup;checkCurrent();try{window.RadarPAReference.apply(records,reference,window.turf);}catch{/* Optional boundary failure leaves original published names/codes intact. */}}
       sourceState=state;sourceCenter=center;sourceTime=new Date();
       scanComplete=true;scanState="complete";
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
@@ -419,10 +423,12 @@
       '<div class="detail-actions"><a target="_blank" rel="noopener" href="'+safe(p.source.url)+'">Official source ↗</a>'+
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. Recorded sales, where published, are historical facts, not current asking prices or verified comparable sales.</p>';
+    if(p.municipalityObservation){const m=p.municipalityObservation,notice=document.createElement('p'),link=document.createElement('a');notice.textContent=m.caveat+' Checked '+m.checkedAt+' · ';link.textContent='Official municipality boundary source';link.href=m.sourceURL;link.target='_blank';link.rel='noopener noreferrer';notice.append(link);$('details').append(notice);}
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
-    if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon'){map.invalidateSize({animate:false});map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19,animate:false});}
-    else map.setView([p.lat,p.lon],17,{animate:false});
-    setTimeout(()=>map.invalidateSize(),0);
+    const fitSelected=()=>{if(selectedId!==id)return;map.invalidateSize({animate:false,pan:false});if(p.geometry.geometry.type==='Polygon'||p.geometry.geometry.type==='MultiPolygon')map.fitBounds(L.geoJSON(p.geometry).getBounds(),{padding:[35,35],maxZoom:19,animate:false});else map.setView([p.lat,p.lon],17,{animate:false});};
+    fitSelected();
+    // Re-fit after the detail panel's layout settles so slower devices (and CI runners) end on the same full-parcel view.
+    setTimeout(fitSelected,0);requestAnimationFrame(()=>requestAnimationFrame(fitSelected));
     document.dispatchEvent(new CustomEvent("radar:parcel-selected",{detail:{id:p.id,key:p.key,navigation}}));if(!navigation&&window.innerWidth<800)$("details").scrollIntoView({behavior:"smooth",block:"start"});
   }
   function renderSource(){

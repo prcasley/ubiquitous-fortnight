@@ -3,8 +3,8 @@ from browser_fixture import *
 
 try:
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path, headless=True, args=['--no-sandbox'])
-        context = browser.new_context(accept_downloads=True)
+        browser = p.chromium.launch(executable_path=chromium_executable(p), headless=True, args=['--no-sandbox'])
+        context = browser.new_context(accept_downloads=True,viewport={'width':1280,'height':900},device_scale_factor=1,reduced_motion='reduce')
         page = context.new_page()
         exceptions = []
         page.on('pageerror', lambda error: exceptions.append(str(error)))

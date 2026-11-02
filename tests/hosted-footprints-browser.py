@@ -4,7 +4,7 @@ checks=[]
 def check(name,value):assert value,name;checks.append(name)
 try:
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium') or p.chromium.executable_path,headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':390,'height':844});mode['ceo']=True;mode['hostedFootprints']=True
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':390,'height':844});mode['ceo']=True;mode['hostedFootprints']=True
   requests=[];errors=[]
   def route(r):requests.append(r.request.url);network(r)
   page.route('**/*',route);page.on('pageerror',lambda e:errors.append(str(e)))
