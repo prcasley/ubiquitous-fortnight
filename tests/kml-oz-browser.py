@@ -22,6 +22,21 @@ try:
    page.evaluate('(z)=>PublicRadarBridge.getMap().setZoom(z,{animate:false})',zoom);page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("overview")');check('OZ geometry and toggle remain on at zoom '+str(zoom),page.evaluate('PublicRadarGeo.getOverlayState("oz2").count>0') and page.is_checked('#oz2Toggle'))
   page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})');page.wait_for_function('document.getElementById("oz2LegendStatus").textContent.includes("displayed")');mode['ozFail']=True;page.evaluate('PublicRadarGeo.loadOpportunityZone("oz2")');check('source error retains old valid geometry with an explanation',page.evaluate('PublicRadarGeo.getOverlayState("oz2").count>0') and 'previous' in page.locator('#oz2LegendStatus').inner_text());mode['ozFail']=False
   page.set_viewport_size({'width':390,'height':844});check('overlay tools fit phone width',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
+  mode['njNomination']=True
+  page.set_viewport_size({'width':1280,'height':900});page.evaluate('PublicRadarBridge.getMap().setView([40.527,-74.363],13,{animate:false})')
+  page.check('#ozNJToggle');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1')
+  check('NJ nomination layer is separate from eligibility',page.is_checked('#oz2Toggle') and 'federal certification not verified' in page.locator('#ozNJLegendStatus').locator('..').inner_text())
+  page.evaluate('PublicRadarBridge.getMap().setZoom(7,{animate:false})');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===130')
+  check('all 130 nomination reference boundaries survive zoom out',page.is_checked('#ozNJToggle'))
+  page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1')
+  mode['njNomFail']=True;page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")')
+  check('nomination outage preserves prior boundaries and checked control',page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===1') and page.is_checked('#ozNJToggle') and 'previous' in page.locator('#ozNJLegendStatus').inner_text())
+  mode['njNomFail']=False;mode['njNomInvalid']=True;page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")')
+  check('non-NJ tract identity rejected without replacing valid map',page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===1') and 'invalid' in page.locator('#mapResearchNote').inner_text())
+  mode['njNomInvalid']=False
+  page.set_viewport_size({'width':360,'height':800});page.evaluate('scrollTo(0,0)')
+  check('three overlays fit narrow phone with accessible full nomination label',page.evaluate('document.documentElement.scrollWidth<=innerWidth') and 'nomination' in page.locator('#ozNJToggle').get_attribute('aria-label').lower())
+  page.uncheck('#ozNJToggle');check('hiding nominations does not turn eligibility off',page.is_checked('#oz2Toggle') and page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===0'))
   check('no uncaught errors',not errors);b.close()
  print('KML/OZ browser suite passed:',len(checks),'local-safety and zoom-persistence checks.')
 finally:server.shutdown();server.server_close()

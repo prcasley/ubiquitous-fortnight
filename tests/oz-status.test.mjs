@@ -9,3 +9,11 @@ for(const [name,override] of Object.entries({oldRound:{round:'2018'},wrongTract:
 test('even a configured third-party host cannot claim federal certification',()=>{const configured={...sources,tracker:{...sources.tracker,authority:'federal-certifier'}};assert.equal(C.resolve(geoid,{now,sources:configured,records:[record({sourceId:'tracker',sourceURL:'https://example.com/report',stage:'certified'})]}).certificationVerified,false);});
 test('a withdrawal conflicts with earlier records and removes a positive conclusion',()=>{assert.equal(C.resolve(geoid,{now,sources,records:[record(),record({withdrawn:true})]}).stage,'review-conflict');});
 test('short or nonnumeric tract IDs cannot be joined',()=>assert.throws(()=>C.resolve('123'),/11-digit/));
+test('published NJ nomination bundle resolves nominated tracts as state-nominated, never certified',async()=>{
+ const {readFile}=await import('node:fs/promises');const b=JSON.parse(await readFile(new URL('../assets/data/oz-designation-evidence.json',import.meta.url)));
+ assert.equal(b.records.length,130);assert.equal(new Set(b.records.map(r=>r.geoid)).size,130);assert.equal(new Set(b.records.map(r=>r.recordId)).size,130);assert.ok(b.records.every(r=>/^34\d{9}$/.test(r.geoid)&&r.stage==='state-nominated'));
+ const S=(await import('../assets/radar-oz-status-core.js')).default;const r=b.records[0],now=Date.parse(r.checkedAt)+1000;
+ const res=S.resolve(r.geoid,{...b,now});assert.equal(res.stage,'state-nominated');assert.equal(res.certificationVerified,false);assert.match(res.message,/not Treasury certification/);
+ assert.equal(S.resolve('34023000100',{...b,now}).stage,'not-verified');
+ assert.equal(S.resolve(r.geoid,{...b,now:Date.parse(r.checkedAt)+91*86400000}).stage,'not-verified','stale evidence expires');
+});

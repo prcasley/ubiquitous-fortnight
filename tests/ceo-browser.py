@@ -93,8 +93,10 @@ try:
     check('dark map uses key-free public tiles', 'tile.openstreetmap.org' in tile_urls()[0] and phone.locator('.radar-dark-tiles').count()==1)
     check('dark tile styling leaves vector overlays untouched',phone.evaluate('getComputedStyle(document.querySelector(".leaflet-overlay-pane")).filter')=='none')
     check('retired key-required tile host is never requested',not any('cartocdn' in url for url in external_requests))
+    check('bundled text and heading fonts are loaded before measuring mobile layout',phone.evaluate('[...document.fonts].filter(f=>(f.family.includes("DM Sans")||f.family.includes("Manrope"))&&f.status==="loaded").length===2'))
     for width in [360,390,430,768]:
         phone.set_viewport_size({'width':width,'height':844})
+        phone.evaluate('async()=>{await document.fonts.ready;window.scrollTo(0,0);await new Promise(requestAnimationFrame)}')
         check('no horizontal overflow at '+str(width),phone.evaluate('document.documentElement.scrollWidth<=innerWidth'))
         check('mobile map controls appear within the first screen at '+str(width),phone.locator('#mapPanel').bounding_box()['y']<700)
         check('map imagery appears in the first phone screen at '+str(width),phone.locator('#map').bounding_box()['y']<760)
@@ -104,6 +106,7 @@ try:
     phone.locator('.research-notice summary').click()
     phone.set_viewport_size({'width':390,'height':844})
     phone.select_option('#basemap','satellite')
+    phone.evaluate('window.scrollTo(0,0)')
     phone.screenshot(path='/tmp/capital-radar-mobile-fresh.png')
     submit(phone,'industrial 5 acres in Edison NJ')
     check('phone search displays property cards',phone.locator('.chat-properties:not(.previous-search) .chat-property-card').count()>0)

@@ -10,8 +10,12 @@
   oz2:{label:"OZ 2 · third-party eligibility reference, NOT certified designation",
     url:"https://services6.arcgis.com/BAJNi3EgCdtQ1BCG/ArcGIS/rest/services/Opportunity_Zone_2_Eligible_Tracts/FeatureServer/0",
     source:"https://www.irs.gov/newsroom/treasury-irs-provide-guidance-to-states-for-nominating-census-tracts-as-qualified-opportunity-zones-under-the-one-big-beautiful-bill",
-    color:"#b4752e",limit:280}
+    color:"#b4752e",limit:280},
+  ozNJ:{label:"OZ 2 · NJ state-nominated tracts (Oct 2026) — federal certification not verified",
+    url:"https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0",
+    source:"https://www.nj.gov/dca/news/news/2026/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'}
  };
+ const ids=f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20||f.properties?.Geography;
  const source=()=>window.PublicRadarBridge;
  let layers={},activeIdentify=false,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();
  const map=()=>source()?.getMap();
@@ -22,10 +26,10 @@
      $("mapPanel")?.append(n);}
    n.dataset.type=type;n.textContent=message;
  };
- function layerStatus(kind,value){const node=document.getElementById(kind+'LegendStatus');if(node)node.textContent=value;}
+ function layerStatus(kind,value){const node=document.getElementById(kind+'LegendStatus');if(node){node.textContent=value;node.parentElement?.toggleAttribute('data-off',value==='Hidden');}}
  function legend(){
    const host=document.createElement('div');host.id='ozLegend';host.className='oz-legend';host.setAttribute('aria-label','Opportunity zone map legend');host.setAttribute('aria-live','polite');
-   for(const [kind,d] of Object.entries(OZ)){const row=document.createElement('p'),swatch=document.createElement('span'),text=document.createElement('span'),status=document.createElement('small');swatch.className='oz-swatch';swatch.style.backgroundColor=d.color;text.textContent=d.label;status.id=kind+'LegendStatus';status.textContent='Hidden';row.append(swatch,text,status);host.append(row);}
+   for(const [kind,d] of Object.entries(OZ)){const row=document.createElement('p'),swatch=document.createElement('span'),text=document.createElement('span'),status=document.createElement('small');swatch.className='oz-swatch';swatch.style.backgroundColor=d.color;text.textContent=d.label;status.id=kind+'LegendStatus';status.textContent='Hidden';row.setAttribute('data-off','');row.append(swatch,text,status);host.append(row);}
    const foot=document.createElement('p');foot.textContent='OZ 2 eligibility estimates do not establish final designation, tax eligibility or a publication/closing deadline.';host.append(foot);document.getElementById('mapPanel').insertBefore(host,document.querySelector('#mapPanel .map-wrap'));
  }
  function queryParams(m){
@@ -53,7 +57,8 @@
    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);
    requests[kind]=ctrl;layerStatus(kind,"Loading reference polygons…");note("Loading "+d.label+" from its public reference GIS layer…");
    try {
-     const base=overview?{where:(kind==='oz2'?'STUSPS':'stusps')+" = '"+state+"'",outSR:'4326'}:queryParams(m);const limit=overview?6000:d.limit;
+     if(d.states&&!d.states.includes(state)){group.clearLayers();layerStatus(kind,'On · covers '+d.states.join(', ')+' only');note(d.label+' covers '+d.states.join(', ')+' only; nothing to show for '+state+'.');return;}
+     const base=overview?{where:d.states?'1=1':(kind==='oz2'?'STUSPS':'stusps')+" = '"+state+"'",outSR:'4326'}:queryParams(m);const limit=overview?6000:d.limit;
      const c=await queryLayer(d.url,{...base,returnCountOnly:"true",returnGeometry:"false"},ctrl.signal);
      const count=Number(c.count);
      if(!Number.isInteger(count)||count<0)throw Error("The layer returned an invalid feature count");
@@ -63,9 +68,9 @@
      // The returned count is compared with the actual feature count; truncated outputs are rejected.
      const raw={features:[]};
      const size=overview?500:d.limit;
-     for(let offset=0;offset<Math.max(1,count);offset+=size){const page=await queryLayer(d.url,{...base,f:'geojson',outFields:kind==='oz2'?'GEOID,STUSPS,OZ_2_0_Eli':'geoid10,stusps,stname',returnGeometry:'true',maxAllowableOffset:overview?'0.003':'0.00003',geometryPrecision:overview?'4':'5',resultOffset:String(offset),resultRecordCount:String(size),...(overview?{orderByFields:(kind==='oz2'?'GEOID':'geoid10')+' ASC'}:{})},ctrl.signal);if(!Array.isArray(page.features)||!page.features.length&&count||!overview&&page.exceededTransferLimit)throw Error('The public service returned incomplete tract geometries');raw.features.push(...page.features);if(raw.features.length>=count)break;}
+     for(let offset=0;offset<Math.max(1,count);offset+=size){const page=await queryLayer(d.url,{...base,f:'geojson',outFields:d.fields||(kind==='oz2'?'GEOID,STUSPS,OZ_2_0_Eli':'geoid10,stusps,stname'),returnGeometry:'true',maxAllowableOffset:overview?'0.003':'0.00003',geometryPrecision:overview?'4':'5',resultOffset:String(offset),resultRecordCount:String(size),...(overview?{orderByFields:(d.idField||(kind==='oz2'?'GEOID':'geoid10'))+' ASC'}:{})},ctrl.signal);if(!Array.isArray(page.features)||!page.features.length&&count||!overview&&page.exceededTransferLimit)throw Error('The public service returned incomplete tract geometries');raw.features.push(...page.features);if(raw.features.length>=count)break;}
      if(raw.features.length!==count)throw Error('The tract count did not reconcile; previous boundaries retained');
-     const ids=raw.features.map(f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20);if(overview&&new Set(ids).size!==ids.length)throw Error('Overview pages repeated tract identities; previous boundaries retained');
+     const idList=raw.features.map(ids);if(kind==='ozNJ'&&(idList.some(id=>!/^34\d{9}$/.test(String(id)))||new Set(idList).size!==idList.length))throw Error('NJ nomination tract identities were missing, invalid or repeated');if(overview&&new Set(idList).size!==idList.length)throw Error('Overview pages repeated tract identities; previous boundaries retained');
      if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
      const selected=kind==="oz2" ? raw.features.filter(f=>{
        const value=String(f.properties?.OZ_2_0_Eli??"").trim().toLowerCase();
@@ -78,19 +83,19 @@
      const polygon=selected.filter(f=>f.geometry&&/polygon/i.test(f.geometry.type));
      if(polygon.length!==selected.length)throw Error("One or more tract geometries were missing");
      const staged=[];for(const feat of polygon){
-       const attributes=feat.properties||{},geoid=attributes.GEOID||attributes.geoid10||attributes.GEOID10||attributes.GEOID20||"GEOID unavailable";
-       const info=kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
+       const attributes=feat.properties||{},geoid=ids(feat)||"GEOID unavailable";
+       const info=kind==="ozNJ"?"Nominated by New Jersey on Oct 28, 2026 ("+[attributes.Municipality,attributes.County&&attributes.County+' County'].filter(Boolean).join(' · ')+"). Nomination is not Treasury certification; designation is not final until certified.":kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
            "Third-party 2027-round eligibility estimate only; validate GEOID against Treasury official eligibility files, and nominations/designations separately";
        const layer=window.L.geoJSON(feat,{style:{color:d.color,weight:1.7,opacity:.9,fillColor:d.color,fillOpacity:.13}});
        const popup=document.createElement("div");
        const label=document.createElement("strong");label.textContent=d.label;
        const detail=document.createElement("p");detail.textContent="Tract "+geoid+" · "+info;
-       const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent="Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
+       const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent=kind==="ozNJ"?"NJ DCA announcement ↗":"Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
        popup.append(label,detail,anchor);
        if(overview)popup.append(document.createTextNode(' State overview uses simplified boundaries; zoom in for detail.'));layer.bindPopup(popup);staged.push(layer);
      }
      group.clearLayers();for(const layer of staged)layer.addTo(group);if(overview)overviewCache.set(cacheKey,{time:Date.now(),layers:staged});
-     note(kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
+     note(kind==="ozNJ"?polygon.length+" New Jersey state-nominated OZ 2.0 tracts displayed (official NJ DCA layer). Nomination does not establish federal certification.":kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
      layerStatus(kind,'On · '+polygon.length+(overview?' '+state+' overview tracts (approximate)':' detailed reference tracts displayed in this view'));
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
@@ -132,7 +137,7 @@
      if(ctrl.signal.aborted||snapshotId!==b.getMeta().scanId)return;
      if(!Array.isArray(res.features)||res.exceededTransferLimit||!res.features.length)
        throw Error("No uniquely identifiable public parcel was returned at this location");
-     const features=res.features.filter(f=>f.geometry);
+     let features=res.features.filter(f=>f.geometry);if(state==='PA'&&provider.provider==='northampton'){const collector=window.RadarPA.createCollector(provider,window.turf);for(const feature of features)collector.add(feature);features=collector.features();}
      if(state==="NJ"&&(features.length!==1||!polygonContains(features[0].geometry,lng,lat)))throw Error("Multiple parcel shapes intersect the tap. Zoom further in.");
      if(countyFL){
        const matched=features.filter(f=>polygonContains(f.geometry,lng,lat));

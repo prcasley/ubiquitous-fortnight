@@ -418,7 +418,7 @@
      const priceExplanation=intent.pricePsf?` I read $${intent.pricePsf.amount}/SF as ${intent.pricePsf.basis==='closed-sale'?'closed-sale price':intent.pricePsf.basis==='asking-sale'?'asking sale price':intent.pricePsf.basis==='asking-rent'?'asking rent':'an unspecified price or rent'} per building square foot. Asking prices and closed-sale comps are different; neither is verified by this scan.`:'';
      putMessage(`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)}, touching the ${$("radiusSelect").value}-mile search area around ${intent.location||intent.countyLabel||'the selected map location'}. ${intent.sort==='largest'?'Largest first.':'Nearest first.'}`+
        (missing.length?' '+missing.join(', ')+' cannot be verified here. Results are candidates for further research, not confirmed matches to those conditions.':'')+priceExplanation);
-     await bridge().scan({unverified:missing,year:intent.year});
+     await bridge().scan({unverified:missing,year:intent.year,wholeSitesOnly:options.wholeSitesOnly??preserved?.wholeSitesOnly??false});
      if(intent.sort)bridge().sortResults(intent.sort);
      const meta=bridge().getMeta(),rows=bridge().getResults();
      if(meta.time&&!options.replay){history.push({intent:{...intent},search:bridge().getSearch()});if(history.length>20)history.shift();}

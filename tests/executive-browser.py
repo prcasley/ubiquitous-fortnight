@@ -90,7 +90,7 @@ try:
         page.check('#oz1Toggle');page.check('#oz2Toggle')
         page.wait_for_function('document.getElementById("oz1LegendStatus").textContent.includes("displayed")&&document.getElementById("oz2LegendStatus").textContent.includes("displayed")')
         colors=page.locator('.oz-swatch').evaluate_all('(nodes)=>nodes.map(n=>getComputedStyle(n).backgroundColor)')
-        check('OZ reference layers have distinct labeled legend colors',len(set(colors))==2 and 'NOT certified designation' in page.locator('#ozLegend').inner_text())
+        check('OZ reference layers have distinct labeled legend colors',len(set(colors))==len(colors)>=2 and 'NOT certified designation' in page.locator('#ozLegend').inner_text())
         page.click('#identifyParcel')
         check('identify toggle preserves requested OZ layers',page.locator('#oz1Toggle').is_checked() and page.locator('#oz2Toggle').is_checked())
         page.evaluate('PublicRadarBridge.getMap().setZoom(9,{animate:false})')

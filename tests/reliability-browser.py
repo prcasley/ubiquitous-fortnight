@@ -15,6 +15,13 @@ try:
   page.fill('#agentPrompt','industrial at least 5 acres in Edison NJ');page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled')
   check('one transient GIS failure recovers without requiring another user click',attempts==2 and page.evaluate('PublicRadarBridge.getMeta().complete') and page.evaluate('PublicRadarBridge.getResults().length>0'))
   page.locator('.chat-properties:not(.previous-search) [data-action=focus-parcel]').first.click();check('parcel focus is synchronous and fits the source boundary',focused_parcel_fits(page))
+  page.evaluate("""()=>{const b=PublicRadarBridge,r=b.getResults()[0],m=b.getMap();m.setView([r.lat,r.lon],12,{animate:false,reset:true});b.setCenter(r.lat,r.lon,13);requestAnimationFrame(()=>b.focusParcel(r.key,{satellite:true}));}""")
+  check('preserved-center navigation cannot later reset parcel focus to zoom 13',focused_parcel_fits(page));page.wait_for_timeout(400)
+  check('parcel focus remains correct after previous transition deadlines',focused_parcel_fits(page))
+  page.evaluate("""()=>{const b=PublicRadarBridge,r=b.getResults()[0],m=b.getMap();m.setView([r.lat,r.lon],12,{animate:false,reset:true});m.setView([r.lat,r.lon],13,{animate:true});requestAnimationFrame(()=>b.focusParcel(r.key,{satellite:true}));}""")
+  check('parcel focus waits for an already active Leaflet zoom before fitting',focused_parcel_fits(page));page.wait_for_timeout(400)
+  check('manual zoom transition cannot overwrite the selected parcel later',focused_parcel_fits(page))
+  check('navigation diagnostics retain search-center and focus events',page.evaluate('PublicRadarBridge.getMapTrace().some(e=>e.op==="search-center")&&PublicRadarBridge.getMapTrace().some(e=>e.op==="focus-parcel")'))
   original=page.evaluate('structuredClone(PublicRadarBridge.getResults()[0].geometry)')
   for width in [390,1280]:
    page.set_viewport_size({'width':width,'height':720})

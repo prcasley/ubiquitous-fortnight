@@ -4,6 +4,12 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const vendor=root+'assets/vendor/';
 await mkdir(vendor,{recursive:true});
+await mkdir(root+'assets/fonts',{recursive:true});
+for(const family of ['dm-sans','manrope']){
+ await copyFile(root+'node_modules/@fontsource-variable/'+family+'/files/'+family+'-latin-wght-normal.woff2',root+'assets/fonts/'+family+'-latin-wght-normal.woff2');
+ await copyFile(root+'node_modules/@fontsource-variable/'+family+'/LICENSE',root+'assets/fonts/'+family+'-LICENSE.txt');
+}
+
 await cp(root+'node_modules/leaflet/dist',vendor+'leaflet',{recursive:true});
 await copyFile(root+'node_modules/@turf/turf/turf.min.js',vendor+'turf.min.js');
 await copyFile(root+'node_modules/osmtogeojson/osmtogeojson.js',root+'assets/osmtogeojson.js');

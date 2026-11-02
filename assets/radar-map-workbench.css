@@ -47,3 +47,8 @@
  .map-column .map-wrap{height:60svh;min-height:320px}.map-expanded #mapPanel{inset:0;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
  .map-expanded #mapPanel .map-wrap{height:auto;min-height:0}.map-expanded .map-caption{display:none}
 }
+
+/* Phones: show legend rows only for overlays that are switched on, so the map stays in the first screen. */
+@media (max-width:700px){.oz-legend p[data-off]{display:none}}
+.oz-toggles{display:contents}
+@media(max-width:900px){.map-column .map-actions .oz-toggles{display:grid;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.map-column .map-actions .oz-toggles .oz-more{display:none}}

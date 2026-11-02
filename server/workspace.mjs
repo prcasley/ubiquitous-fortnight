@@ -60,7 +60,7 @@ export function createWorkspace({store,password,staticDir=path.join(root,'dist')
       const filename=path.resolve(staticDir,relative);
       if(!filename.startsWith(path.resolve(staticDir)+path.sep))return json(res,404,{error:'Not found'});
       let data;try{data=await readFile(filename);}catch{return json(res,404,{error:'Run npm run build to prepare static assets'});}
-      const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'};
+      const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.json':'application/json; charset=utf-8'};
       res.writeHead(200,{'content-type':mime[path.extname(filename)]||'application/octet-stream','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'same-origin','x-frame-options':'DENY'});
       res.end(req.method==='HEAD'?undefined:data);
     }catch(error){

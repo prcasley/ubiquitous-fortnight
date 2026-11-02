@@ -37,7 +37,7 @@ def focused_parcel_fits(page, timeout_ms=8000):
     deadline=time.monotonic()+timeout_ms/1000
     state=None
     while True:
-        state=page.evaluate("""()=>{const b=window.PublicRadarBridge,p=b?.getRecord(document.getElementById('details')?.dataset.parcelKey),map=b?.getMap();if(!p||!map)return {fits:false,reason:'selection not ready'};const bounds=L.geoJSON(p.geometry).getBounds(),size=map.getSize(),nw=map.latLngToContainerPoint(bounds.getNorthWest()),se=map.latLngToContainerPoint(bounds.getSouthEast()),center=map.latLngToContainerPoint(bounds.getCenter()),polygon=['Polygon','MultiPolygon'].includes(p.geometry.geometry.type),expected=polygon?Math.min(19,map.getBoundsZoom(bounds,false,L.point(70,70))):Math.min(17,map.getMaxZoom()),zoom=map.getZoom(),visible=nw.x>=-2&&nw.y>=-2&&se.x<=size.x+2&&se.y<=size.y+2,centered=Math.abs(center.x-size.x/2)<=3&&Math.abs(center.y-size.y/2)<=3,idle=!map._animatingZoom&&!map._panAnim?._inProgress,fits=idle&&size.x>0&&size.y>0&&visible&&centered&&zoom>=expected-(polygon?1:0)-.01&&zoom<=expected+.01;return {fits,zoom,expected,idle,visible,centered,size:[size.x,size.y],nw:[nw.x,nw.y],se:[se.x,se.y],center:[center.x,center.y],viewport:[innerWidth,innerHeight],rect:map.getContainer().getBoundingClientRect().toJSON(),parcel:p.key};}""")
+        state=page.evaluate("""()=>{const b=window.PublicRadarBridge,p=b?.getRecord(document.getElementById('details')?.dataset.parcelKey),map=b?.getMap();if(!p||!map)return {fits:false,reason:'selection not ready'};const bounds=L.geoJSON(p.geometry).getBounds(),size=map.getSize(),nw=map.latLngToContainerPoint(bounds.getNorthWest()),se=map.latLngToContainerPoint(bounds.getSouthEast()),center=map.latLngToContainerPoint(bounds.getCenter()),polygon=['Polygon','MultiPolygon'].includes(p.geometry.geometry.type),expected=polygon?Math.min(19,map.getBoundsZoom(bounds,false,L.point(70,70))):Math.min(17,map.getMaxZoom()),zoom=map.getZoom(),visible=nw.x>=-2&&nw.y>=-2&&se.x<=size.x+2&&se.y<=size.y+2,centered=Math.abs(center.x-size.x/2)<=3&&Math.abs(center.y-size.y/2)<=3,idle=!map._animatingZoom&&!map._panAnim?._inProgress,fits=idle&&size.x>0&&size.y>0&&visible&&centered&&zoom>=expected-(polygon?1:0)-.01&&zoom<=expected+.01;return {fits,zoom,expected,idle,visible,centered,size:[size.x,size.y],nw:[nw.x,nw.y],se:[se.x,se.y],center:[center.x,center.y],viewport:[innerWidth,innerHeight],rect:map.getContainer().getBoundingClientRect().toJSON(),parcel:p.key,trace:b.getMapTrace?.()||[],fonts:document.fonts?.status};}""")
         if state.get('fits'):return True
         if time.monotonic()>=deadline:break
         page.wait_for_timeout(50)
@@ -119,6 +119,15 @@ def network(route):
         if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
         respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
         return
+    if parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
+        if mode.get('njNomFail'):
+            respond(route,{'error':{'message':'Synthetic nomination outage'}},503);return
+        overview='geometry' not in params
+        ids=[r['geoid'] for r in json.loads((ROOT/'assets/data/oz-designation-evidence.json').read_text())['records']] if overview and mode.get('njNomination') else ['34023004502' if mode.get('njNomination') else '34023000100']
+        if mode.get('njNomInvalid'):ids=['12099000100']
+        if params.get('returnCountOnly')==['true']:respond(route,{'count':len(ids)});return
+        env=json.loads(params.get('geometry',['{}'])[0]);lon=(env.get('xmin',-74.37)+env.get('xmax',-74.35))/2;lat=(env.get('ymin',40.51)+env.get('ymax',40.53))/2
+        respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':parcel_polygon(lon,lat,1000),'properties':{'Geography':geoid,'County':'Synthetic Middlesex','Municipality':'Synthetic town'}} for geoid in ids],'exceededTransferLimit':False});return
     if parsed.hostname in ('geo.dot.gov','services6.arcgis.com'):
         if mode.get('ozFail'):
             respond(route,{'error':{'message':'Synthetic reference outage'}},503)
@@ -246,10 +255,12 @@ def network(route):
         if mode['collision']:
             acres_values = [3,3]
         for i, acres in enumerate(acres_values):
+            condo='NO' if not mode.get('pbcCondoMixed') or i%3==0 else 'YES' if i%3==1 else None
+            if not nj and not fdor and "CONDO = 'NO'" in where and condo!='NO':continue
             conditions = re.findall(r'(?:ACRES|CALC_ACRE) (>=|<=|>|<|=) ([\d.]+)', where)
             if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
                 continue
-            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where or mode.get('flVacantIndustrial') else 'DISTRIBUTION', 'YRBLT': 1990}
+            props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where or mode.get('flVacantIndustrial') else 'DISTRIBUTION', 'YRBLT': 1990,'CONDO':condo}
             if mode.get('persona'):
                 if nj and "PROP_CLASS = '4C'" in where: props['PROP_CLASS']='4C'
                 if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'
@@ -293,3 +304,4 @@ def unlock(page):
     if page.locator('#accessGate').count() and page.locator('#accessGate').is_visible():
         page.fill('#accessPassword','WP123');page.click('#accessForm button')
         page.wait_for_function('!document.documentElement.hasAttribute("data-radar-locked")')
+    page.evaluate('document.fonts.ready')
