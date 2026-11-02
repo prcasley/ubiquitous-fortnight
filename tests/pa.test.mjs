@@ -62,3 +62,9 @@ test('numeric CAMA seek uses numeric ordering and rejects unsafe keys',()=>{
  assert.throws(()=>PA.pageWhere('1=1',s,'123 OR 1=1'),/invalid/);
  assert.throws(()=>PA.pageWhere('1=1',s,'9007199254740993'),/invalid/);
 });
+test('Northampton multipart collector merges disjoint pieces without adding whole-parcel acreage',async()=>{
+ const turf=await import('@turf/turf'),s={id:'CAMA_ID',orderField:'OBJECTID'},c=PA.createCollector(s,turf);
+ const f=(x,oid,acres=31)=>turf.feature(turf.polygon([[[x,0],[x+.001,0],[x+.001,.001],[x,.001],[x,0]]]).geometry,{CAMA_ID:'J10 3 11 0311',OBJECTID:oid,ASMT_ACREAGE:acres,SITE_ADDRESS:'Synthetic N Delaware Dr'});
+ c.add(f(0,1));c.add(f(.002,2));c.add(f(.002,3));const rows=c.features();assert.equal(rows.length,1);assert.equal(rows[0].properties.ASMT_ACREAGE,31);assert.equal(rows[0].geometry.type,'MultiPolygon');assert.equal(rows[0].radarSourceParts,2);assert.ok(Math.abs(turf.area(rows[0])-turf.area(f(0,1))*2)<.01);
+ assert.throws(()=>c.add(f(.004,4,32)),/Conflicting county attributes/);
+});

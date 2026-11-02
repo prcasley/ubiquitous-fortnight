@@ -75,3 +75,9 @@ test('Northampton numeric CAMA ownership lookup follows the same key as paging a
  const r=await D.lookupOwner(base,{fetcher:async u=>{where=new URL(u).searchParams.get('where');return {ok:true,json:async()=>({features:[{attributes:{CAMA_ID:12345,OWNERS_NAME_1:'SYNTHETIC LLC'}}]})};}});
  assert.equal(where,'CAMA_ID = 12345');assert.equal(r.entityName,'SYNTHETIC LLC');
 });
+test('Northampton repeated boundary-owner rows consolidate only when published ownership agrees',async()=>{
+ const a={CAMA_ID:'J10 3 11 0311',OWNERS_NAME_1:'SYNTHETIC LLC',MAIL_ADDRESS:'Synthetic mailing address'},record={provider:'northampton',id:a.CAMA_ID};
+ const fetcher=attributes=>async()=>({ok:true,json:async()=>({features:attributes.map(attributes=>({attributes}))})});
+ const r=await D.lookupOwner(record,{fetcher:fetcher([{...a,OBJECTID:1},{...a,OBJECTID:2}])});assert.equal(r.entityName,'SYNTHETIC LLC');
+ await assert.rejects(D.lookupOwner(record,{fetcher:fetcher([a,{...a,OWNERS_NAME_1:'CONFLICT LLC'}])}),/conflicting/);
+});

@@ -22,7 +22,7 @@
     if(numericId&&(!/^\d+$/.test(id)||!Number.isSafeInteger(Number(id))))throw Error('A valid numeric assessment key is required');
     const where=source.id+" = "+(numericId?id:"'"+id.replace(/'/g,"''")+"'")+(county!=null?' AND CO_NO = '+county:'');
     const fields=[source.id,source.owner,...(record.provider==='northampton'?['OWNERS_NAME_2','MAIL_ADDRESS','MAIL_ADDRESS_1','MAIL_ADDRESS_2','MAIL_ADDRESS_3']:[]),...(county!=null?['CO_NO','ASMNT_YR']:[])];
-    const url=source.url+'/query?'+new URLSearchParams({f:'json',where,outFields:record.provider==='northampton'?'*':fields.join(','),returnGeometry:'false',resultRecordCount:'2'});
+    const url=source.url+'/query?'+new URLSearchParams({f:'json',where,outFields:record.provider==='northampton'?'*':fields.join(','),returnGeometry:'false',resultRecordCount:record.provider==='northampton'?'100':'2'});
     const controller=new AbortController(),cancel=()=>controller.abort();signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
     const timeout=setTimeout(cancel,20000);
     try{
@@ -30,7 +30,12 @@
       if(!response.ok)throw Error('Official source returned HTTP '+response.status);
       const data=await response.json();if(data.error)throw Error('Official source could not complete the ownership lookup');
       if(data.exceededTransferLimit)throw Error('Official source truncated the ownership response; no owner selected');
-      const rows=(data.features||[]).filter(f=>String(f.attributes?.[source.id]??'')===id&&(county==null||Number(f.attributes?.CO_NO)===county));
+      let rows=(data.features||[]).filter(f=>String(f.attributes?.[source.id]??'')===id&&(county==null||Number(f.attributes?.CO_NO)===county));
+      if(record.provider==='northampton'&&rows.length>1){
+        const fields=['CAMA_ID','OWNERS_NAME_1','OWNERS_NAME_2','MAIL_ADDRESS','MAIL_ADDRESS_1','MAIL_ADDRESS_2','MAIL_ADDRESS_3','ASMNT_YR'];
+        const signature=r=>JSON.stringify(fields.map(k=>r.attributes?.[k]??null));
+        if(rows.every(r=>signature(r)===signature(rows[0])))rows=rows.slice(0,1);
+      }
       if(rows.length!==1)throw Error(rows.length?'The source returned conflicting records; no owner selected':'The source did not return an exact parcel match');
       const attributes=rows[0].attributes,rawName=(record.provider==='northampton'?[attributes.OWNERS_NAME_1,attributes.OWNERS_NAME_2].filter(Boolean).join(' / '):String(attributes[source.owner]||'')).trim().slice(0,400),name=/^(?:(?:REDACTED|WITHHELD|PROTECTED)(?:\b|$)|(?:PRIVATE|NOT AVAILABLE|N\/?A|UNKNOWN|NULL)$)/i.test(rawName)?'':rawName;
       return {status:name?'published':'not-published',message:name?null:'No owner name is published in this exact source record. County tax/deed records may have additional published information; use the official records links. No owner was inferred.',publishedName:name,entityName:name&&entity(name)?name:null,

@@ -258,7 +258,7 @@ try:
         assert card.locator('details').get_attribute('open') is None
         card.get_by_text('View parcel on satellite',exact=True).click()
         assert field.locator('#basemap').input_value()=='satellite'
-        assert field.evaluate('window.PublicRadarBridge.getMap().getZoom()')>=16
+        assert focused_parcel_fits(field)
         card.locator('[data-action=add-trip]').click()
         field.locator('#researchTools details').nth(1).evaluate('e=>e.open=true')
         field.select_option('[aria-label="access screening status"]','source-observation')

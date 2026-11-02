@@ -28,6 +28,9 @@ def csp_wait_for_function(page, expression, *, arg=None, timeout=None, polling=N
         page.wait_for_timeout(polling if isinstance(polling,(int,float)) else 50)
 Page.wait_for_function=csp_wait_for_function
 
+def focused_parcel_fits(page):
+    return page.evaluate("""()=>{const b=PublicRadarBridge,p=b.getRecord(document.getElementById('details').dataset.parcelKey),map=b.getMap(),bounds=L.geoJSON(p.geometry).getBounds(),expected=['Polygon','MultiPolygon'].includes(p.geometry.geometry.type)?Math.min(19,map.getBoundsZoom(bounds,false,L.point(70,70))):17;return !map._animatingZoom && map.getBounds().contains(bounds) && (bounds.contains(map.getCenter())||map.getCenter().distanceTo(bounds.getCenter())<1) && map.getZoom()===expected;}""")
+
 ROOT = Path(__file__).resolve().parents[1]
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -115,10 +118,14 @@ def network(route):
             return
         north=parsed.hostname=='gis.northamptoncounty.org'
         idfield='CAMA_ID' if north else 'PIN'
+        multipart=north and mode.get('paMultipart')
+        def cama(i):
+            n=i-base-(1 if multipart and i-base>=50 else 0)-(1 if multipart and i-base>=101 else 0)
+            return 'J10 3 '+str(n).zfill(4)+' 0311' if multipart else i
         acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
         size=320 if mode.get('paLarge') else 2;base=1000000000 if mode.get('paLarge') else 0
         if not parsed.path.endswith('/query'):
-            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeInteger' if north else 'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
+            fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeInteger' if north and not multipart else 'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if north: fields.append({'name':'PARCEL_ID','type':'esriFieldTypeString'})
             if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
@@ -126,8 +133,8 @@ def network(route):
         elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(base,base+size))) if not mode.get('paSnapshotFail') else [0]*size})
         elif 'OWNERS_NAME_1' in params.get('outFields',[''])[0] or params.get('outFields')==['*']:
             owner_id=re.search(r"CAMA_ID = (?:'([^']+)'|(\d+))",params.get('where',[''])[0])
-            owner_value=(owner_id.group(1) or owner_id.group(2)) if owner_id else str(base)
-            respond(route,{'features':[{'attributes':{'CAMA_ID':owner_value,'OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]})
+            owner_value=(owner_id.group(1) or owner_id.group(2)) if owner_id else str(cama(base))
+            respond(route,{'features':[{'attributes':{'CAMA_ID':owner_value,'OWNERS_NAME_1':'SYNTHETIC COUNTY OWNER LLC','MAIL_ADDRESS':'Synthetic published mailing address'}}]*(2 if multipart else 1)})
         else:
             assert not re.search(r'OWNER|MAIL|CONTACT',params.get('outFields',[''])[0])
             ids=list(range(base,base+size))
@@ -136,14 +143,16 @@ def network(route):
             if seek and not mode.get('paRepeatParcel'):
                 ids=[i for i in ids if (i if north else 'L'+str(i-base))>(int(seek.group(2)) if north else seek.group(1))]
             ids=sorted(ids,key=lambda i:i if north else 'L'+str(i-base))
-            ids=ids[:int(params.get('resultRecordCount',[str(size)])[0])]
-            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:i if north else 'L'+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
+            offset=0 if mode.get('paRepeatParcel') else int(params.get('resultOffset',['0'])[0]) if north else 0
+            ids=ids[offset:offset+int(params.get('resultRecordCount',[str(size)])[0])]
+            features=[{'type':'Feature','properties':{'OBJECTID':i,idfield:cama(i) if north else 'L'+str(i-base),acresfield:6,'USE_DESC':'Industrial warehouse',yearfield:1984,'SITE_ADDRESS':'Synthetic PA property','LAND_VALUE':100000,'BLDG_VALUE':200000,'SALE_PRICE':1 if i-base==0 else 500000,'SALE_DATE':283996800000 if i-base==0 else 1577836800000,'FLAG_10_KOZ':1,'SALE_VALIDITY_CODE':'unverified'},'geometry':parcel_polygon(-75.22 if north else -75.49,40.69 if north else 40.602,6)} for i in ids]
             if north:
                 for i,feature in zip(ids,features):
                     feature['properties'].pop('OBJECTID',None)
                     feature['properties']['PARCEL_ID']='SHARED-PARCEL-'+str((i-base)//3)
-            if mode.get('paRepeatParcel'):
-                for feature in features: feature['properties'][idfield]='REPEATED'
+                    if multipart and i-base in (49,50):
+                        feature['geometry']=parcel_polygon(-75.221 if i-base==49 else -75.219,40.69,.1 if i-base==49 else 5.9)
+                        if mode.get('paPartConflict') and i-base==50:feature['properties'][acresfield]=7
             if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return

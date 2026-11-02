@@ -128,7 +128,7 @@
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
     const provider=countyProvider?.id||(state==="FL"?"fdor":"njgin");
-    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, parcelNumber:state==="PA"?String(a[publishedSource.parcelField]||rawId):rawId, sourceIdType:publishedSource.idType||null, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
+    return {key:domain.parcelKey(provider,state,jurisdiction,rawId), id:rawId, sourceParts:feature.radarSourceParts||1, parcelNumber:state==="PA"?String(a[publishedSource.parcelField]||rawId):rawId, sourceIdType:publishedSource.idType||null, jurisdiction, provider, state, address, owner, ...acreage, acres, type:cls,
       landValue:Number.isFinite(Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET))&&Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET)>0?Number(state==='NJ'?a.LAND_VAL:a.LAND_MARKET):null,improvementValue:(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)!=null&&Number.isFinite(Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT))&&Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT)>=0?Number(state==='NJ'?a.IMPRVT_VAL:a.IMPRV_MRKT):null,recordedSalePrice:Number(state==='NJ'?a.SALE_PRICE:a.PRICE)>0?Number(state==='NJ'?a.SALE_PRICE:a.PRICE):null,recordedSaleDate:(state==='NJ'?a.DEED_DATE:a.SALE_DATE)||null,assessedValue:Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET)>0?Number(state==='NJ'?a.NET_VALUE:a.TOTAL_MARKET):null,
       ...(state==='PA'?window.RadarPA.financial(a,publishedSource):domain.recordedSale(state==='NJ'?a.SALE_PRICE:a.PRICE,state==='NJ'?a.DEED_DATE:a.SALE_DATE)),
       deedBook:state==='NJ'?String(a.DEED_BOOK||''):null,deedPage:state==='NJ'?String(a.DEED_PAGE||''):null,
@@ -282,6 +282,7 @@
       countResult=total;
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
+      const multipart=state==="PA"&&source.provider==="northampton",collector=multipart?window.RadarPA.createCollector(source,window.turf):null,pagesSeen=new Set();
       const batchSize=state==="PA"?50:150,objectIds=new Set();let received=0,finished=total===0;
       // Seek by the published parcel key instead of relying on returned OIDs
       // or server-specific handling of objectIds and offsets.
@@ -292,11 +293,13 @@
           returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,MAX_FEATURES-received)),
-          orderByFields:(state==="PA"?source.id:source.orderField)+" ASC",...(state==="PA"?{where:window.RadarPA.pageWhere(base.where,source,lastParcelId),resultOffset:"0"}:{})},controller.signal);
+          orderByFields:multipart?source.id+" ASC,"+source.orderField+" ASC":(state==="PA"?source.id:source.orderField)+" ASC",...(state==="PA"&&!multipart?{where:window.RadarPA.pageWhere(base.where,source,lastParcelId),resultOffset:"0"}:{})},controller.signal);
         checkCurrent();
         if(!Array.isArray(data.features))throw Error("Unexpected GIS response. No results will be claimed.");
         if(!data.features.length){finished=received===total&&!data.exceededTransferLimit;break;}
+        if(multipart){const signature=JSON.stringify(data.features);if(pagesSeen.has(signature))throw Error('County repeated an entire boundary page; results remain incomplete');pagesSeen.add(signature);}
         for(const feature of data.features){
+          if(multipart){collector.add(feature);continue;}
           const objectId=state==="PA"?feature.properties?.[source.id]:(feature.properties?.[source.orderField]??feature.id);
           if(objectId==null||objectIds.has(String(objectId)))throw Error("Source paging repeated or omitted record identities; results remain incomplete");
           objectIds.add(String(objectId));
@@ -304,6 +307,7 @@
           if(!item)throw Error("Source returned parcels without stable identity or geometry");
           if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);
         }
+        if(multipart){records=[];quarantined.clear();yearUnknown.clear();for(const feature of collector.features()){const item=normalize(feature,state,center,source);if(!item)throw Error('County parcel normalization failed');if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);}}
         if(state==="PA")lastParcelId=data.features.at(-1).properties[source.id];
         received+=data.features.length;
         scanState="partial";sourceTime=new Date();records.sort((a,b)=>a.distance-b.distance);
@@ -319,9 +323,10 @@
       sourceState=state;sourceCenter=center;sourceTime=new Date();
       scanComplete=true;scanState="complete";
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
+      if(multipart)countResult=records.length;
       const msg=records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search. Distances use a map reference point and may exceed the radius for edge parcels.") :
         "The source responded successfully but no accepted parcel geometries intersect the selected radius.";
-      status(msg,"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
+      status(msg+(multipart?" Combined "+received+" county boundary rows into "+collector.features().length+" source parcel records; reported acreage is counted once per parcel.":""),"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
       if(currentScan!==scanId)return;
       scanComplete=false;scanState=controller.signal.aborted?"cancelled":records.length?"partial":"failed";

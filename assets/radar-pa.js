@@ -66,6 +66,24 @@
     const address=[String(street||'').trim().replace(/[,\s]+$/,''),city].filter(Boolean).join(', ');
     return {address:address?address+', PA':'',acres:Number.isFinite(acres)&&acres>0?acres:null,yearBuilt:Number.isInteger(year)&&year>=1800&&year<=new Date().getFullYear()?year:null,type,use:description||(raw!=null?'County land-use code '+raw+' — meaning unverified':'Assessment classification not published')};
   }
+  function createCollector(source,geo){
+    const groups=new Map();
+    const propertiesKey=a=>JSON.stringify(Object.keys(a).filter(k=>k!==source.orderField).sort().map(k=>[k,a[k]]));
+    return {
+      add(feature){
+        const a=feature.properties||{},raw=a[source.id];if(raw==null||!String(raw).trim())throw Error('County boundary row omitted its parcel identity');
+        if(/Integer|Double|Single|OID/.test(source.idType||'')&&(!/^\d+$/.test(String(raw))||!Number.isSafeInteger(Number(raw))))throw Error('County boundary row has an invalid numeric identity');
+        if(!['Polygon','MultiPolygon'].includes(feature.geometry?.type))throw Error('County boundary row is not a polygon');
+        const key=String(raw),signature=propertiesKey(a),geometryKey=JSON.stringify(feature.geometry),old=groups.get(key);
+        if(!old){groups.set(key,{signature,geometries:new Set([geometryKey]),feature:{...feature,radarSourceParts:1}});return;}
+        if(old.signature!==signature)throw Error('Conflicting county attributes for parcel '+key+'; acreage and other facts were not combined');
+        if(old.geometries.has(geometryKey))return;
+        const merged=geo.union(geo.featureCollection([old.feature,feature]));if(!merged?.geometry)throw Error('County boundary pieces could not be combined');
+        old.geometries.add(geometryKey);old.feature={...old.feature,geometry:merged.geometry,radarSourceParts:old.geometries.size};
+      },
+      features:()=>[...groups.values()].map(v=>v.feature)
+    };
+  }
   function pageWhere(where,source,last){
     if(last==null)return where;
     const field=source.id,value=String(last);
@@ -74,5 +92,5 @@
     if(numeric&&(!/^\d+$/.test(value)||!Number.isSafeInteger(Number(value))))throw Error('County numeric paging key invalid');
     return '('+where+') AND '+field+' > '+(numeric?value:"'"+value.replaceAll("'","''")+"'");
   }
-  return {sources,schema,prepare,attributes,financial,where,pageWhere};
+  return {sources,schema,prepare,attributes,financial,where,pageWhere,createCollector};
 });
