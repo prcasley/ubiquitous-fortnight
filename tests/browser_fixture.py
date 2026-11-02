@@ -60,6 +60,9 @@ def network(route):
     parsed = urlparse(route.request.url)
     if parsed.hostname=='127.0.0.1' and parsed.path.endswith('/assets/data/recovered-reference.json'):
         respond(route,{'format':'RadarRecoveredReference','version':1,'sourceFile':'synthetic-empty.html','fileGeneratedAt':'2026-09-28','groups':[],'records':[],'municipalOverlays':[],'ozReference':[]});return
+    if parsed.hostname=='127.0.0.1' and parsed.path.endswith('/assets/footprints/manifest.json') and not mode.get('hostedFootprints'):
+        # Existing synthetic scenarios exercise the live fallback outside hosted markets.
+        respond(route,{'zoom':14,'tiles':[],'source':'Synthetic out-of-area extract','license':'ODbL 1.0','markets':{'synthetic':{'center':[-150,0],'radiusMiles':6.5}}});return
     if parsed.hostname == '127.0.0.1':
         route.continue_()
         return

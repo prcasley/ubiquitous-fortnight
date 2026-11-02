@@ -184,7 +184,7 @@ try:
         assert page.evaluate('window.PublicRadarBridge.getMeta().complete')
         missing = context.new_page()
         missing.route('**/*', network)
-        missing.route('**/assets/vendor/leaflet/leaflet.js',lambda route: route.abort())
+        missing.route('**/assets/vendor/leaflet/leaflet.js*',lambda route: route.abort())
         missing.goto(f'http://127.0.0.1:{server.server_port}/');unlock(missing)
         assert missing.locator('#scanButton').is_disabled()
         assert 'Map library unavailable' in missing.locator('#statusText').inner_text()

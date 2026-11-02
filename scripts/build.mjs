@@ -1,3 +1,4 @@
+await import('./verify-footprints.mjs');
 import {mkdir, cp, copyFile, rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));

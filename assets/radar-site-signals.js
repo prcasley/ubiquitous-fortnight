@@ -6,7 +6,7 @@
  async function read(url,fetcher,signal){const r=await fetcher(url,{signal,credentials:'omit',mode:'cors'});if(!r.ok)throw Error('Public geometry HTTP '+r.status);const d=await r.json();if(d.error)throw Error(d.error.message);return d;}
  function corridor(p){const name=String(p.PRIMENAME||'').toUpperCase(),num=String(p.SHLD_NUM||'').trim(),type=String(p.SHLD_TYPE||'').toUpperCase();if(num==='287'&&type==='INT')return 'I-287';if(num==='1'&&type==='US')return 'US Route 1';if(/TURNPIKE/.test(name)&&!/(?:RAMP|^FR |^TO )/.test(name))return 'NJ Turnpike';return null;}
  const batchCache=new Map(),mirrors=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
- async function prepareBuildings(records,{fetcher=root.fetch,geo=root.turf,signal,convert=root.osmtogeojson,timeoutMs=12000}={}){
+ async function prepareOverpassBuildings(records,{fetcher=root.fetch,geo=root.turf,signal,convert=root.osmtogeojson,timeoutMs=12000}={}){
   const base=r=>({kind:'buildings',parcelKey:r.key,source:sources.buildings.name,sourceURL:mirrors[0],checkedAt:new Date().toISOString(),caveat:'Mapped OSM roof/ground footprints, clipped to the parcel; mapping may omit buildings. Not floor area, pavement, usable yard, vacancy or net buildable land.'});
   const unavailable=(r,reason)=>({...base(r),status:'unavailable',reason});
   if(records.length>25)return Object.fromEntries(records.map(r=>[r.key,unavailable(r,'Choose at most 25 parcels for a bounded building batch.')]));
@@ -27,8 +27,35 @@
   }catch(e){for(const {r} of valid)answer[r.key]=unavailable(r,e.message);}finally{release();}
   return answer;
  }
- async function check(record,kind,{fetcher=root.fetch,geo=root.turf,signal,convert=root.osmtogeojson}={}){
+ async function prepareBuildings(records,options={}){
+  const loadLocal=options.loadLocal??root.loadLocalFootprints,geo=options.geo??root.turf,signal=options.signal;
+  if(typeof loadLocal!=='function'||records.length>25)return prepareOverpassBuildings(records,options);
+  const answer={},fallback=[],localErrors=new Map();let next=0;
+  const unknown=(r,reason)=>({kind:'buildings',parcelKey:r.key,status:'unavailable',source:'Hosted Microsoft building footprints',sourceURL:'https://github.com/microsoft/GlobalMLBuildingFootprints',checkedAt:new Date().toISOString(),reason});
+  await Promise.all(Array.from({length:Math.min(4,records.length)},async()=>{while(next<records.length){const r=records[next++];
+   if(signal?.aborted){answer[r.key]=unknown(r,'Building check cancelled');continue;}
+   let data;try{
+    if(!['Polygon','MultiPolygon'].includes(r.geometry?.geometry?.type)||!(geo.area(r.geometry)>0))throw Error('A measurable parcel polygon is required');
+    data=await loadLocal(geo.bbox(r.geometry),{signal});
+    if(data==null){fallback.push(r);continue;}
+   }catch(e){if(signal?.aborted){answer[r.key]=unknown(r,'Building check cancelled');continue;}localErrors.set(r.key,e.message);fallback.push(r);continue;}
+   try{
+    if(data.type!=='FeatureCollection'||!Array.isArray(data.features))throw Error('Hosted footprint response invalid');
+    const clipped=data.features.map(f=>geo.intersect(geo.featureCollection([r.geometry,f]))).filter(Boolean);
+    if(!clipped.length)throw Error('No intersecting footprints in the hosted extract. Missing mapping is not zero coverage or vacancy.');
+    if(clipped.length>200)throw Error('Parcel exceeds the 200-footprint measurement limit');
+    const union=clipped.length>1?geo.union(geo.featureCollection(clipped)):clipped[0],area=geo.area(union);
+    if(!Number.isFinite(area)||area<=0)throw Error('Mapped footprints have no measurable area; coverage remains unknown.');
+    answer[r.key]={kind:'buildings',parcelKey:r.key,status:'complete',source:data.source,sourceURL:data.sourceURL,licenseURL:data.licenseURL,checkedAt:new Date().toISOString(),footprintSqft:area*10.7639104167,coveragePercent:Math.min(100,area/geo.area(r.geometry)*100),buildingCount:clipped.length,imageryDates:[],sourceEditDates:[],dataSources:[data.attribution,data.source,'Extract built '+data.builtAt],caveat:'Microsoft ML roof/ground footprints detected from imagery, clipped to the parcel; may miss or merge buildings. Not total floor area, pavement, usable yard, vacancy or net buildable land. '+data.coverage};
+   }catch(e){answer[r.key]={...unknown(r,e.message),source:data.source,licenseURL:data.licenseURL};}
+  }}));
+  if(fallback.length&&!signal?.aborted){const rows=await prepareOverpassBuildings(fallback,options);for(const r of fallback){answer[r.key]=rows[r.key];if(localErrors.has(r.key)&&answer[r.key]?.status!=='complete')answer[r.key].reason='Hosted data unavailable: '+localErrors.get(r.key)+'. '+answer[r.key].reason;}}
+  else for(const r of fallback)answer[r.key]=unknown(r,'Building check cancelled');
+  return answer;
+ }
+ async function check(record,kind,{fetcher=root.fetch,geo=root.turf,signal,convert=root.osmtogeojson,loadLocal=root.loadLocalFootprints}={}){
   const source=sources[kind];if(!source)throw Error('Unsupported site signal');
+  if(kind==='buildings'&&typeof loadLocal==='function')return (await prepareBuildings([record],{fetcher,geo,signal,convert,loadLocal}))[record.key];
   const base={kind,parcelKey:record.key,source:source.name,sourceURL:source.url,checkedAt:new Date().toISOString(),caveat:kind==='buildings'?'Mapped roof/ground footprints only, clipped to the parcel. Not total floor area, pavement, usable yard, vacancy or net buildable land. OSM mapping may omit buildings, so mapped coverage can understate roof coverage. Source dates and completeness vary.':'Straight-line distance to mapped highway centerlines, not an interchange, legal driveway, truck route or travel time.'};
   if(kind==='roads'&&record.state!=='NJ')return {...base,status:'unavailable',reason:'Named NJ corridor adapter does not cover this state.'};
   const ctrl=new AbortController(),abort=()=>ctrl.abort();signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();const timer=setTimeout(abort,20000);let releaseBuilding=null;

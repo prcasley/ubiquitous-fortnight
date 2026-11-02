@@ -30,7 +30,7 @@ try:
         check('largest keeps the existing acreage and industrial filters',page.evaluate('PublicRadarBridge.getSearch()')==snapshot['search'])
         check('largest makes no new source/geocoder request',source_calls()==before)
         check('largest preserves scan identity',page.evaluate('PublicRadarBridge.getMeta().scanId')==snapshot['meta']['scanId'])
-        check('largest sorts chat cards as well as the sidebar','20 acres' in page.locator('.chat-properties:not(.previous-search)').last.locator('.chat-property-card').first.inner_text())
+        check('largest sorts chat cards as well as the sidebar','20.00 acres' in page.locator('.chat-properties:not(.previous-search)').last.locator('.chat-property-card').first.inner_text())
         check('largest retains the same property identities',sorted(page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)'))==sorted(snapshot['ids']))
         # Reject invalid instructions without erasing the acquisition shortlist.
         for text in ['Find industrial over -5 acres near Edison NJ','Find industrial between 20 and 5 acres near Edison NJ']:
