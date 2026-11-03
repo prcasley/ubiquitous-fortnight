@@ -535,12 +535,12 @@
     $("sourceName").textContent="No active scan";$("sourceDate").textContent="No active scan";$("sourceLink").removeAttribute("href");
     renderResults();
   }
-  function ingestOne(feature,state,center,explicitSource){
+  function ingestOne(feature,state,center,explicitSource,{navigation=false}={}){
     const props=feature?.properties||{};
     const provider=explicitSource||(state==="PA"?activeSource:state==="FL"?(props.PARID?SOURCES.PBC:props.FOLIO_NUMBER?SOURCES.BRO:props.FOLIO?SOURCES.MDC:SOURCES.FL):SOURCES[state]);
     const item=normalize(feature,state,center,provider);if(!item)return null;
     item.retrievedAt=new Date().toISOString();item.scanStatus='identified';
-    inspected=item;choose(item.key,{inspection:true});
+    inspected=item;choose(item.key,{inspection:true,navigation});
     return item;
   }
   window.PublicRadarBridge={scan,

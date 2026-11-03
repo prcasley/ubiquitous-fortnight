@@ -56,7 +56,7 @@ jobs:
           git push origin HEAD:main
           echo 'changed=true' >> "$GITHUB_OUTPUT"
       # GITHUB_TOKEN commits do not trigger push workflows. Explicitly invoke
-      # the existing publication workflow, including all 13 browser suites.
+      # the existing publication workflow, including every registered browser suite.
       - name: Validate and publish refreshed site
         if: steps.commit.outputs.changed == 'true'
         env:

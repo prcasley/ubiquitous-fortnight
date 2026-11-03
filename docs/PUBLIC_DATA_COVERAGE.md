@@ -6,7 +6,7 @@ This repository bundles code, not a national property/owner database. Live recor
 
 | Market | Service | Geometry and attributes | Ownership research | Verification |
 |---|---|---|---|---|
-| NJ: 21 counties | [NJGIN](https://nj.gov/njgin/edata/parcels/index.html) | Public polygons, PIN, reported acres, MOD-IV class and available year fields | Names redacted; official NJ property portal link | Code/schema checks and mocked browser tests; current physical-device live verification pending |
+| NJ: 21 counties | [NJGIN](https://nj.gov/njgin/edata/parcels/index.html) | Public polygons, PIN, reported acres, MOD-IV class and available year fields | Exact-ID published OWNER_NAME lookup where available; blanks/protected names unresolved, with official county/state research links | Code/schema checks and mocked browser tests; current physical-device live verification pending |
 | Palm Beach FL | [County public GIS](https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0) | Polygons, PARID, ACRES, PROPERTY_USE, YRBLT | Separate exact-ID OWNER_NAME1 query | Live parcel retrieval and owner field/record sampled; not title verification |
 | Broward FL | [Public taxroll](https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0) | County polygons, ID/use/address; connected projection lacks acreage | NAME_LINE_1 adapter | Current endpoint verification blocked by network policy; acreage searches explicitly stop |
 | Miami-Dade FL | [County public GIS](https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0) | Polygons, FOLIO, address, LOT_SIZE, DOR_CODE_CUR | TRUE_OWNER1 adapter | Current endpoint verification blocked by network policy |
@@ -55,3 +55,7 @@ Pennsylvania now appears in the source and market controls with Lehigh and North
 Published acres are quarantined from size filtering/ranking when they conflict with polygon area by more than fivefold and more than one acre. Neither value is silently corrected or treated as a survey. Quarantined records and raw/geometry figures remain inspectable and flagged in field packs. Point-only records cannot be validated by this comparison.
 
 NJ/statewide queries over the 1,100-source-feature cap now retrieve the bounded first pages and present accepted records as partial, with source-count and coverage warnings. They no longer return zero candidates solely because the count exceeds the cap. See CEO_REVIEW_2026-10-28.md for live examples and the separate parcel-specific OZ reference check.
+
+## Nominated-tract inventory
+
+The [NJ nomination inventory](NJ_NOMINATION_PARCEL_INVENTORY.md) retrieves parcels on demand within the 130 connected nomination tract boundaries and reports complete, partial, unavailable and unchecked coverage separately. This does not bundle every nominated-area parcel or contact in the repository. Owner names are exact-ID, on-request public observations; business contacts require cited local research.

@@ -6,7 +6,7 @@
   const text=(value,max)=>typeof value==='string'?value.slice(0,max):'';
   const url=value=>{try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}};
   function message(value){$('ownershipStatus').textContent=value;}
-  function persist(){try{localStorage.setItem(key,JSON.stringify(store));return true;}catch{message('Ownership storage is full or unavailable. Export the research backup before closing this browser.');return false;}}
+  function persist(){try{localStorage.setItem(key,JSON.stringify(store));document.dispatchEvent(new Event('radar:ownership-updated'));return true;}catch{message('Ownership storage is full or unavailable. Export the research backup before closing this browser.');return false;}}
   const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=label;b.addEventListener('click',action);return b;};
   const node=(tag,value)=>{const n=document.createElement(tag);n.textContent=value;return n;};
   const link=(label,href)=>{const a=node('a',label);a.href=href;a.target='_blank';a.rel='noopener noreferrer';return a;};
@@ -95,6 +95,9 @@
     $('loadBusinessOwners').addEventListener('click',batch);$('stopOwnerLookup').addEventListener('click',()=>controller?.abort());
     $('exportOwnershipResearch').addEventListener('click',()=>{const href=URL.createObjectURL(new Blob([JSON.stringify({...store,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=href;a.download='capital-radar-ownership-research.json';a.click();setTimeout(()=>URL.revokeObjectURL(href),1000);message('Ownership research and user-entered business notes exported. Keep this file private.');});
   }
-  window.RadarOwnership={lookup,groups,present};
+  window.RadarOwnership={lookup,groups,present,
+    contactStatus:(record,observation)=>{const name=observation?.entityName||store.observations[record?.key]?.entityName,contacts=name?(store.dossiers[S.entityKey(record.state,name)]?.contacts||[]):[];return {total:contacts.length,reviewed:contacts.filter(c=>c.reviewed).length};},
+    openCompany:(record,observation)=>{const group=groups().find(g=>g.key===S.entityKey(record.state,observation.entityName));if(group){activeCompany=group.key;renderDossier(group);}}
+  };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
