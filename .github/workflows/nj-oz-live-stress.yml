@@ -1,10 +1,22 @@
 name: Live NJ nomination overlay diagnostics
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/live-nj-oz-stress.py'
+      - 'tests/oz-overlay-stress-browser.py'
+      - '.github/workflows/nj-oz-live-stress.yml'
 permissions:
   contents: read
+concurrency:
+  group: live-nj-nomination-diagnostics
+  cancel-in-progress: false
 jobs:
   live-overlay:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[run-live-nj-oz]')
+    permissions:
+      contents: write # publish only the diagnostic JSON on its separate result branch
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,3 +37,33 @@ jobs:
           name: live-nj-oz-results
           path: test-results/nj-oz-stress.json
           if-no-files-found: warn
+      - name: Publish diagnostic result for git-based inspection
+        if: always()
+        env:
+          TESTED_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PYCODE'
+          import json, os, pathlib
+          p=pathlib.Path('test-results/nj-oz-stress.json')
+          result=json.loads(p.read_text()) if p.exists() else {'status':'failed','detail':'Diagnostic did not produce a result; inspect workflow logs.'}
+          result['testedCommit']=os.environ['TESTED_COMMIT']
+          result['runURL']=os.environ['GITHUB_SERVER_URL']+'/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(result,indent=2)+'\n')
+          PYCODE
+          result_branch=radar-diagnostics/nj-oz-live
+          result_parent=
+          if git ls-remote --exit-code --heads origin "$result_branch" >/dev/null 2>&1; then
+            git fetch origin "$result_branch"
+            result_parent=$(git rev-parse FETCH_HEAD)
+          fi
+          result_blob=$(git hash-object -w test-results/nj-oz-stress.json)
+          result_tree=$(printf '100644 blob %s\tnj-oz-stress.json\n' "$result_blob" | git mktree)
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -n "$result_parent" ]; then
+            result_commit=$(git commit-tree "$result_tree" -p "$result_parent" -m 'Record live NJ overlay diagnostics')
+          else
+            result_commit=$(git commit-tree "$result_tree" -m 'Record live NJ overlay diagnostics')
+          fi
+          git push origin "$result_commit:refs/heads/$result_branch"

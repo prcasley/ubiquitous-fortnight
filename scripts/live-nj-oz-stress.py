@@ -46,7 +46,7 @@ def toggle(page, on):
 
 
 def set_view(page, lat, lon, zoom):
-    page.evaluate('([a,b,z])=>PublicRadarBridge.getMap().setView([a,b],z,{animate:false})',[lat,lon,zoom])
+    return page.evaluate('([a,b,z])=>{PublicRadarBridge.getMap().setView([a,b],z,{animate:false});return true}',[lat,lon,zoom])
 
 
 def settle(page, timeout=35):
