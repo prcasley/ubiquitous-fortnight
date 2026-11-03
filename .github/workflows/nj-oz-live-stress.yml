@@ -1,0 +1,27 @@
+name: Live NJ nomination overlay diagnostics
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-overlay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Test published Pages and official nomination layer
+        run: python scripts/live-nj-oz-stress.py
+        env:
+          RADAR_USE_MANAGED_CHROMIUM: '1'
+      - name: Save live diagnostic results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-nj-oz-results
+          path: test-results/nj-oz-stress.json
+          if-no-files-found: warn

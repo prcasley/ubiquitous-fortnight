@@ -9,6 +9,8 @@ on:
       - '.github/workflows/refresh-oz-nominations.yml'
       - 'scripts/build-nj-oz-nominations.py'
       - 'tests/test_oz_nomination_refresh.py'
+      - 'tests/test_nj_oz_release_coverage.py'
+      - 'tests/data/nj-oz-release-20261029.json'
 permissions:
   contents: read
 concurrency:
@@ -32,15 +34,21 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_oz_nomination_refresh.py'
       - name: Retrieve and validate NJ state nominations
         run: python scripts/build-nj-oz-nominations.py
+      # Blocks the commit if refreshed evidence drops or misfiles any tract,
+      # county or municipality announced in the Oct 29, 2026 NJ DCA release.
+      - name: Confirm every announced NJ municipality remains mapped
+        run: python -m unittest discover -s tests -p 'test_nj_oz_release_coverage.py'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci
       - name: Validate refreshed evidence and public build
+        # Build first: the private-API test serves files from dist/ and fails
+        # with 404 on a fresh checkout if tests run before the build.
         run: |
-          npm test
           npm run build
+          npm test
       - name: Commit changed or renewed evidence only
         id: commit
         run: |

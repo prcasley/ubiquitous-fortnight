@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 
 LAYER = 'https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0'
-ANNOUNCEMENT = 'https://www.nj.gov/dca/news/news/2026/20261029.shtml'
+ANNOUNCEMENT = 'https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml'
 SOURCE_ID = 'nj-dca-oz2-nominations'
 OUT = pathlib.Path(__file__).resolve().parents[1] / 'assets/data/oz-designation-evidence.json'
 FIELDS = ['OBJECTID', 'Geography', 'County', 'Municipality', 'Rural']

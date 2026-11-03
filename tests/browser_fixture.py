@@ -120,18 +120,27 @@ def network(route):
         if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
         respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
         return
+    if mode.get('nominationStress') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
+        records=json.loads((ROOT/'tests/data/nj-oz-release-20261029.json').read_text())['tracts'];towns=sorted({r['municipality'] for r in records});env=json.loads(params.get('geometry',['{}'])[0]);features=[]
+        for r in records:
+            i=towns.index(r['municipality']);lon=-74.9+(i%10)*.08;lat=40+(i//10)*.12
+            if env and not (env['xmin']-.002<=lon<=env['xmax']+.002 and env['ymin']-.002<=lat<=env['ymax']+.002):continue
+            features.append({'type':'Feature','geometry':parcel_polygon(lon,lat,10),'properties':{'Geography':r['geoid'],'Municipality':r['municipality'],'County':r['county']}})
+        if params.get('returnCountOnly')==['true']:respond(route,{'count':len(features)})
+        else:respond(route,{'features':features,'exceededTransferLimit':False})
+        return
     if mode.get('inventory') and parsed.hostname=='services.arcgis.com' and route.request.method=='POST':
         tract=re.search(r"Geography = '([^']+)'",params.get('where',[''])[0])
         respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-74.363,40.527,1000),'properties':{'Geography':tract.group(1) if tract else 'unknown'}}]});return
     if mode.get('inventory') and parsed.hostname=='services2.arcgis.com' and ('OWNER_NAME' not in params.get('outFields',[''])[0]):
         if not parsed.path.endswith('/query'):
-            names=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE']
+            names=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE','LAND_VAL','IMPRVT_VAL','NET_VALUE']
             respond(route,{'geometryType':'esriGeometryPolygon','objectIdField':'OBJECTID','fields':[{'name':'OBJECTID','type':'esriFieldTypeOID'}]+[{'name':n} for n in names]});return
         if params.get('returnCountOnly')==['true']:respond(route,{'count':3});return
         if mode.get('inventoryFail'):respond(route,{'error':{'message':'Synthetic inventory outage'}},503);return
         offset=int(params.get('resultOffset',['0'])[0]);take=int(params.get('resultRecordCount',['250'])[0]);features=[]
         for i in range(offset,min(3,offset+take)):
-            features.append({'type':'Feature','geometry':parcel_polygon(-74.363+i*.001,40.527,6+i),'properties':{'OBJECTID':i,'PAMS_PIN':'INV-'+str(i),'PROP_LOC':'Synthetic inventory '+str(i),'MUN_NAME':'Synthetic Edison','PROP_CLASS':(mode.get('inventoryClass','4B') if i==2 else '4B') if i!=1 else '1','CALC_ACRE':6+i,'COUNTY':'Middlesex','YR_CONSTR':1980,'PCLBLOCK':'12','PCLLOT':str(i+1),'PCL_MUN':'1205','DEED_BOOK':'123','DEED_PAGE':'456'}})
+            features.append({'type':'Feature','geometry':parcel_polygon(-74.363+i*.001,40.527,6+i),'properties':{'OBJECTID':i,'PAMS_PIN':'INV-'+str(i),'PROP_LOC':'Synthetic inventory '+str(i),'MUN_NAME':'Synthetic Edison','PROP_CLASS':(mode.get('inventoryClass','4B') if i==2 else '4B') if i!=1 else '1','CALC_ACRE':6+i,'COUNTY':'Middlesex','YR_CONSTR':1980,'PCLBLOCK':'12','PCLLOT':str(i+1),'PCL_MUN':'1205','DEED_BOOK':'123','DEED_PAGE':'456','LAND_VAL':100000,'IMPRVT_VAL':200000,'NET_VALUE':300000}})
         respond(route,{'features':features,'exceededTransferLimit':False});return
     if parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         if mode.get('njNomFail'):

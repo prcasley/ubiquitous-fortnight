@@ -1,0 +1,657 @@
+{
+ "version": 1,
+ "announcement": "https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml",
+ "provenance": "Pinned from the supplied DCA-referenced nomination snapshot; municipality labels cross-checked against the supplied release list. Live announcement access was blocked in the build workspace.",
+ "tracts": [
+  {
+   "geoid": "34001000400",
+   "county": "Atlantic",
+   "municipality": "Atlantic City city"
+  },
+  {
+   "geoid": "34001001400",
+   "county": "Atlantic",
+   "municipality": "Atlantic City city"
+  },
+  {
+   "geoid": "34001001900",
+   "county": "Atlantic",
+   "municipality": "Atlantic City city"
+  },
+  {
+   "geoid": "34001002300",
+   "county": "Atlantic",
+   "municipality": "Atlantic City city"
+  },
+  {
+   "geoid": "34001002400",
+   "county": "Atlantic",
+   "municipality": "Atlantic City city"
+  },
+  {
+   "geoid": "34001011702",
+   "county": "Atlantic",
+   "municipality": "Egg Harbor township"
+  },
+  {
+   "geoid": "34001012100",
+   "county": "Atlantic",
+   "municipality": "Pleasantville city"
+  },
+  {
+   "geoid": "34001012702",
+   "county": "Atlantic",
+   "municipality": "Somers Point city"
+  },
+  {
+   "geoid": "34003018200",
+   "county": "Bergen",
+   "municipality": "Fairview borough"
+  },
+  {
+   "geoid": "34003021600",
+   "county": "Bergen",
+   "municipality": "Garfield city"
+  },
+  {
+   "geoid": "34003023501",
+   "county": "Bergen",
+   "municipality": "Hackensack city"
+  },
+  {
+   "geoid": "34003023502",
+   "county": "Bergen",
+   "municipality": "Hackensack city"
+  },
+  {
+   "geoid": "34003023602",
+   "county": "Bergen",
+   "municipality": "Hackensack city"
+  },
+  {
+   "geoid": "34003036100",
+   "county": "Bergen",
+   "municipality": "South Hackensack twp./Teterboro borough"
+  },
+  {
+   "geoid": "34005700703",
+   "county": "Burlington",
+   "municipality": "Riverside township"
+  },
+  {
+   "geoid": "34005701002",
+   "county": "Burlington",
+   "municipality": "Edgewater Park township"
+  },
+  {
+   "geoid": "34005701203",
+   "county": "Burlington",
+   "municipality": "Burlington city"
+  },
+  {
+   "geoid": "34005701204",
+   "county": "Burlington",
+   "municipality": "Burlington city"
+  },
+  {
+   "geoid": "34007600700",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007601400",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007601500",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007601800",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007604100",
+   "county": "Camden",
+   "municipality": "Woodlynne borough"
+  },
+  {
+   "geoid": "34007608210",
+   "county": "Camden",
+   "municipality": "Gloucester township"
+  },
+  {
+   "geoid": "34007610300",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007610400",
+   "county": "Camden",
+   "municipality": "Camden city"
+  },
+  {
+   "geoid": "34007610800",
+   "county": "Camden",
+   "municipality": "Pennsauken township"
+  },
+  {
+   "geoid": "34009020500",
+   "county": "Cape May",
+   "municipality": "Woodbine borough"
+  },
+  {
+   "geoid": "34011020503",
+   "county": "Cumberland",
+   "municipality": "Bridgeton city"
+  },
+  {
+   "geoid": "34011030100",
+   "county": "Cumberland",
+   "municipality": "Millville city"
+  },
+  {
+   "geoid": "34011040901",
+   "county": "Cumberland",
+   "municipality": "Vineland city"
+  },
+  {
+   "geoid": "34013000300",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013000500",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013000900",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013001000",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013001400",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013001500",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013002800",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013005400",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013006400",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013007900",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013008000",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013008100",
+   "county": "Essex",
+   "municipality": "Newark city"
+  },
+  {
+   "geoid": "34013010600",
+   "county": "Essex",
+   "municipality": "East Orange city"
+  },
+  {
+   "geoid": "34013011300",
+   "county": "Essex",
+   "municipality": "East Orange city"
+  },
+  {
+   "geoid": "34013011900",
+   "county": "Essex",
+   "municipality": "Irvington township"
+  },
+  {
+   "geoid": "34013015300",
+   "county": "Essex",
+   "municipality": "Bloomfield township"
+  },
+  {
+   "geoid": "34013015900",
+   "county": "Essex",
+   "municipality": "Bloomfield township"
+  },
+  {
+   "geoid": "34013018300",
+   "county": "Essex",
+   "municipality": "City of Orange township"
+  },
+  {
+   "geoid": "34013018400",
+   "county": "Essex",
+   "municipality": "City of Orange township"
+  },
+  {
+   "geoid": "34013018600",
+   "county": "Essex",
+   "municipality": "City of Orange township"
+  },
+  {
+   "geoid": "34013018900",
+   "county": "Essex",
+   "municipality": "City of Orange township"
+  },
+  {
+   "geoid": "34015500400",
+   "county": "Gloucester",
+   "municipality": "Paulsboro borough"
+  },
+  {
+   "geoid": "34017001202",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017001900",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017002001",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017002002",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017003000",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017003102",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017004600",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017006300",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017006700",
+   "county": "Hudson",
+   "municipality": "Jersey City city"
+  },
+  {
+   "geoid": "34017010900",
+   "county": "Hudson",
+   "municipality": "Bayonne city"
+  },
+  {
+   "geoid": "34017011000",
+   "county": "Hudson",
+   "municipality": "Bayonne city"
+  },
+  {
+   "geoid": "34017012800",
+   "county": "Hudson",
+   "municipality": "Kearny town"
+  },
+  {
+   "geoid": "34017013400",
+   "county": "Hudson",
+   "municipality": "East Newark borough"
+  },
+  {
+   "geoid": "34017015003",
+   "county": "Hudson",
+   "municipality": "Guttenberg town"
+  },
+  {
+   "geoid": "34017015004",
+   "county": "Hudson",
+   "municipality": "Guttenberg town"
+  },
+  {
+   "geoid": "34017016200",
+   "county": "Hudson",
+   "municipality": "Union City city"
+  },
+  {
+   "geoid": "34017017700",
+   "county": "Hudson",
+   "municipality": "Union City city"
+  },
+  {
+   "geoid": "34017017800",
+   "county": "Hudson",
+   "municipality": "Union City city"
+  },
+  {
+   "geoid": "34021000100",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021000800",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021000900",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021001000",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021001101",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021001700",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021002100",
+   "county": "Mercer",
+   "municipality": "Trenton city"
+  },
+  {
+   "geoid": "34021002701",
+   "county": "Mercer",
+   "municipality": "Hamilton township"
+  },
+  {
+   "geoid": "34021003400",
+   "county": "Mercer",
+   "municipality": "Ewing township"
+  },
+  {
+   "geoid": "34021003707",
+   "county": "Mercer",
+   "municipality": "Ewing township"
+  },
+  {
+   "geoid": "34023000300",
+   "county": "Middlesex",
+   "municipality": "Dunellen borough"
+  },
+  {
+   "geoid": "34023004502",
+   "county": "Middlesex",
+   "municipality": "Perth Amboy city"
+  },
+  {
+   "geoid": "34023004600",
+   "county": "Middlesex",
+   "municipality": "Perth Amboy city"
+  },
+  {
+   "geoid": "34023004800",
+   "county": "Middlesex",
+   "municipality": "Perth Amboy city"
+  },
+  {
+   "geoid": "34023005300",
+   "county": "Middlesex",
+   "municipality": "New Brunswick city"
+  },
+  {
+   "geoid": "34023005500",
+   "county": "Middlesex",
+   "municipality": "New Brunswick city"
+  },
+  {
+   "geoid": "34023005602",
+   "county": "Middlesex",
+   "municipality": "New Brunswick city"
+  },
+  {
+   "geoid": "34023007103",
+   "county": "Middlesex",
+   "municipality": "Sayreville borough"
+  },
+  {
+   "geoid": "34023009300",
+   "county": "Middlesex",
+   "municipality": "New Brunswick city"
+  },
+  {
+   "geoid": "34023980000",
+   "county": "Middlesex",
+   "municipality": "Carteret borough"
+  },
+  {
+   "geoid": "34025801700",
+   "county": "Monmouth",
+   "municipality": "Keansburg borough"
+  },
+  {
+   "geoid": "34025805700",
+   "county": "Monmouth",
+   "municipality": "Long Branch city"
+  },
+  {
+   "geoid": "34025807600",
+   "county": "Monmouth",
+   "municipality": "Neptune township"
+  },
+  {
+   "geoid": "34025807700",
+   "county": "Monmouth",
+   "municipality": "Neptune township"
+  },
+  {
+   "geoid": "34027041705",
+   "county": "Morris",
+   "municipality": "Parsippany-Troy Hills township"
+  },
+  {
+   "geoid": "34027043500",
+   "county": "Morris",
+   "municipality": "Morristown town"
+  },
+  {
+   "geoid": "34027046107",
+   "county": "Morris",
+   "municipality": "Mount Olive township"
+  },
+  {
+   "geoid": "34029715001",
+   "county": "Ocean",
+   "municipality": "Lakewood township"
+  },
+  {
+   "geoid": "34029715404",
+   "county": "Ocean",
+   "municipality": "Lakewood township"
+  },
+  {
+   "geoid": "34029715600",
+   "county": "Ocean",
+   "municipality": "Lakewood township"
+  },
+  {
+   "geoid": "34029715800",
+   "county": "Ocean",
+   "municipality": "Lakewood township"
+  },
+  {
+   "geoid": "34029717002",
+   "county": "Ocean",
+   "municipality": "Jackson township"
+  },
+  {
+   "geoid": "34029720105",
+   "county": "Ocean",
+   "municipality": "Manchester township"
+  },
+  {
+   "geoid": "34029728003",
+   "county": "Ocean",
+   "municipality": "Seaside Heights borough"
+  },
+  {
+   "geoid": "34031125100",
+   "county": "Passaic",
+   "municipality": "Clifton city"
+  },
+  {
+   "geoid": "34031175200",
+   "county": "Passaic",
+   "municipality": "Passaic city"
+  },
+  {
+   "geoid": "34031175402",
+   "county": "Passaic",
+   "municipality": "Passaic city"
+  },
+  {
+   "geoid": "34031175804",
+   "county": "Passaic",
+   "municipality": "Passaic city"
+  },
+  {
+   "geoid": "34031175900",
+   "county": "Passaic",
+   "municipality": "Passaic city"
+  },
+  {
+   "geoid": "34031180900",
+   "county": "Passaic",
+   "municipality": "Paterson city"
+  },
+  {
+   "geoid": "34031181800",
+   "county": "Passaic",
+   "municipality": "Paterson city"
+  },
+  {
+   "geoid": "34031182900",
+   "county": "Passaic",
+   "municipality": "Paterson city"
+  },
+  {
+   "geoid": "34031183200",
+   "county": "Passaic",
+   "municipality": "Paterson city"
+  },
+  {
+   "geoid": "34031264200",
+   "county": "Passaic",
+   "municipality": "Paterson city"
+  },
+  {
+   "geoid": "34033020300",
+   "county": "Salem",
+   "municipality": "Penns Grove borough"
+  },
+  {
+   "geoid": "34033022000",
+   "county": "Salem",
+   "municipality": "Salem city"
+  },
+  {
+   "geoid": "34033022100",
+   "county": "Salem",
+   "municipality": "Salem city"
+  },
+  {
+   "geoid": "34035051100",
+   "county": "Somerset",
+   "municipality": "Bound Brook borough"
+  },
+  {
+   "geoid": "34037373700",
+   "county": "Sussex",
+   "municipality": "Newton town"
+  },
+  {
+   "geoid": "34039030400",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34039030600",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34039031100",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34039031602",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34039032300",
+   "county": "Union",
+   "municipality": "Hillside township"
+  },
+  {
+   "geoid": "34039039200",
+   "county": "Union",
+   "municipality": "Plainfield city"
+  },
+  {
+   "geoid": "34039039302",
+   "county": "Union",
+   "municipality": "Plainfield city"
+  },
+  {
+   "geoid": "34039039801",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34039039900",
+   "county": "Union",
+   "municipality": "Elizabeth city"
+  },
+  {
+   "geoid": "34041030700",
+   "county": "Warren",
+   "municipality": "Phillipsburg town"
+  }
+ ]
+}

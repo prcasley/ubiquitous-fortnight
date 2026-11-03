@@ -13,7 +13,7 @@
     color:"#b4752e",limit:280},
   ozNJ:{label:"OZ 2 · NJ state-nominated tracts (Oct 2026) — federal certification not verified",
     url:"https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0",
-    source:"https://www.nj.gov/dca/news/news/2026/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'}
+    source:"https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'}
  };
  const ids=f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20||f.properties?.Geography;
  const source=()=>window.PublicRadarBridge;

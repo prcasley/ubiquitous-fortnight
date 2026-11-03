@@ -3,7 +3,7 @@
  'use strict';
  const nominationURL='https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0';
  const parcelURL='https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0';
- const fields=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE'];
+ const fields=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE','LAND_VAL','IMPRVT_VAL','NET_VALUE'];
  function esriPolygon(geometry){
   if(!['Polygon','MultiPolygon'].includes(geometry?.type))throw Error('Published tract boundary is not a polygon');
   const polygons=geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;

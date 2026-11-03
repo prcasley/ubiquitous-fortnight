@@ -11,6 +11,7 @@ try:
   before=page.evaluate('({criteria:PublicRadarBridge.getSearch(),results:PublicRadarBridge.getResults().map(r=>r.key)})')
   page.click('#ozInventoryBuild');page.wait_for_function('!RadarOZInventory.getState().busy && RadarOZInventory.getState().parcels===3')
   check('selected tract reconciles all parcels without industrial/acreage exclusion','1/130 tracts complete' in page.locator('#ozInventorySummary').inner_text() and page.locator('#ozInventoryResults article').count()==3)
+  check('published assessments are distinguished from asking/market values','$300,000' in page.locator('#ozInventoryResults').inner_text() and 'Not asking prices or verified market values' in page.locator('#ozInventoryResults').inner_text())
   check('names and contacts do not appear without research','Owner name not checked' in page.locator('#ozInventoryResults').inner_text() and 'no phone or email has been verified' in page.locator('#ozInventoryResults').inner_text())
   page.select_option('#ozInventoryType','Industrial');check('use filter changes display, not source completeness',page.locator('#ozInventoryResults article').count()==2 and page.evaluate('RadarOZInventory.getState().parcels===3'))
   page.fill('#ozInventoryAcres','8');check('acreage filter works on accepted public acres',page.locator('#ozInventoryResults article').count()==1 and '8.00 acres' in page.locator('#ozInventoryResults').inner_text())
