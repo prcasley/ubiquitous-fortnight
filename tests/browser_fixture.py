@@ -159,6 +159,17 @@ def network(route):
         if params.get('returnCountOnly')==['true']:respond(route,{'count':len(ids)});return
         env=json.loads(params.get('geometry',['{}'])[0]);lon=(env.get('xmin',-74.37)+env.get('xmax',-74.35))/2;lat=(env.get('ymin',40.51)+env.get('ymax',40.53))/2
         respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':parcel_polygon(lon,lat,1000),'properties':{'Geography':geoid,'County':'Synthetic Middlesex','Municipality':'Synthetic town'}} for geoid in ids],'exceededTransferLimit':False});return
+    if parsed.hostname=='services1.arcgis.com' and 'oppzones_ustreasury' in parsed.path:
+        # Synthetic FloridaCommerce eligibility layers. 'flNotMet' mirrors 7777 Southern Blvd (tract 12099007833).
+        met=parsed.path.split('/services/')[1].startswith('oppzones_ustreasury_met')
+        if mode.get('flEligFail') or mode.get('ozFail'):respond(route,{'error':{'message':'Synthetic FloridaCommerce outage'}},503);return
+        env=json.loads(params.get('geometry',['{}'])[0]);lon=(env.get('xmin',-80.14)+env.get('xmax',-80.12))/2;lat=(env.get('ymin',26.71)+env.get('ymax',26.73))/2
+        show=(met and not mode.get('flNotMet')) or (not met and mode.get('flNotMet'))
+        props={'GEOID':'12099007833','designatio':'Does not Meets Criteria','tract_pove':0.12292531,'Median_Fam':'$81,309','MetroArea_':'89212'} if not met else {'GEOID':'12099000222','designatio':mode.get('flDesignation','Meets Criteria'),'tract_pove':0.25811688,'Median_Fam':'$49,911','MetroArea_':'89212'}
+        features=[{'type':'Feature','geometry':parcel_polygon(lon,lat,20000),'properties':props}] if show else []
+        if params.get('returnCountOnly')==['true']:respond(route,{'count':len(features)})
+        else:respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
+        return
     if parsed.hostname in ('geo.dot.gov','services6.arcgis.com'):
         if mode.get('njNomCase') and parsed.hostname=='services6.arcgis.com':
             if params.get('returnCountOnly')==['true']:respond(route,{'count':1});return
@@ -172,7 +183,7 @@ def network(route):
             nj="'NJ'" in params.get('where',[''])[0]
             lon=(env.get('xmin',-74.37 if nj else -80.14)+env.get('xmax',-74.35 if nj else -80.12))/2
             lat=(env.get('ymin',40.51 if nj else 26.71)+env.get('ymax',40.53 if nj else 26.73))/2
-            respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':polygon(lon,lat),'properties':{'geoid10':'34023000100' if lat>35 else '12099000100','GEOID':'34023000100' if lat>35 else '12099000100','OZ_2_0_Eli':'unknown' if mode.get('ozUnknown') else 'eligible'}}],'exceededTransferLimit':bool(mode.get('ozTruncated'))})
+            respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':polygon(lon,lat),'properties':{'geoid10':'34023000100' if lat>35 else '12099007833' if mode.get('flNotMet') else '12099000100','GEOID':'34023000100' if lat>35 else '12099007833' if mode.get('flNotMet') else '12099000100','OZ_2_0_Eli':'unknown' if mode.get('ozUnknown') else 'eligible'}}],'exceededTransferLimit':bool(mode.get('ozTruncated'))})
         return
     if parsed.hostname=='gis.northamptoncounty.org' and '/Administration/OperationalLayers/' in parsed.path:
         if not parsed.path.endswith('/query'):

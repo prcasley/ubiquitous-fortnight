@@ -3,11 +3,11 @@
  'use strict';const B=()=>window.PublicRadarBridge,P=window.RadarProperty,pending=new Map();let evidence=null,snapshot=null,timer;
  function bundle(){if(!snapshot)snapshot=fetch('assets/data/oz-designation-evidence.json',{credentials:'omit',cache:'no-cache'}).then(async r=>{if(!r.ok)throw Error('NJ nomination evidence unavailable');const d=await r.json();if(d.version!==1||d.records?.filter(x=>x.sourceId==='nj-dca-oz2-nominations').length!==130)throw Error('NJ nomination evidence count changed; review required');evidence=d;return d;}).catch(e=>{snapshot=null;throw e;});return snapshot;}
  function decorate(node,row){node.classList.add('oz-observation');node.dataset.ozKey=row.key;node.dataset.ozScan=String(B().getMeta().scanId);node.textContent=P.ozLabel(row);return node;}
- function publish(rows){const scanId=B().getMeta().scanId,byKey=new Map(rows.map(r=>[r.key,r]));for(const node of document.querySelectorAll('.oz-observation[data-oz-key]')){const row=byKey.get(node.dataset.ozKey);if(row&&B().getRecord(row.key)===row&&node.dataset.ozScan===String(scanId))node.textContent=P.ozLabel(row);}document.dispatchEvent(new CustomEvent('radar:oz-updated',{detail:{scanId,keys:rows.map(r=>r.key),observations:rows.map(r=>({key:r.key,observation:r.ozObservations?.ozNJ}))}}));}
+ function publish(rows){const scanId=B().getMeta().scanId,byKey=new Map(rows.map(r=>[r.key,r]));for(const node of document.querySelectorAll('.oz-observation[data-oz-key]')){const row=byKey.get(node.dataset.ozKey);if(row&&B().getRecord(row.key)===row&&node.dataset.ozScan===String(scanId))node.textContent=P.ozLabel(row);}document.dispatchEvent(new CustomEvent('radar:oz-updated',{detail:{scanId,keys:rows.map(r=>r.key),observations:rows.map(r=>({key:r.key,observation:window.RadarProperty.snapshot(r).ozObservation,observations:window.RadarProperty.snapshot(r).ozObservations}))}}));}
  function attach(row,o){row.ozObservations={...(row.ozObservations||{}),ozNJ:o};row.ozObservation=o;}
- async function check(rows,{force=false}={}){
+ async function checkNJ(rows,{force=false}={}){
   const nj=rows.filter(r=>r.state==='NJ');if(!nj.length)return {observations:[],checkedAt:new Date().toISOString()};const scanId=B().getMeta().scanId;
-  const active=[...new Set(nj.map(r=>{const p=pending.get(r.key);return p?.scanId===scanId?p.task:null;}).filter(Boolean))];if(active.length){await Promise.all(active);return check(rows,{force:false});}
+  const active=[...new Set(nj.map(r=>{const p=pending.get(r.key);return p?.scanId===scanId?p.task:null;}).filter(Boolean))];if(active.length){await Promise.all(active);return checkNJ(rows,{force:false});}
   if(!force&&nj.every(r=>{const o=r.ozObservations?.ozNJ;return o&&!['checking','unavailable'].includes(o.status)&&Date.now()-Date.parse(o.checkedAt)<300000&&Date.parse(o.validUntil)>Date.now();}))return {observations:nj.map(r=>r.ozObservations.ozNJ),sourceName:window.RadarOZResearch.sources.ozNJ.name,checkedAt:nj[0].ozObservations.ozNJ.checkedAt};
   for(const r of nj)attach(r,{kind:'ozNJ',status:'checking',tracts:[]});publish(nj);
   const task=(async()=>{
@@ -20,7 +20,11 @@
    finally{for(const r of nj)if(pending.get(r.key)?.task===task)pending.delete(r.key);}
   })();for(const r of nj)pending.set(r.key,{scanId,task});return task;
  }
- function scan(){clearTimeout(timer);timer=setTimeout(()=>{const rows=B().getResults();if(rows.some(r=>r.state==='NJ'))check(rows).catch(()=>{});},0);}
- function init(){document.addEventListener('radar:scan-complete',scan);document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='partial')scan();if(e.detail.state==='idle')clearTimeout(timer);});document.addEventListener('radar:parcel-selected',e=>{const r=B().getRecord(e.detail.key);if(r?.state==='NJ')check([r]).catch(()=>{});});}
- window.RadarOZObservations={check,decorate};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+ async function check(rows,options={}){
+  const settled=await Promise.allSettled([rows.some(r=>r.state==='NJ')?checkNJ(rows,options):null,rows.some(r=>r.state==='FL')?window.RadarFLOZ.check(rows,options):null]);const error=settled.find(r=>r.status==='rejected');if(error)throw error.reason;const valid=settled.map(r=>r.value).filter(Boolean);
+  return {observations:valid.flatMap(r=>r.observations),checkedAt:valid[0]?.checkedAt||new Date().toISOString(),sourceName:valid.map(r=>r.sourceName).join(' + ')};
+ }
+ function scan(){clearTimeout(timer);timer=setTimeout(()=>{const rows=B().getResults();if(rows.some(r=>['NJ','FL'].includes(r.state)))check(rows).catch(()=>{});},0);}
+ function init(){document.addEventListener('radar:scan-complete',scan);document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='partial')scan();if(e.detail.state==='idle')clearTimeout(timer);});document.addEventListener('radar:parcel-selected',e=>{const r=B().getRecord(e.detail.key);if(['NJ','FL'].includes(r?.state))check([r]).catch(()=>{});});}
+ window.RadarOZObservations={check,decorate,publish};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

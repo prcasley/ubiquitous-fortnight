@@ -13,7 +13,10 @@
     color:"#b4752e",limit:280},
   ozNJ:{label:"OZ 2 · NJ state-nominated tracts (Oct 2026) — federal certification not verified",
     url:"https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0",
-    source:"https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'}
+    source:"https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'},
+  ozFL:{label:"OZ 2 · FL eligible per FloridaCommerce (eligibility, not nominations)",
+    url:"https://services1.arcgis.com/HpJC1O7FLVQlHgaG/arcgis/rest/services/oppzones_ustreasury_met/FeatureServer/0",
+    source:"https://www.floridajobs.org/rural/opportunity-zones-program",color:"#1f9d6b",limit:280,states:['FL'],idField:'GEOID',fields:'GEOID,designatio,tract_pove,Median_Fam,MetroArea_'}
  };
  const ids=f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20||f.properties?.Geography;
  const source=()=>window.PublicRadarBridge;
@@ -70,7 +73,7 @@
      const size=overview?500:d.limit;
      for(let offset=0;offset<Math.max(1,count);offset+=size){const page=await queryLayer(d.url,{...base,f:'geojson',outFields:d.fields||(kind==='oz2'?'GEOID,STUSPS,OZ_2_0_Eli':'geoid10,stusps,stname'),returnGeometry:'true',maxAllowableOffset:overview?'0.003':'0.00003',geometryPrecision:overview?'4':'5',resultOffset:String(offset),resultRecordCount:String(size),...(overview?{orderByFields:(d.idField||(kind==='oz2'?'GEOID':'geoid10'))+' ASC'}:{})},ctrl.signal);if(!Array.isArray(page.features)||!page.features.length&&count||!overview&&page.exceededTransferLimit)throw Error('The public service returned incomplete tract geometries');raw.features.push(...page.features);if(raw.features.length>=count)break;}
      if(raw.features.length!==count)throw Error('The tract count did not reconcile; previous boundaries retained');
-     const idList=raw.features.map(ids);if(kind==='ozNJ'&&(idList.some(id=>!/^34\d{9}$/.test(String(id)))||new Set(idList).size!==idList.length))throw Error('NJ nomination tract identities were missing, invalid or repeated');if(overview&&new Set(idList).size!==idList.length)throw Error('Overview pages repeated tract identities; previous boundaries retained');
+     const idList=raw.features.map(ids);if(kind==='ozFL'&&(idList.some(id=>!/^12\d{9}$/.test(String(id)))||new Set(idList).size!==idList.length||raw.features.some(f=>String(f.properties?.designatio||'').trim()!=='Meets Criteria')))throw Error('FloridaCommerce eligibility identities or designations could not be verified');if(kind==='ozNJ'&&(idList.some(id=>!/^34\d{9}$/.test(String(id)))||new Set(idList).size!==idList.length))throw Error('NJ nomination tract identities were missing, invalid or repeated');if(overview&&new Set(idList).size!==idList.length)throw Error('Overview pages repeated tract identities; previous boundaries retained');
      if(ctrl.signal.aborted||requests[kind]!==ctrl)return;
      const selected=kind==="oz2" ? raw.features.filter(f=>{
        const value=String(f.properties?.OZ_2_0_Eli??"").trim().toLowerCase();
@@ -84,18 +87,18 @@
      if(polygon.length!==selected.length)throw Error("One or more tract geometries were missing");
      const staged=[];for(const feat of polygon){
        const attributes=feat.properties||{},geoid=ids(feat)||"GEOID unavailable";
-       const info=kind==="ozNJ"?"Nominated by New Jersey on Oct 28, 2026 ("+[attributes.Municipality,attributes.County&&attributes.County+' County'].filter(Boolean).join(' · ')+"). Nomination is not Treasury certification; designation is not final until certified.":kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
+       const info=kind==="ozFL"?"FloridaCommerce lists this tract as meeting the OZ 2.0 eligibility criteria (poverty "+(Number.isFinite(Number(attributes.tract_pove))?(Number(attributes.tract_pove)*100).toFixed(1)+"%":"not published")+", family income "+(attributes.Median_Fam||"not published")+"). Eligibility only: Florida's nomination list is not connected and new-round federal certification is not inferred.":kind==="ozNJ"?"Nominated by New Jersey on Oct 28, 2026 ("+[attributes.Municipality,attributes.County&&attributes.County+' County'].filter(Boolean).join(' · ')+"). Nomination is not Treasury certification; designation is not final until certified.":kind==="oz1"?"2018/older-round designated reference; check official IRS lists":
            "Third-party 2027-round eligibility estimate only; validate GEOID against Treasury official eligibility files, and nominations/designations separately";
        const layer=window.L.geoJSON(feat,{style:{color:d.color,weight:1.7,opacity:.9,fillColor:d.color,fillOpacity:.13}});
        const popup=document.createElement("div");
        const label=document.createElement("strong");label.textContent=d.label;
        const detail=document.createElement("p");detail.textContent="Tract "+geoid+" · "+info;
-       const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent=kind==="ozNJ"?"NJ DCA announcement ↗":"Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
+       const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent=kind==="ozFL"?"FloridaCommerce OZ program ↗":kind==="ozNJ"?"NJ DCA announcement ↗":"Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
        popup.append(label,detail,anchor);
        if(overview)popup.append(document.createTextNode(' State overview uses simplified boundaries; zoom in for detail.'));layer.bindPopup(popup);staged.push(layer);
      }
      group.clearLayers();for(const layer of staged)layer.addTo(group);if(overview)overviewCache.set(cacheKey,{time:Date.now(),layers:staged});
-     note(kind==="ozNJ"?polygon.length+" New Jersey state-nominated OZ 2.0 tracts displayed (official NJ DCA layer). Nomination does not establish federal certification.":kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
+     note(kind==="ozFL"?polygon.length+" Florida tracts meeting OZ 2.0 eligibility per FloridaCommerce displayed. Eligibility is not nomination or certification.":kind==="ozNJ"?polygon.length+" New Jersey state-nominated OZ 2.0 tracts displayed (official NJ DCA layer). Nomination does not establish federal certification.":kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
      layerStatus(kind,'On · '+polygon.length+(overview?' '+state+' overview tracts (approximate)':' detailed reference tracts displayed in this view'));
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.

@@ -40,7 +40,7 @@
       date: "2026 statewide update; parcel vintages vary",
       geometry: "polygon", bounds: [-75.6, 38.8, -73.8, 41.4],
       fields: "PAMS_PIN,PROP_LOC,MUN_NAME,PROP_CLASS,CALC_ACRE,PCLLASTUPD,YR_CONSTR,BLDG_DESC,COUNTY,DWELL,LAND_VAL,IMPRVT_VAL,DEED_BOOK,DEED_PAGE,SALE_PRICE,DEED_DATE,NET_VALUE,PCLBLOCK,PCLLOT,PCL_MUN",
-      id: "PAMS_PIN",orderField:"OBJECTID"
+      id: "PAMS_PIN",orderField:"OBJECTID",attempts:2
     }
   };
   const domain=window.RadarDomain;
@@ -198,11 +198,11 @@
     }
     return terms.join(" AND ")||"1=1";
   }
-  async function arcgisQuery(src,base,extra,signal) {
+  async function arcgisQuery(src,base,extra,signal,options={}) {
     // Every request owns its own timeout. Aborts from another scan do not masquerade as zero parcels.
     const params=new URLSearchParams(Object.assign({f:"json"},base,extra));
     const uri=src.url+"/query?"+params.toString();
-    return window.RadarGISTransport.request(uri,{signal,timeoutMs:src.timeoutMs||12000,onRetry:({attempt,maxAttempts})=>{
+    return window.RadarGISTransport.request(uri,{signal,timeoutMs:options.timeoutMs||src.timeoutMs||12000,attempts:options.attempts||src.attempts||3,onRetry:({attempt,maxAttempts})=>{
       if(scanState==='loading')status('The parcel source is slow or temporarily unavailable. Retrying '+attempt+' of '+(maxAttempts-1)+'…','info');
     }});
   }
@@ -283,7 +283,10 @@
           detail:{count:records.length,state,source:source.name,complete:finished}}));
         return finished;
       }
-      const count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},controller.signal);
+      // NJGIN's spatial count is the slow step (often 3-12 s cold, sometimes longer). Abandoning it at
+      // 12 s and restarting discards the server's work; give it one long wait plus one retry instead.
+      const slowCount=state==='NJ'?setTimeout(()=>{if(scanState==='loading'&&currentScan===scanId)status(source.name+" is slow to count matching parcels. Still waiting (up to 30 seconds) before retrying once…","info");},8000):null;
+      let count;try{count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},controller.signal,state==='NJ'?{timeoutMs:30000,attempts:2}:{});}finally{clearTimeout(slowCount);}
       checkCurrent();
       const total=count.count;
       if(!Number.isInteger(total)||total<0) throw Error("The public source did not return a reliable record count. Search was not accepted as complete.");
@@ -292,7 +295,7 @@
       // repeated page as proof that a capped service exhausted its results.
       const featureLimit=MAX_FEATURES;
       const multipart=state==="PA"&&source.provider==="northampton",collector=multipart?window.RadarPA.createCollector(source,window.turf):null,pagesSeen=new Set();
-      const batchSize=state==="PA"?50:150,objectIds=new Set();let received=0,finished=total===0;
+      const batchSize=state==="PA"?50:state==="NJ"?75:150,objectIds=new Set();let received=0,finished=total===0;
       // Seek by the published parcel key instead of relying on returned OIDs
       // or server-specific handling of objectIds and offsets.
       let lastParcelId=null;

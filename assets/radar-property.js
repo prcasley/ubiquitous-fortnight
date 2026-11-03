@@ -15,11 +15,11 @@
   }
   function points(g){return g.type==='Point'?[g.coordinates]:g.type==='Polygon'?g.coordinates.flat():g.coordinates.flat(2);}
   function ozSnapshot(oz){
-    if(!oz||!['ozNJ','oz1','oz2'].includes(oz.kind)||!['reference-intersection','reference-point-intersection','no-reference-intersection','unavailable','checking'].includes(oz.status))return null;
-    return {validUntil:text(oz.validUntil,80),kind:oz.kind,status:oz.status,tracts:(Array.isArray(oz.tracts)?oz.tracts:[]).filter(t=>/^\d{11}$/.test(String(t))).slice(0,130),tractDetails:(Array.isArray(oz.tractDetails)?oz.tractDetails:[]).slice(0,130).map(t=>({geoid:text(t.geoid,11),municipality:text(t.municipality,200),county:text(t.county,100)})),nominationVerified:oz.kind==='ozNJ'&&oz.nominationVerified===true,sourceName:text(oz.sourceName,150),sourceURL:text(oz.sourceURL,1000),checkedAt:text(oz.checkedAt,80)};
+    if(!oz||!['ozNJ','ozFL','oz1','oz2'].includes(oz.kind)||!['reference-intersection','reference-point-intersection','no-reference-intersection','unavailable','checking'].includes(oz.status))return null;
+    return {eligibilityStatus:['met','not-met','mixed','unknown'].includes(oz.eligibilityStatus)?oz.eligibilityStatus:null,validUntil:text(oz.validUntil,80),kind:oz.kind,status:oz.status,tracts:(Array.isArray(oz.tracts)?oz.tracts:[]).filter(t=>/^\d{11}$/.test(String(t))).slice(0,130),tractDetails:(Array.isArray(oz.tractDetails)?oz.tractDetails:[]).slice(0,130).map(t=>({geoid:text(t.geoid,11),municipality:text(t.municipality,200),county:text(t.county,100),...(oz.kind==='ozFL'&&['Meets Criteria','Does not Meets Criteria'].includes(t.designation)?{designation:t.designation,poverty:Number.isFinite(t.poverty)&&t.poverty>=0&&t.poverty<=1?t.poverty:null,familyIncome:text(t.familyIncome,20),areaIncome:text(t.areaIncome,20)}:{})})),nominationVerified:oz.kind==='ozNJ'&&oz.nominationVerified===true,sourceName:text(oz.sourceName,150),sourceURL:text(oz.sourceURL,1000),checkedAt:text(oz.checkedAt,80)};
   }
   function ozLabel(record){
-    const o=ozSnapshot(record.ozObservations?.[record.state==='NJ'?'ozNJ':record.ozObservation?.kind]||record.ozObservation),date=o?.checkedAt?' Checked '+o.checkedAt+'.':'';
+    const o=ozSnapshot(record.ozObservations?.[record.state==='NJ'?'ozNJ':record.state==='FL'?'ozFL':record.ozObservation?.kind]||record.ozObservation),date=o?.checkedAt?' Checked '+o.checkedAt+'.':'';
     if(record.state==='NJ'){
       if(!o||o.kind!=='ozNJ')return 'NJ nomination status not checked. Eligibility references do not establish nomination.';
       if(o.status==='checking')return 'Checking official NJ nomination tracts…';
@@ -28,6 +28,19 @@
       if(o.validUntil&&Date.parse(o.validUntil)<=Date.now())return 'NJ nomination evidence is out of date; recheck the official source.';
       if(!o.nominationVerified)return 'NJ nomination evidence not verified; no nominated status was inferred.';
       return 'NJ-nominated OZ 2.0 tract '+o.tracts.map(id=>id+(o.tractDetails.find(t=>t.geoid===id)?.municipality?' ('+o.tractDetails.find(t=>t.geoid===id).municipality+')':'')).join(', ')+'. State nomination, not Treasury certification; federal certification not verified by this check. Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
+    }
+    if(o?.kind==='ozFL'){
+      const missingFL='No official state nomination list connected for '+record.state+'; new-round federal certification not verified.';
+      const money=v=>{const n=Number(String(v??'').replace(/[$,]/g,''));return Number.isFinite(n)&&n>0?'$'+Math.round(n).toLocaleString('en-US'):'not published';};
+      const facts=t=>t.geoid+(t.poverty!=null||t.familyIncome?' (poverty '+(t.poverty!=null?(t.poverty*100).toFixed(1)+'%':'not published')+', family income '+money(t.familyIncome)+' vs area '+money(t.areaIncome)+')':'');
+      const met=(o.tractDetails||[]).filter(t=>t.designation==='Meets Criteria'),not=(o.tractDetails||[]).filter(t=>t.designation==='Does not Meets Criteria');
+      const oz1=record.ozObservations?.oz1,legacy=oz1&&['reference-intersection','reference-point-intersection'].includes(oz1.status)?' Also intersects 2018 OZ 1.0 tract '+oz1.tracts.join(', ')+'.':'';
+      if(o.validUntil&&Date.parse(o.validUntil)<=Date.now())return 'FloridaCommerce eligibility evidence is expired; recheck the official source. '+missingFL;
+      if(o.status==='checking')return 'Checking FloridaCommerce OZ 2.0 eligibility…';
+      if(o.status==='unavailable')return 'FloridaCommerce eligibility check unavailable; no eligibility or ineligibility was inferred. '+missingFL+legacy+date;
+      if(!met.length&&!not.length)return 'No FloridaCommerce eligibility tract returned for this parcel; this is not an eligibility finding. '+missingFL+legacy+date;
+      const lead=met.length&&not.length?'FloridaCommerce OZ 2.0 eligibility: parcel touches tracts that meet ('+met.map(facts).join(', ')+') and do not meet ('+not.map(facts).join(', ')+') the criteria':met.length?'FloridaCommerce OZ 2.0 eligibility: tract '+met.map(facts).join(', ')+' meets the criteria':'FloridaCommerce OZ 2.0 eligibility: tract '+not.map(facts).join(', ')+' does not meet the criteria';
+      return lead+'. Eligibility is not nomination. '+missingFL+legacy+' Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
     }
     const missing='No official state nomination list connected for '+record.state+'.';
     if(!o)return missing+' OZ reference not checked.';
@@ -41,8 +54,9 @@
     const sourceURL=text(record.sourceURL||record.source?.url,1000);
     const observation=record.ownership;
     const ownership=observation?.entityName&&(observation.classification==='organization-style'||observation.caveat==='Published assessment entity; not independently verified title or control.')?{entityName:text(observation.entityName,400),sourceURL:text(observation.sourceURL,1000),retrievedAt:text(observation.retrievedAt,80),assessmentYear:observation.assessmentYear??null,caveat:'Published assessment entity; not independently verified title or control.'}:null;
-    const ozObservation=ozSnapshot(record.state==='NJ'?(record.ozObservations?.ozNJ||(record.ozObservation?.kind==='ozNJ'?record.ozObservation:null)):record.ozObservation);
-    return {parcelNumber:text(record.parcelNumber,200),sourceIdType:text(record.sourceIdType,60),ozObservation,key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),provider:text(record.provider,40),jurisdiction:text(record.jurisdiction,20),ownership,address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
+    const ozObservation=ozSnapshot(record.state==='NJ'?(record.ozObservations?.ozNJ||(record.ozObservation?.kind==='ozNJ'?record.ozObservation:null)):record.state==='FL'?(record.ozObservations?.ozFL||record.ozObservation):record.ozObservation);
+    const ozObservations=Object.fromEntries(Object.entries(record.ozObservations||{}).map(([kind,o])=>[kind,ozSnapshot(o)]).filter(([kind,o])=>o&&kind===o.kind));
+    return {parcelNumber:text(record.parcelNumber,200),sourceIdType:text(record.sourceIdType,60),ozObservation,ozObservations,key:text(record.key,400),id:text(record.id,200),state:text(record.state,2),provider:text(record.provider,40),jurisdiction:text(record.jurisdiction,20),ownership,address:text(record.address,500),type:text(record.type||record.assessmentClass,100),
       acres:number(record.acres),reportedAcres:number(record.reportedAcres),geometryAcres:number(record.geometryAcres),acreageQuality:text(record.acreageQuality,30),acreageWarning:text(record.acreageWarning,500),yearBuilt:number(record.yearBuilt),lat,lon,geometry:g,
       sourceName:text(record.sourceName||record.source?.name,300),sourceURL:/^https:\/\//i.test(sourceURL)?sourceURL:'',
       sourceVintage:text(record.sourceVintage||record.source?.date,300),retrievedAt:text(record.retrievedAt||meta.time,80),

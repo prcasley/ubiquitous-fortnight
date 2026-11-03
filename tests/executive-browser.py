@@ -23,7 +23,7 @@ try:
         ask('Find industrial over 5 acres near West Palm Beach FL')
         page.wait_for_function('window.PublicRadarBridge.getMeta().complete')
         snapshot=page.evaluate('({search:PublicRadarBridge.getSearch(),meta:PublicRadarBridge.getMeta(),ids:PublicRadarBridge.getResults().map(r=>r.key),center:PublicRadarBridge.getSearchCenter()})')
-        source_calls=lambda:len([u for u in external_requests if "/query?" in u or "geocode.arcgis.com" in u])
+        source_calls=lambda:len([u for u in external_requests if "Parcels_and_Property_Details_WebMercator/FeatureServer/0/query?" in u or "geocode.arcgis.com" in u])
         before=source_calls()
         ask('Show the largest properties in this scan')
         page.wait_for_function('PublicRadarBridge.getResults()[0].acres===20')

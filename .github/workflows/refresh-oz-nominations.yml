@@ -10,6 +10,10 @@ on:
       - 'scripts/build-nj-oz-nominations.py'
       - 'tests/test_oz_nomination_refresh.py'
       - 'tests/test_nj_oz_release_coverage.py'
+      - 'scripts/check-fl-oz-eligibility.py'
+      - 'scripts/build-fl-oz-eligibility.py'
+      - 'tests/test_fl_oz_refresh.py'
+      - 'tests/test_fl_oz_eligibility_check.py'
       - 'tests/data/nj-oz-release-20261029.json'
 permissions:
   contents: read
@@ -67,6 +71,57 @@ jobs:
       # the existing publication workflow, including every registered browser suite.
       - name: Validate and publish refreshed site
         if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages-build.yml --ref main
+  # Validate live FloridaCommerce layers and renew the dated public eligibility snapshot if the
+  # state changes the layers, e.g. replacing eligibility with nominations or a new round.
+  florida-eligibility:
+    needs: refresh
+    if: always() && !cancelled()
+    permissions:
+      contents: write
+      actions: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test FloridaCommerce guard logic
+        run: python -m unittest discover -s tests -p 'test_fl_oz_eligibility_check.py'
+      - name: Verify live FloridaCommerce eligibility layers
+        run: python scripts/check-fl-oz-eligibility.py
+      - name: Refresh dated Florida eligibility evidence
+        run: python scripts/build-fl-oz-eligibility.py
+      - name: Validate Florida evidence renewal rules
+        run: python -m unittest discover -s tests -p 'test_fl_oz_refresh.py'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - name: Commit only changed or renewed Florida eligibility evidence
+        id: fl_commit
+        run: |
+          file=assets/data/fl-oz-eligibility.json
+          if git diff --quiet -- "$file"; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$file"
+          git commit -m 'Refresh FloridaCommerce eligibility evidence'
+          git push origin HEAD:main
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+      - name: Validate and publish refreshed Florida evidence
+        if: steps.fl_commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages-build.yml --ref main
