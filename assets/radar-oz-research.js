@@ -13,6 +13,7 @@
      if(!Number.isInteger(count.count)||count.count<0||count.count>280)throw Error('Reference coverage exceeds the checked layer limit or returned an invalid count; narrow the parcel search');
      const data=await read({f:'geojson',outFields:source.fields,returnGeometry:'true',outSR:'4326',resultRecordCount:'280'});
      if(!Array.isArray(data.features)||data.exceededTransferLimit||data.features.length!==count.count)throw Error('Reference response was incomplete; no parcel classification was made');
+     if(kind==='ozNJ'&&new Set(data.features.map(f=>f.properties?.Geography)).size!==data.features.length)throw Error('NJ nomination tract identities were repeated');
      const positive=[];
      for(const f of data.features){
        if(!['Polygon','MultiPolygon'].includes(f.geometry?.type))throw Error('Reference polygon schema could not be verified');
@@ -28,7 +29,7 @@
      for(let i=0;i<rows.length;i++){
        if(controller.signal.aborted)throw Error('Reference check cancelled or timed out');
        const subject=features[i],box=geo.bbox(subject),hits=positive.filter(t=>!(t.bbox[0]>box[2]||t.bbox[2]<box[0]||t.bbox[1]>box[3]||t.bbox[3]<box[1])&&geo.booleanIntersects(subject,t.feature));
-       result.push({key:rows[i].key,kind,status:hits.length?(subject.geometry.type==='Point'?'reference-point-intersection':'reference-intersection'):'no-reference-intersection',tracts:[...new Set(hits.map(t=>String(t.feature.properties?.[source.geoidField||'GEOID']||t.feature.properties?.geoid10||'GEOID unavailable')))].slice(0,10),sourceName:source.name,sourceURL:source.url,checkedAt,caveat:'Reference intersection only. Final designation, full parcel inclusion and tax qualification are not established. A missing intersection is not an ineligibility determination.'});
+       result.push({key:rows[i].key,kind,status:hits.length?(subject.geometry.type==='Point'?'reference-point-intersection':'reference-intersection'):'no-reference-intersection',tractDetails:hits.map(t=>({geoid:String(t.feature.properties?.[source.geoidField||'GEOID']||t.feature.properties?.geoid10||''),municipality:String(t.feature.properties?.Municipality||'').slice(0,200),county:String(t.feature.properties?.County||'').slice(0,100)})),tracts:[...new Set(hits.map(t=>String(t.feature.properties?.[source.geoidField||'GEOID']||t.feature.properties?.geoid10||'GEOID unavailable')))].slice(0,kind==='ozNJ'?130:10),sourceName:source.name,sourceURL:source.url,checkedAt,caveat:'Reference intersection only. Final designation, full parcel inclusion and tax qualification are not established. A missing intersection is not an ineligibility determination.'});
        if(i%25===0)await new Promise(resolve=>setTimeout(resolve,0));
      }
      return {observations:result,sourceName:source.name,sourceURL:source.url,checkedAt};

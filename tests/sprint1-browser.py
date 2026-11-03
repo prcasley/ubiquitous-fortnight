@@ -108,9 +108,11 @@ try:
         check('board reply stays visible after responsive reparenting at '+str(width),page.locator('.board-summary').last.bounding_box()['y']<page.locator('#agentLog').bounding_box()['y']+page.locator('#agentLog').bounding_box()['height'])
     page.screenshot(path='/tmp/radar-sprint1-desktop.png')
     page.set_viewport_size({'width':390,'height':844});page.screenshot(path='/tmp/radar-sprint1-mobile.png')
-    # Board shares preserve separately checked reference kinds, never qualification.
+    # NJ board shares preserve official nominations separately from OZ1.
+    mode['njNomination']=True
     submit(page,'Which of these qualify for OZ1?');submit(page,'Which of these qualify for OZ2?');submit(page,'Summarize this for the board')
-    check('board retains OZ1 and OZ2 reference shares', 'OZ1: 5/5' in page.locator('.board-summary').last.inner_text() and 'OZ2: 5/5' in page.locator('.board-summary').last.inner_text())
+    check('board retains OZ1 and official NJ nomination shares', 'OZ1: 5/5' in page.locator('.board-summary').last.inner_text() and 'NJ nominations (not federal certification): 5/5' in page.locator('.board-summary').last.inner_text())
+    mode['njNomination']=False
     submit(page,'industrial newer than 2000 in Edison NJ')
     check('newer-than filter never accepts missing years',page.evaluate('PublicRadarBridge.getResults().length===0&&PublicRadarBridge.getYearUnknown().length===2'))
     check('missing-year parcel still opens for research',page.locator('.year-not-published').count()>0)

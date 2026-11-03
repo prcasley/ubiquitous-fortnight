@@ -51,6 +51,7 @@
       }tell('Photos saved in this browser. Export a trip backup to keep a transferable copy.');}catch(error){tell(error.message);}finally{working=false;render();}});
       const images=document.createElement('div');images.className='field-photo-grid';
       for(const id of stop.photos){const holder=document.createElement('div');images.append(holder);const remove=()=>{stop.photos=stop.photos.filter(p=>p!==id);persist();render();};photo(id).then(p=>{if(!holder.isConnected)return;if(!p){holder.append(document.createTextNode('Stored photo is missing.'),button('Remove missing photo',remove));return;}const img=document.createElement('img'),url=URL.createObjectURL(p.blob);photoURLs.push(url);img.src=url;img.alt='User-added field photo';holder.append(img,button('Remove photo',async()=>{try{await writePhoto(id,true);remove();}catch(error){tell(error.message);}}));}).catch(()=>{holder.append(document.createTextNode('Photo unavailable in this browser; import its backup to restore it.'),button('Remove missing photo',remove));});}
+      row.append(window.RadarOZObservations.decorate(document.createElement('p'),stop.property));
       row.append(title,label,up,down,directions,notes,next,upload,images,button('Remove stop',async()=>{stops=stops.filter(s=>s!==stop);persist();render();for(const id of stop.photos)try{await writePhoto(id,true);}catch{}}));
       if(working)for(const control of row.querySelectorAll('input,textarea,button'))control.disabled=true;
       host.append(row);
@@ -62,6 +63,7 @@
     if(working)return;const chosen=stops.filter(s=>s.include);if(!chosen.length||chosen.length>25){tell('Choose 1–25 properties for the field pack.');return;}
     working=true;render();tell('Preparing field pack with parcel outlines, available imagery and stored photos…');
     try{
+      try{await window.RadarOZObservations.check(chosen.map(s=>s.property));persist();}catch{}
       const imagery={},photos={};let missing=0;
       for(let i=0;i<chosen.length;i+=3)await Promise.all(chosen.slice(i,i+3).map(async stop=>{
         photos[stop.property.key]=await readPhotos(stop);
@@ -97,6 +99,7 @@
     try{const value=JSON.parse(localStorage.getItem(key));if(value?.version===1&&Array.isArray(value.stops)&&value.stops.length<=100)stops=value.stops.map(s=>({property:P.snapshot(s.property),notes:String(s.notes||'').slice(0,4000),nextAction:String(s.nextAction||'').slice(0,1000),photos:(s.photos||[]).filter(x=>typeof x==='string'&&/^[\w-]+$/.test(x)).slice(0,3),include:s.include===true,screenings:Array.isArray(s.screenings)?s.screenings.slice(0,10):[]}));}catch{tell('Stored trip could not be read. Existing storage was left intact; restore a trip backup if available.');}
     $('generateFieldPack').addEventListener('click',generate);$('exportFieldTrip').addEventListener('click',exportBackup);$('importFieldTrip').addEventListener('change',async e=>{await importBackup(e.target.files[0]);e.target.value='';});
     $('addSelectedTrip').addEventListener('click',()=>{const r=window.PublicRadarBridge.getRecord(selected);if(r)add(r);});
+    document.addEventListener('radar:oz-updated',e=>{let changed=false;for(const stop of stops){const entry=e.detail.observations?.find(o=>o.key===stop.property.key);if(entry){stop.property.ozObservation=P.ozSnapshot(entry.observation);changed=true;}}if(changed){persist();if(!working)render();}});
     document.addEventListener('radar:research-updated',e=>{const stop=stops.find(s=>s.property.key===e.detail.key);if(stop){stop.screenings=[...(stop.screenings||[]).filter(s=>s.origin!=='manual'),...(window.RadarResearchTools?.getScreenings(e.detail.key)||[])];persist();}});
     document.addEventListener('radar:parcel-selected',e=>{selected=e.detail.key;$('addSelectedTrip').disabled=false;});
     document.addEventListener('radar:scan-state',e=>{if(e.detail.state==='idle'){selected=null;$('addSelectedTrip').disabled=true;}});

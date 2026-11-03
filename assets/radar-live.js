@@ -359,7 +359,7 @@
     node.innerHTML=filtered.slice(0,listLimit).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"Open parcel details for published owner lookup":"PA owner enrichment not connected"))+'</span></button>').join("");
+       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"Open parcel details for published owner lookup":"PA owner enrichment not connected"))+'</span><span class="oz-observation" data-oz-key="'+safe(p.key)+'" data-oz-scan="'+scanId+'">'+safe(window.RadarProperty.ozLabel(p))+'</span></button>').join("");
     if(filtered.length>listLimit){
       const more=document.createElement('button');more.type='button';more.className='secondary';
       more.textContent='Show more parcels ('+listLimit+' of '+filtered.length+' displayed)';
@@ -430,6 +430,7 @@
       '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+","+p.lon)+'">Open location in Maps ↗</a></div>'+
       '<p class="footnote">Parcel geometries are planning approximations, not boundary surveys. Recorded sales, where published, are historical facts, not current asking prices or verified comparable sales.</p>';
     if(p.municipalityObservation){const m=p.municipalityObservation,notice=document.createElement('p'),link=document.createElement('a');notice.textContent=m.caveat+' Checked '+m.checkedAt+' · ';link.textContent='Official municipality boundary source';link.href=m.sourceURL;link.target='_blank';link.rel='noopener noreferrer';notice.append(link);$('details').append(notice);}
+    $('details').append(window.RadarOZObservations.decorate(document.createElement('p'),p));
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
     let waitingForZoom=false;
     const fitSelected=()=>{if(selectedId!==id)return;

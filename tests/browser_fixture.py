@@ -99,7 +99,7 @@ def network(route):
         normalized=re.sub(r'[,?.]', ' ',query).strip().lower()
         normalized=re.sub(r'\s+', ' ',normalized)
         places={
-            'edison':('NJ','Middlesex',-74.363,40.527), 'secaucus':('NJ','Hudson',-74.063,40.789),
+            'newark':('NJ','Essex',-74.17,40.735), 'edison':('NJ','Middlesex',-74.363,40.527), 'secaucus':('NJ','Hudson',-74.063,40.789),
             'woodbridge':('NJ','Middlesex',-74.28,40.55), 'north bergen':('NJ','Hudson',-74.01,40.80),
             'perth amboy':('NJ','Middlesex',-74.27,40.51), 'port newark':('NJ','Essex',-74.14,40.69),
             'parsippany':('NJ','Morris',-74.42,40.86), 'south plainfield':('NJ','Middlesex',-74.41,40.58),
@@ -120,6 +120,10 @@ def network(route):
         if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
         respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
         return
+    if mode.get('njNomCase') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
+        if mode.get('ozFail'):respond(route,{'error':{'message':'Synthetic official nomination outage'}},503);return
+        if params.get('returnCountOnly')==['true']:respond(route,{'count':1});return
+        respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-74.16,40.735,100),'properties':{'Geography':'34013001000','Municipality':'Newark city','County':'Essex'}}]});return
     if mode.get('nominationStress') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         records=json.loads((ROOT/'tests/data/nj-oz-release-20261029.json').read_text())['tracts'];towns=sorted({r['municipality'] for r in records});env=json.loads(params.get('geometry',['{}'])[0]);features=[]
         for r in records:
@@ -156,6 +160,9 @@ def network(route):
         env=json.loads(params.get('geometry',['{}'])[0]);lon=(env.get('xmin',-74.37)+env.get('xmax',-74.35))/2;lat=(env.get('ymin',40.51)+env.get('ymax',40.53))/2
         respond(route,{'type':'FeatureCollection','features':[{'type':'Feature','geometry':parcel_polygon(lon,lat,1000),'properties':{'Geography':geoid,'County':'Synthetic Middlesex','Municipality':'Synthetic town'}} for geoid in ids],'exceededTransferLimit':False});return
     if parsed.hostname in ('geo.dot.gov','services6.arcgis.com'):
+        if mode.get('njNomCase') and parsed.hostname=='services6.arcgis.com':
+            if params.get('returnCountOnly')==['true']:respond(route,{'count':1});return
+            respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-74.16,40.735,10000),'properties':{'GEOID':'34013006800','OZ_2_0_Eli':'eligible'}}]});return
         if mode.get('ozFail'):
             respond(route,{'error':{'message':'Synthetic reference outage'}},503)
         elif params.get('returnCountOnly')==['true']:
@@ -288,6 +295,7 @@ def network(route):
             if any(not {'>=': acres >= float(value), '>': acres > float(value), '<': acres < float(value), '<=': acres <= float(value), '=': acres == float(value)}[op] for op,value in conditions):
                 continue
             props = {'PAMS_PIN': 'NJ-'+str(i), 'PROP_LOC': 'Synthetic NJ parcel', 'MUN_NAME': 'Edison', 'PROP_CLASS': '4B', 'CALC_ACRE': acres, 'COUNTY': 'Middlesex'} if nj else {'PARID': 'PBC-'+str(i), 'SITE_ADDR_STR': 'Synthetic FL parcel', 'MUNICIPALITY': 'Palm Beach', 'ACRES': acres, 'PROPERTY_USE': 'VACANT INDUSTRIAL' if '%VACANT%' in where or mode.get('flVacantIndustrial') else 'DISTRIBUTION', 'YRBLT': 1990,'CONDO':condo}
+            if nj and mode.get('njNomCase'):props.update({'MUN_NAME':'Newark','COUNTY':'Essex','PROP_LOC':'Synthetic Newark parcel '+str(i)})
             if mode.get('persona'):
                 if nj and "PROP_CLASS = '4C'" in where: props['PROP_CLASS']='4C'
                 if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'
@@ -297,6 +305,7 @@ def network(route):
             geometry = parcel_polygon(-74.363,40.527,acres) if nj else parcel_polygon(-80.13,26.72,acres)
             if mode.get('persona'):
                 lon,lat=mode.get('fixtureCenter',(-74.363,40.527));geometry=parcel_polygon(lon,lat,acres)
+            if nj and mode.get('njNomCase'):geometry=parcel_polygon(-74.17+i*.01,40.735,acres)
             if nj and mode.get('crossBorder') and mode.get('fixtureCenter')==(-75.22,40.69): geometry=parcel_polygon(-75.18,40.69,acres)
             if nj and mode.get('secaucus'): geometry=parcel_polygon(-74.063,40.789,acres)
             if fdor:

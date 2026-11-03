@@ -38,3 +38,5 @@ test('WPB-area preset preserves its explicit airport reference instead of revert
  const i=parse('Recommend industrial parcels at least 5 acres within 8 miles of Palm Beach International Airport, West Palm Beach FL');assert.equal(i.location,'Palm Beach International Airport, West Palm Beach FL');assert.equal(i.radius,8);assert.equal(i.state,'FL');
 });
 test('Delray is a recognized Florida place for fragment searches',()=>{const i=parse('delray beach');assert.equal(i.search,true);assert.equal(i.state,'FL');assert.match(i.location,/Delray Beach/i);});
+
+for(const q of ["OZ 2","OZ2","Which are in an opportunity zone?","Show nominated parcels"])test("Official nomination wording: "+q,()=>{assert.equal(parse(q).questionOZ,true);assert.equal(parse(q).search,false);});

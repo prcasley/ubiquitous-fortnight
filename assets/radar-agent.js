@@ -127,13 +127,14 @@
    const pricePsf=price?{amount:Number(price[1].replace(/,/g,'')),basis:comps?'closed-sale':forSale?'asking-sale':/\b(rent|rental)\b/.test(l)?'asking-rent':'unspecified',unit:'building-square-foot',approximate:/\b(about|approx|approximately|around|roughly)\b/.test(l)}:null;
    const budgetMatch=!price&&l.match(/\$\s*(\d[\d,]*(?:\.\d+)?)\s*(million|m\b|thousand|k\b)?/i);
    const budget=budgetMatch?{amount:Number(budgetMatch[1].replace(/,/g,''))*(/^(million|m)$/i.test(budgetMatch[2])?1000000:/^(thousand|k)$/i.test(budgetMatch[2])?1000:1)}:null;
-   return language({q,budget,invalidReason:range&&Number(range[1])>Number(range[2])?"Enter a size range with the smaller acreage first.":!range&&/(?:^|[\s(])-\s*\d+(?:\.\d+)?\s*(?:acres?|ac\b|miles?)/i.test(q)?"Acreage and radius cannot be negative.":null,search:!!(search||shorthand||location&&type),refine:/^(?:show\s+(?:me\s+)?only|only|just|actually|make (?:it|that)|how about|what about|instead|change (?:it|that) to)\b/i.test(q),nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres,maxAcres,comparison,acreageMeaning,
+   const ozQuestion=/\b(opportunity zones?|oz\s*1|oz\s*2|oz\s*2027|nominated|nominations?)\b/.test(l);
+   return language({q,budget,invalidReason:range&&Number(range[1])>Number(range[2])?"Enter a size range with the smaller acreage first.":!range&&/(?:^|[\s(])-\s*\d+(?:\.\d+)?\s*(?:acres?|ac\b|miles?)/i.test(q)?"Acreage and radius cannot be negative.":null,search:!!(search||shorthand||location&&type)&&!(ozQuestion&&!location&&!type&&acres==null&&!radius&&!/\bnear me\b/.test(l)),refine:/^(?:show\s+(?:me\s+)?only|only|just|actually|make (?:it|that)|how about|what about|instead|change (?:it|that) to)\b/i.test(q),nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres,maxAcres,comparison,acreageMeaning,
      radius:radius?Number(radius[1]):null,state:stateFrom(q),countyLabel:countyLabel||null,location,
      sort:/\b(biggest|largest|most acreage)\b/.test(l)?'largest':/\b(nearest|closest)\b/.test(l)?'nearest':null,
      questionOwnership:/\b(owners?|ownership|who owns|owned by|title holder)\b/.test(l),
      questionLease:/\b(leases?|tenants?|rent|expiration|expiring|expires|renewal|renewals|renewing|renew)\b/.test(l),
      forSale,comps,pricePsf,
-     questionOZ:/\b(opportunity zone|oz ?1|oz ?2|oz ?2027)\b/.test(l),
+     questionOZ:ozQuestion,
      questionDeadline:/\b(?:before|by|close|closing|acquir|deadline)\b.*\b(?:jan(?:uary)?|dec(?:ember)?|year.end|1st|31st)\b/i.test(q),
      questionSource:/\b(source|accuracy|verified|reliable|coverage|provenance)\b/.test(l)});
  }
@@ -261,14 +262,17 @@
    window.RadarChatProperties?.render(targets,bridge().getMeta());
  }
  async function ozAnswer(intent={}){
-   const rows=bridge().getResults(),meta=bridge().getMeta(),kind=/\bOZ\s*1\b/i.test(intent.q||'')?'oz1':'oz2';
-   putMessage('Checking '+rows.length+' retrieved parcels against the '+kind.toUpperCase()+' reference polygons. This checks reference intersections; final designation and tax qualification remain unverified.');
+   const rows=bridge().getResults(),meta=bridge().getMeta(),kind=/\bOZ\s*1\b/i.test(intent.q||'')?'oz1':rows.some(r=>r.state==='NJ')?'ozNJ':'oz2',targets=kind==='ozNJ'?rows.filter(r=>r.state==='NJ'):rows;
+   putMessage('Checking '+targets.length+' retrieved parcels against '+(kind==='ozNJ'?'the official 130 New Jersey nomination tracts':'the '+kind.toUpperCase()+' reference polygons')+'. Nomination, eligibility and federal certification are different stages.');
    try{
-     const result=await window.RadarOZResearch.check(rows,{kind});if(meta.scanId!==bridge().getMeta().scanId)return;
-     const byKey=new Map(result.observations.map(o=>[o.key,o]));for(const row of rows){row.ozObservation=byKey.get(row.key);row.ozObservations={...(row.ozObservations||{}),[kind]:row.ozObservation};}
-     const hits=rows.filter(r=>r.ozObservation.status!=='no-reference-intersection');
-     putMessage(hits.length+' of '+rows.length+' checked parcels intersect '+result.sourceName+'. '+(rows.length-hits.length)+' had no matching polygon returned in this reference check; that is not a finding of ineligibility. '+(!meta.complete?'The parcel search itself is partial; more parcels may exist. ':'')+'Checked '+result.checkedAt+'. Final designation, full parcel inclusion and tax qualification remain unverified. '+(hits.length?'Showing the intersecting candidates below; your full search remains in the sidebar.':''));
-     window.RadarChatProperties?.render(hits.length?hits:rows.slice(0,6),meta);
+     const result=kind==='ozNJ'?await window.RadarOZObservations.check(targets,{force:true}):await window.RadarOZResearch.check(targets,{kind});if(meta.scanId!==bridge().getMeta().scanId)return;
+     const byKey=new Map(result.observations.map(o=>[o.key,o]));if(kind!=='ozNJ')for(const row of targets){row.ozObservation=byKey.get(row.key);row.ozObservations={...(row.ozObservations||{}),[kind]:row.ozObservation};}
+     const hits=targets.filter(r=>{const o=byKey.get(r.key);return ['reference-intersection','reference-point-intersection'].includes(o?.status)&&(kind!=='ozNJ'||o.nominationVerified);});
+     const answer=kind==='ozNJ'?hits.length+' of '+targets.length+' checked parcels intersect the 130 tracts New Jersey nominated on Oct 28, 2026 (state nomination, not Treasury certification; federal certification not verified by this check). '+(targets.length-hits.length)+' had no matching nominated polygon returned. Eligibility alone is not nomination.':hits.length+' of '+targets.length+' checked parcels intersect '+result.sourceName+'. '+(targets.length-hits.length)+' had no matching polygon returned; that is not an ineligibility finding. '+[...new Set(targets.map(r=>r.state))].filter(s=>s!=='NJ').map(s=>'No official state nomination list connected for '+s+'.').join(' ');
+     putMessage(answer+' '+(!meta.complete?'The parcel search is partial; more parcels may exist. ':'')+'Checked '+result.checkedAt+'. Boundary intersections do not establish whole-parcel inclusion or tax qualification. Your full search remains in the sidebar.');
+     if(kind==='ozNJ')for(const row of hits){const o=byKey.get(row.key);putMessage((row.address||row.id)+' · '+o.tractDetails.map(t=>t.municipality+' · tract '+t.geoid).join('; ')+'. State nomination; federal certification not verified.');}
+     if(targets.length<rows.length)putMessage('Other-state parcels remain in your full results. No official state nomination list connected for '+[...new Set(rows.filter(r=>r.state!=='NJ').map(r=>r.state))].join('/')+'.');
+     window.RadarChatProperties?.render(hits.length?hits:targets.slice(0,6),meta);
    }catch(error){putMessage('Parcel OZ reference check unavailable: '+error.message+'. No properties were labeled qualified or ineligible; your shortlist was retained.');}
  }
  const history=[];let lastReply='',voiceTimer=null;
@@ -292,7 +296,7 @@
  function boardSummary(){
    const rows=bridge().getResults(),meta=bridge().getMeta();if(!rows.length){chips('Search a town first, then I can prepare a board summary from its public records.',examples.map(x=>[x,x]));return;}
    const sized=rows.filter(r=>r.acres!=null).sort((a,b)=>b.acres-a.acres),largest=sized[0];
-   const shares=['oz1','oz2'].map(kind=>{const observation=r=>r.ozObservations?.[kind]||(r.ozObservation?.kind===kind?r.ozObservation:null),checked=rows.filter(r=>observation(r)),hits=checked.filter(r=>observation(r).status!=='no-reference-intersection');return kind.toUpperCase()+': '+(checked.length?hits.length+'/'+checked.length+' checked reference intersections':'not checked');}).join(' · ');
+   const shares=(rows.some(r=>r.state==='NJ')?['oz1','ozNJ']:['oz1','oz2']).map(kind=>{const observation=r=>r.ozObservations?.[kind]||(r.ozObservation?.kind===kind?r.ozObservation:null),checked=rows.filter(r=>observation(r)&&!['checking','unavailable'].includes(observation(r).status)),hits=checked.filter(r=>['reference-intersection','reference-point-intersection'].includes(observation(r).status)&&(kind!=='ozNJ'||observation(r).nominationVerified));return (kind==='ozNJ'?'NJ nominations (not federal certification)':kind==='oz2'?'Third-party OZ2 eligibility (not nomination)':kind.toUpperCase())+': '+(checked.length?hits.length+'/'+checked.length+' checked reference intersections':'not checked');}).join(' · ');
    const card=putMessage(rows.length+' accepted parcels'+(meta.complete?'':' (partial search)')+' · Acreage range: '+(sized.length?sized.at(-1).acres.toFixed(2)+'–'+largest.acres.toFixed(2)+' ac':'not published')+'.\nLargest site: '+(largest?(largest.address||largest.id)+' · '+largest.acres.toFixed(2)+' ac':'acreage not published')+'.\n'+shares+'.\nSource: '+meta.source+' · Retrieved '+meta.time+'.\nCaveat: '+(!meta.complete?'More parcels may exist; ':'')+'assessment class is not zoning, reference intersections are not OZ qualification; availability and title are unverified.');card.classList.add('board-summary');const host=$('agentLog');host.dataset.scrollAnchor='board';host.scrollTop=card.offsetTop-host.offsetTop;
  }
  function unknownYears(meta){const unknown=bridge().getYearUnknown?.()||[];if(!unknown.length)return;putMessage("I couldn't apply: year-built filter to "+unknown.length+' parcels (year not published).');const row=putMessage(unknown.length+' parcels: year not published — excluded from year-filter matches; listed separately below.');row.classList.add('year-not-published');window.RadarChatProperties?.render(unknown,{...meta,yearUnknown:true});}
