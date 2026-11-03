@@ -30,7 +30,9 @@
  const towns=[['Delray Beach','FL'],['West Palm Beach','FL'],['Palm Beach County','FL'],['Palm Beach','FL'],['Mangonia Park','FL'],['Edison','NJ'],['Secaucus','NJ'],['Woodbridge','NJ'],['North Bergen','NJ'],['Perth Amboy','NJ'],['Port Newark','NJ'],['Newark','NJ'],['South Plainfield','NJ'],['Piscataway','NJ'],['Parsippany','NJ'],['Riviera Beach','FL'],['Allentown','PA'],['Easton','PA'],['Lehigh Valley','PA'],['Northern New Jersey','NJ'],['Fort Lauderdale','FL'],['Miami','FL'],['Stuart','FL'],['Port St. Lucie','FL']];
  const rx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  function distance(a,b){const row=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=row[0];row[0]=i;for(let j=1;j<=b.length;j++){const old=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return row[b.length];}
+ const countyKey=s=>String(s||'').toLowerCase().replace(/[\s.-]/g,'');
  function language(intent){
+   const locationText=intent.location;
    const l=intent.q.toLowerCase(),hits=towns.filter(([name])=>new RegExp('\\b'+rx(name)+'\\b','i').test(l));
    const places=hits.filter(([name])=>!hits.some(([other])=>other!==name&&other.toLowerCase().includes(name.toLowerCase())));
    intent.places=places.map(([name,state])=>({name,state}));
@@ -52,6 +54,13 @@
    intent.streetAddress=fullAddress?fullAddress.split(/\s+(?:with|that|which|within|over|under|at least|at most|built|newer than|older than|for sale)\b/i)[0].replace(/[,\s]+$/,''):null;
    const cityTail=intent.streetAddress?.slice(intent.streetAddress.match(street)[0].length).replace(/^[,\s]+/,'').replace(/[,\s]+(?:NJ|FL|PA|new jersey|florida|pennsylvania)(?:\s+\d{5}(?:-\d{4})?)?$/i,'').trim();
    intent.addressCity=intent.state&&cityTail&&/^[A-Za-z][A-Za-z .'-]+$/.test(cityTail)?cityTail:null;
+   const countyPhrase=locationText.match(/^(.+?)\s+County(?:[,\s]+(?:NJ|FL|PA|new jersey|florida|pennsylvania))?$/i);
+   intent.countyLabel=intent.countyLabel||countyPhrase?.[1]||null;
+   intent.countywide=!!intent.countyLabel&&!intent.streetAddress&&!intent.nearMe&&(countyPhrase&&countyKey(countyPhrase[1])===countyKey(intent.countyLabel)||places.every(([name])=>/county/i.test(name)||name===intent.countyLabel));
+   if(intent.countywide){
+     const states=['NJ','FL','PA'].filter(state=>countyEntries(state).some(c=>countyKey(c.label)===countyKey(intent.countyLabel)));
+     if(!intent.state&&states.length===1)intent.state=states[0];intent.search=true;
+   }
    intent.address=!!intent.streetAddress&&street.test(addressText)&&!intent.type&&intent.acres==null&&intent.radius==null;
    if(intent.streetAddress){intent.location=intent.streetAddress;intent.search=true;}
    if(/\b(all types|any types)\b/.test(l)){intent.type='all';intent.search=true;}
@@ -135,7 +144,7 @@
    const budget=budgetMatch?{amount:Number(budgetMatch[1].replace(/,/g,''))*(/^(million|m)$/i.test(budgetMatch[2])?1000000:/^(thousand|k)$/i.test(budgetMatch[2])?1000:1)}:null;
    const ozQuestion=/\b(opportunity zones?|oz\s*1|oz\s*2|oz\s*2027|nominated|nominations?)\b/.test(l);
    return language({q,budget,invalidReason:range&&Number(range[1])>Number(range[2])?"Enter a size range with the smaller acreage first.":!range&&/(?:^|[\s(])-\s*\d+(?:\.\d+)?\s*(?:acres?|ac\b|miles?)/i.test(q)?"Acreage and radius cannot be negative.":null,search:!!(search||shorthand||location&&type)&&!(ozQuestion&&!location&&!type&&acres==null&&!radius&&!/\bnear me\b/.test(l)),refine:/^(?:show\s+(?:me\s+)?only|only|just|actually|make (?:it|that)|how about|what about|instead|change (?:it|that) to)\b/i.test(q),nearMe:/\b(near me|around me|my location)\b/.test(l),type,acres,maxAcres,comparison,acreageMeaning,
-     radius:radius?Number(radius[1]):null,state:stateFrom(q),countyLabel:countyLabel||null,location,
+     radiusRequested:!!radius,radius:radius?Number(radius[1]):null,state:stateFrom(q),countyLabel:countyLabel||null,location,
      sort:/\b(biggest|largest|most acreage)\b/.test(l)?'largest':/\b(nearest|closest)\b/.test(l)?'nearest':null,
      questionOwnership:/\b(owners?|ownership|who owns|owned by|title holder)\b/.test(l),
      questionLease:/\b(leases?|tenants?|rent|expiration|expiring|expires|renewal|renewals|renewing|renew)\b/.test(l),
@@ -220,6 +229,8 @@
    clearOldResults();
    bridge()?.setStatus("County and state selected. Press Scan public parcels, or ask Radar for a nearby search.","info");
  }
+ const countyTowns={'Palm Beach':['West Palm Beach','Riviera Beach','Mangonia Park'],Broward:['Fort Lauderdale','Pompano Beach','Hollywood'],'Miami-Dade':['Miami','Hialeah','Doral'],Monmouth:['Freehold','Long Branch','Middletown'],Middlesex:['Edison','Woodbridge','Perth Amboy'],Hudson:['Secaucus','North Bergen','Jersey City'],Bergen:['Hackensack','Carlstadt','Ridgefield'],Lehigh:['Allentown','Bethlehem','Whitehall'],Northampton:['Easton','Bethlehem','Nazareth'],Orange:['Orlando','Winter Park']};
+ function countyTownOptions(intent,state){return (countyTowns[intent.countyLabel]||[]).map(t=>[t,(intent.type||'industrial')+' '+acreageDescription(intent)+(intent.year?' built '+(intent.year.op==='<'?'before ':'after ')+intent.year.value:'')+(intent.radius?' within '+intent.radius+' miles of ':' in ')+t+', '+state]);}
  function sourceSummary(rows){
    const meta=bridge()?.getMeta()||{};
    const y=rows.filter(r=>r.yearBuilt!=null).length;
@@ -227,9 +238,9 @@
    const acres=rows.filter(r=>r.acres!=null).sort((a,b)=>b.acres-a.acres);
    return {
      sentence:rows.length+" returned source parcels from "+(meta.source||"a public GIS service")+
-       ". "+y+" have a published construction year; "+absent+" have no published acreage."+
+       ". "+y+" have a published construction year; "+absent+" have no usable acreage."+(rows.some(r=>r.acreageQuality==='computed-polygon')?" Broward acreage is computed from GIS polygons, not a published lot-size field or survey.":"")+
        (meta.quarantinedCount?" "+meta.quarantinedCount+" records excluded for source/geometry acreage conflicts; check the data-quality notice.":"")+
-       (acres.length?" Largest by reported acreage: "+(acres[0].address||acres[0].id)+" ("+acres[0].acres.toFixed(2)+" ac).":""),
+       (acres.length?" Largest by available acreage: "+(acres[0].address||acres[0].id)+" ("+acres[0].acres.toFixed(2)+" ac).":""),
      meta
    };
  }
@@ -343,7 +354,7 @@
    let preserved=options.restore||null;
    const previousSearch=bridge()?.getSearch();
    if(previousSearch&&(intent.questionOwnership||intent.questionOZ)&&!intent.location&&!intent.nearMe&&intent.acres==null&&intent.type==null&&intent.radius==null)intent.search=false;
-   if(!options.restore&&previousSearch&&!intent.location&&!intent.nearMe&&(!intent.state||intent.state===previousSearch.state)&&(intent.acres!=null||intent.type||intent.radius!=null||intent.year)){
+   if(!options.restore&&previousSearch&&!intent.location&&!intent.countyLabel&&!intent.nearMe&&(!intent.state||intent.state===previousSearch.state)&&(intent.acres!=null||intent.type||intent.radius!=null||intent.year)){
      preserved={...previousSearch,unverified:bridge().getMeta().unverified||[]};
      intent={...intent,year:intent.year||previousSearch.year,search:true,state:previousSearch.state,type:intent.type||previousSearch.type,acres:intent.acres??previousSearch.acreage.value,
        comparison:intent.comparison||previousSearch.acreage.op,maxAcres:intent.acres==null?previousSearch.acreage.max:intent.maxAcres,radius:intent.radius??previousSearch.radius};
@@ -384,6 +395,7 @@
    if(defaultType){intent.type='industrial';putMessage("Showing industrial — say 'all types' to widen.");}
    if(options.restore){intent.location='';intent.state=options.restore.state;}
    clearOldResults();
+   if((intent.countywide||preserved?.scope==='county')&&intent.radiusRequested)intent.unsupported.push('radius around an entire county boundary (choose a town or address for a radius search)');
    const missing=[...new Set([...(preserved?.unverified||[]),...missingCriteria(intent)])];
    if(intent.recommendation)putMessage("I can’t confirm whether these are for sale, zoned for this use, or have utility capacity.");
    if(missing.length)putMessage("I couldn't apply: "+missing.join('; ')+'.');
@@ -394,6 +406,9 @@
    }
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
+     const countywide=intent.countywide||preserved?.scope==='county';
+     if(countywide&&preserved?.countyLabel)intent.countyLabel=preserved.countyLabel;
+     if(countywide&&!intent.sort)intent.sort='largest';
      let geocodeMatch=preserved?.addressMatch||null;
      if(geocodeMatch)intent.streetAddress=geocodeMatch.requestedAddress;
      let state=intent.state||$ ("stateSelect").value;
@@ -401,13 +416,16 @@
      const previousState=$("stateSelect").value;$("stateSelect").value=state;
      let county=null;
      if(intent.countyLabel){
-       const row=countyEntries(state).find(x=>x.label.toLowerCase()===intent.countyLabel.toLowerCase());
-       if(row&&!row.connected){putMessage("The county was recognized but is not connected to a verified parcel service yet. No search was fabricated.");return;}
-       county=row?.key;
+       const row=countyEntries(state).find(x=>countyKey(x.label)===countyKey(intent.countyLabel));
+       if(!row||!row.connected){
+         chips('Whole-county coverage is not connected for '+intent.countyLabel+' County, '+state+'. No county-centroid circle was substituted. Try a town; its county source availability will still be checked.',countyTownOptions(intent,state));return;
+       }
+       county=row.key;intent.countyLabel=row.label;
      }
      if(preserved){applyCounty(state,preserved.county,{center:false});bridge().setCenter(preserved.center.lat,preserved.center.lon);locationKnown=true;}
      else if(county||state!==previousState)applyCounty(state,county,{center:!!county});
      if(county)locationKnown=true;
+     if(countywide)$("placeInput").value=intent.countyLabel+" County, "+state;
      if(intent.nearMe){
        const location=await bridge().locateGPS();
        if(!location){putMessage("Device location could not be verified. No nearby parcel scan was run.");return;}
@@ -416,7 +434,7 @@
        $("countySelect").value="";activeCounty="";window.PublicRadarCounty="";
        putMessage("GPS centered in "+state+". County has not been independently identified, so this request searches the supported public source within your radius.");
      }
-     if(intent.location){
+     if(intent.location&&!countywide){
        $("placeInput").value=intent.location+(!stateFrom(intent.location)&&intent.state?", "+intent.state:"");
        const located=await bridge().findPlace({address:!!intent.streetAddress,expectedState:intent.state,fallback:intent.streetAddress&&(intent.recognizedPlace||intent.addressCity)&&!/county/i.test(intent.recognizedPlace||intent.addressCity)?(intent.recognizedPlace||intent.addressCity)+', '+state:null});
        if(located!==true){
@@ -448,9 +466,9 @@
      bridge().setRadius(intent.radius??preserved?.radius??5);
      const previous=bridge().getMeta().time;
      const priceExplanation=intent.pricePsf?` I read $${intent.pricePsf.amount}/SF as ${intent.pricePsf.basis==='closed-sale'?'closed-sale price':intent.pricePsf.basis==='asking-sale'?'asking sale price':intent.pricePsf.basis==='asking-rent'?'asking rent':'an unspecified price or rent'} per building square foot. Asking prices and closed-sale comps are different; neither is verified by this scan.`:'';
-     putMessage(`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)}, touching the ${$("radiusSelect").value}-mile search area around ${geocodeMatch?.fallback?geocodeMatch.query:intent.streetAddress||intent.location||intent.countyLabel||'the selected map location'}${intent.streetAddress&&!geocodeMatch?.fallback?' (address match score '+geocodeMatch.score+')':''}. ${intent.sort==='largest'?'Largest first.':'Nearest first.'}`+
+     putMessage((countywide?`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)} countywide in ${intent.countyLabel} County, ${state}. No radius limit. ${intent.sort==='largest'?'Largest first within retrieved results.':'Sorted within retrieved results.'}`:`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)}, touching the ${$("radiusSelect").value}-mile search area around ${geocodeMatch?.fallback?geocodeMatch.query:intent.streetAddress||intent.location||intent.countyLabel||'the selected map location'}${intent.streetAddress&&!geocodeMatch?.fallback?' (address match score '+geocodeMatch.score+')':''}. ${intent.sort==='largest'?'Largest first.':'Nearest first.'}`)+
        (missing.length?' '+missing.join(', ')+' cannot be verified here. Results are candidates for further research, not confirmed matches to those conditions.':'')+priceExplanation);
-     await bridge().scan({addressMatch:geocodeMatch,unverified:missing,year:intent.year,wholeSitesOnly:options.wholeSitesOnly??preserved?.wholeSitesOnly??false});
+     await bridge().scan({scope:countywide?'county':'radius',countyLabel:intent.countyLabel,addressMatch:geocodeMatch,unverified:missing,year:intent.year,wholeSitesOnly:options.wholeSitesOnly??preserved?.wholeSitesOnly??false});
      if(intent.sort)bridge().sortResults(intent.sort);
      const meta=bridge().getMeta(),rows=bridge().getResults();
      if(intent.streetAddress&&!geocodeMatch?.fallback){
@@ -464,6 +482,7 @@
        const warning=bridge().getStatus?.()?.message||"The parcel service did not finish this search.";
        const failure=putMessage(warning+(rows.length?" These are partial results; more properties may exist.":" Try a smaller radius or retry the search. No zero-property conclusion was made."));
        if(failure){const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='Retry this search';retry.addEventListener('click',()=>ask(intent.q));failure.append(document.createElement('br'),retry);}
+       if(countywide)chips('The countywide retrieval is incomplete. Narrow by town or acreage; no county-centroid circle was substituted.',countyTownOptions(intent,state));
        if(rows.length)window.RadarChatProperties?.render(intent.top?rows.slice(0,intent.top):rows,meta);unknownYears(meta);if(intent.recommendation&&rows.length)window.RadarAcquisition?.build({officialOffersOnly:intent.governmentOffersOnly});
        return;
      }

@@ -58,3 +58,6 @@ test('NJ Plaza address is retained while city and county searches remain places'
 });
 
 test('numbered street names and unlisted address cities retain an explicit fallback',()=>{const p=parse('industrial over 5 acres near 123 5th Avenue New Brunswick NJ');assert.equal(p.streetAddress,'123 5th Avenue New Brunswick NJ');assert.equal(p.addressCity,'New Brunswick');});
+
+for(const [county,state] of [['Palm Beach','FL'],['Broward','FL'],['Miami-Dade','FL'],['Monmouth','NJ'],['Lehigh','PA']])test('explicit county is countywide: '+county,()=>{const p=parse('Industrial over 10 acres in '+county+' County '+state);assert.equal(p.countywide,true);assert.equal(p.state,state);assert.equal(p.acres,10);assert.equal(p.type,'industrial');});
+test('county detection preserves city/address scope and handles missing state',()=>{assert.equal(parse('industrial in Edison NJ').countywide,false);assert.equal(parse('industrial over 10 acres near 7777 Southern Blvd Palm Beach County FL').countywide,false);assert.equal(parse('industrial over 10 acres in Monmouth County').state,'NJ');assert.equal(parse('industrial in Miami Dade County FL').countywide,true);assert.equal(parse('industrial near Miami in Miami-Dade County FL').countywide,false);});

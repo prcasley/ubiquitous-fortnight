@@ -122,6 +122,24 @@ def network(route):
         if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
         respond(route,{'candidates':[{'score':60 if exact_address and mode.get('addressLowScore') else 100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':mode.get('addressState',state) if exact_address else state,'Subregion':(mode.get('addressCounty',county) if exact_address else county)+' County','Addr_type':mode.get('addressType','PointAddress') if re.match(r'^\d',normalized) else 'Locality'}}]})
         return
+    county_paths=('Parcels_Composite_NJ_WM','Parcels_and_Property_Details_WebMercator','PARCEL_POLY_BCPA_TAXROLL','PaParcelView_gdb')
+    if mode.get('countySearch') and any(path in parsed.path for path in county_paths) or 'PARCEL_POLY_BCPA_TAXROLL' in parsed.path:
+        nj='Parcels_Composite' in parsed.path;bro='BCPA' in parsed.path;mdc='PaParcelView' in parsed.path
+        if bro and not parsed.path.endswith('/query'):
+            fields=['FOLIO_NUMBER','USE_CODE','SITUS_STREET_NUMBER','SITUS_STREET_NAME','SITUS_STREET_TYPE',mode.get('broOID','OBJECTID')]
+            respond(route,{'geometryType':'esriGeometryPolygon','fields':[{'name':f,'type':('esriFieldTypeInteger' if mode.get('broNumeric') else 'esriFieldTypeString') if f=='USE_CODE' else 'esriFieldTypeOID' if f==mode.get('broOID','OBJECTID') else 'esriFieldTypeString'} for f in fields]});return
+        queries.append((parsed.hostname,params.get('where',['1=1'])[0]))
+        total=mode.get('countySize',3)
+        if params.get('returnCountOnly')==['true']:respond(route,{'count':total});return
+        offset=int(params.get('resultOffset',['0'])[0]);limit=int(params.get('resultRecordCount',['150'])[0]);features=[]
+        for i in range(offset,min(total,offset+limit)):
+            acres=15+i%3*10;lon,lat=(-74.1-(.45 if i%2 else 0),40.3) if nj else (-80.15-(.5 if i%2 else 0),26.15 if bro else 25.6 if mdc else 26.7)
+            props={'PAMS_PIN':'COUNTY-NJ-'+str(i),'PROP_LOC':'County NJ '+str(i),'COUNTY':(re.search(r"UPPER\(COUNTY\) = '([^']+)'",params.get('where',[''])[0]).group(1) if re.search(r"UPPER\(COUNTY\) = '([^']+)'",params.get('where',[''])[0]) else 'MONMOUTH'),'MUN_NAME':'Synthetic town','CALC_ACRE':acres,'PROP_CLASS':'4B','OBJECTID':i} if nj else {'FOLIO_NUMBER':'COUNTY-BRO-'+str(i),'USE_CODE':'4800','SITUS_STREET_NUMBER':str(i+1),'SITUS_STREET_NAME':'COUNTY','SITUS_STREET_TYPE':'RD','OBJECTID':i} if bro else {'FOLIO':'COUNTY-MDC-'+str(i),'TRUE_SITE_ADDR':'County MDC '+str(i),'LOT_SIZE':acres*43560,'DOR_CODE_CUR':'048','OBJECTID':i} if mdc else {'PARID':'COUNTY-PBC-'+str(i),'SITE_ADDR_STR':'County FL '+str(i),'ACRES':acres,'PROPERTY_USE':'INDUSTRIAL','OBJECTID_1':i}
+            if bro and mode.get('broOID'):props[mode['broOID']]=props.pop('OBJECTID')
+            geometry=parcel_polygon(lon,lat,acres)
+            if bro and mode.get('broNoGeometry'):geometry={'type':'Point','coordinates':[lon,lat]}
+            features.append({'type':'Feature','properties':props,'geometry':geometry})
+        respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':offset+len(features)<total});return
     if mode.get('njNomCase') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         if mode.get('ozFail'):respond(route,{'error':{'message':'Synthetic official nomination outage'}},503);return
         if params.get('returnCountOnly')==['true']:respond(route,{'count':1});return
@@ -314,6 +332,7 @@ def network(route):
                 if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'
                 if not nj and '%MULTI%' in where: props['PROPERTY_USE']='MULTIFAMILY'
             props['OBJECTID']=i
+            if not nj and not fdor:props['OBJECTID_1']=i
             if nj: props['YR_CONSTR']=1974 if i%2==0 else 0
             geometry = parcel_polygon(-74.363,40.527,acres) if nj else parcel_polygon(-80.13,26.72,acres)
             if mode.get('persona'):

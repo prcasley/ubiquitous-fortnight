@@ -155,7 +155,9 @@ try:
         page.select_option('#countySelect','Broward')
         page.fill('#minAcres','5')
         page.click('#scanButton')
-        assert 'does not publish acreage' in page.locator('#statusText').inner_text()
+        page.wait_for_function('PublicRadarBridge.getMeta().complete')
+        assert page.evaluate('PublicRadarBridge.getResults().length>0&&PublicRadarBridge.getResults().every(r=>r.acres>=5&&r.reportedAcres===null&&r.acreageQuality==="computed-polygon")')
+        assert 'computed GIS acreage' in page.locator('#results').inner_text()
         assert 'PARCEL_POLY_BCPA_TAXROLL' in page.evaluate('window.PublicRadarBridge.getSource("FL",26.12,-80.14).url')
         broward=page.evaluate('''() => window.PublicRadarBridge.ingestOne({type:'Feature',properties:{FOLIO_NUMBER:'BRO-TEST',USE_CODE:'4800'},geometry:{type:'Point',coordinates:[-80.14,26.12]}},'FL',{lat:26.12,lon:-80.14})''')
         assert broward['key'].startswith('broward:FL:12011:') and broward['acres'] is None

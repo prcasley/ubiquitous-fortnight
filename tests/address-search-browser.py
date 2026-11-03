@@ -44,7 +44,7 @@ try:
    check('address candidate guard: '+str(overrides),page.evaluate('PublicRadarBridge.getSubject()===null') and (page.evaluate('PublicRadarBridge.getLastGeocode().fallback&&PublicRadarBridge.getSearchCenter().lon===-80.13') if fallback else page.evaluate('!PublicRadarBridge.getMeta().complete')))
    ctx.close()
    for key in overrides:mode.pop(key)
-  for text,expected in [('industrial over 5 acres in West Palm Beach FL',['West Palm Beach FL']),('industrial over 5 acres in Palm Beach County',['Palm Beach County, FL'])]:
+  for text,expected in [('industrial over 5 acres in West Palm Beach FL',['West Palm Beach FL']),('industrial over 5 acres in Palm Beach County',[])]:
    external_requests.clear();ctx=browser.new_context();page=ctx.new_page();page.route('**/*',network);page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
    page.fill('#agentPrompt',text);page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled')
    check('city/county query retains its geocoding behavior: '+text,geocodes()==expected)

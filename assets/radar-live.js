@@ -63,6 +63,7 @@
   let records = [], filtered = [], sourceState = "NJ", sourceCenter = {lat:40.527,lon:-74.363};
   let yearUnknown=new Map(),yearFilter=null;
   let quarantined=new Map(),inspected=null,searchAnchor={lat:40.527,lon:-74.363},centerMode=false,clickTimer=null;
+  let receivedSourceCount=0,expectedSourceCount=null;
   let countResult = null, sourceTime = null, selectedId = null, scanAbort = null, scannerBusy = false;
   let scanComplete=false, scanState="idle", scanId=0, activeSource=null, searchSnapshot=null;
   let lastGeocodeCounty=null,lastGeocode=null,subjectParcel=null;
@@ -127,7 +128,9 @@
     const residentialUnits=state==="FL"&&Number(a.NO_RES_UNT)>0?Number(a.NO_RES_UNT):(state==="NJ"&&Number(a.DWELL)>0?Number(a.DWELL):null);
     let use=useLabel(a,state),municipalityObservation=null;
     if(state==="PA"){const pa=window.RadarPA.attributes(a,publishedSource);address=pa.address;municipalityObservation=pa.municipalityObservation||null;acres=pa.acres;cls=pa.type;yearBuilt=pa.yearBuilt;use=pa.use;}
-    const acreage=domain.acreageObservation(acres,feature.geometry);acres=acreage.acres;
+    const acreage=domain.acreageObservation(acres,feature.geometry);
+    if(publishedSource===SOURCES.BRO&&acreage.reportedAcres==null&&acreage.geometryAcres!=null){acreage.acres=acreage.geometryAcres;acreage.acreageQuality='computed-polygon';acreage.acreageWarning='Acreage computed from the public GIS polygon, not a published lot-size field or survey. It is not net developable acreage.';}
+    acres=acreage.acres;
     const countyProvider=state==="PA"?{code:publishedSource.jurisdiction,id:publishedSource.provider}:publishedSource===SOURCES.PBC?{code:"12099",id:"pbc"}:publishedSource===SOURCES.BRO?{code:"12011",id:"broward"}:publishedSource===SOURCES.MDC?{code:"12086",id:"miamidade"}:null;
     const jurisdiction=countyProvider?.code||(state==="FL"?String(a.CO_NO||""):String(a.COUNTY||"NJGIN"));
     if(!jurisdiction)return null;
@@ -146,7 +149,7 @@
     return lat>=b[1]&&lat<=b[3]&&lon>=b[0]&&lon<=b[2];
   }
   function accept(item,matchesMode,acreFilter,center,radius){
-    if(!matchesMode(item)||!domain.intersectsRadius(item.geometry.geometry,center,radius))return false;
+    if(!matchesMode(item)||(searchSnapshot?.scope!=='county'&&!domain.intersectsRadius(item.geometry.geometry,center,radius)))return false;
     if(item.acreageQuality==='suspect'){quarantined.set(item.key,item);return false;}
     if(!domain.matchesAcres(item.acres,acreFilter))return false;
     if(yearFilter){if(item.yearBuilt==null){yearUnknown.set(item.key,item);return false;}return yearFilter.op==='<'?item.yearBuilt<yearFilter.value:item.yearBuilt>yearFilter.value;}
@@ -173,7 +176,11 @@
     const terms=[],county=window.PublicRadarCounty||"";
     const op=readAcreageFilter().op;
     if(state==="PA")return "1=1";
-    if(provider===SOURCES.BRO||provider===SOURCES.MDC){
+    if(provider===SOURCES.BRO){
+      const numeric=/Integer|SmallInteger|Double|Single/.test(provider.useCodeType||'');
+      const codes=mode==='industrial'?Array.from({length:10},(_,i)=>40+i):mode==='multifamily'?[3,8]:mode==='vacant'?[10,40]:null;
+      if(codes){const quoted=codes.flatMap(c=>[String(c),String(c).padStart(3,'0'),String(c).padStart(4,'0')]).map(c=>"'"+c+"'").join(',');terms.push(mode==='industrial'?(numeric?"(USE_CODE BETWEEN 40 AND 49 OR USE_CODE BETWEEN 4000 AND 4999)":"(USE_CODE IN ("+quoted+") OR USE_CODE LIKE '4___' OR USE_CODE LIKE '04___' OR USE_CODE LIKE '004___')"):'USE_CODE IN ('+(numeric?codes.join(','):quoted)+')');}
+    }else if(provider===SOURCES.MDC){
       // County schemas differ. Apply exact assessment/acreage filters after normalization.
     } else if(provider===SOURCES.PBC) {
       if(wholeSitesOnly&&mode==="industrial")terms.push("CONDO = 'NO'");
@@ -220,9 +227,6 @@
     if(!stateInBounds(center.lat,center.lon,state)){
       status("Selected center is outside "+state+" coverage. Choose a matching market or click the map inside the selected state.","warning");return;
     }
-    if(providerFor(state,center.lat,center.lon)===SOURCES.BRO&&(min!==0||acreFilter.op!==">=")){
-      status("This county source does not publish acreage. Choose At least 0 acres to inspect records with unknown acreage, or use another source.","warning");return;
-    }
     clearResults();
     const currentScan=scanId, controller=new AbortController();
     const checkCurrent=()=>{if(currentScan!==scanId||controller.signal.aborted)throw new DOMException("Cancelled","AbortError");};
@@ -230,15 +234,27 @@
     $("scanButton").disabled=false;
     $("scanButton").textContent="Cancel scan";
     let source=providerFor(state,center.lat,center.lon);const env=scanEnvelope(center,radius);
+    const countywide=request.scope==='county';
     const wholeSitesOnly=request.wholeSitesOnly===true&&source===SOURCES.PBC&&mode==="industrial";
     activeSource=source;sourceState=state;sourceCenter=center;
     yearFilter=request.year?{...request.year}:null;
-    searchSnapshot={addressMatch:request.addressMatch||null,wholeSitesOnly,year:yearFilter,state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,20):[]};
+    searchSnapshot={scope:countywide?'county':'radius',countyLabel:request.countyLabel||window.PublicRadarCounty,addressMatch:request.addressMatch||null,wholeSitesOnly,year:yearFilter,state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,20):[]};
     let municipalityLookup=null;
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
       spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source,wholeSitesOnly)};
+    if(countywide){for(const field of ['geometry','geometryType','spatialRel','inSR'])delete base[field];}
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
+      if(countywide&&(!window.PublicRadarCounty||state==='FL'&&source===SOURCES.FL&&!['Martin','StLucie'].includes(window.PublicRadarCounty)))throw Error('Whole-county source is not configured; no centroid-circle search was substituted');
+      if(source===SOURCES.BRO){
+        const metadata=await window.RadarGISTransport.request(source.url+'?f=json',{signal:controller.signal,timeoutMs:20000,attempts:2});checkCurrent();
+        const fields=new Map((metadata.fields||[]).map(f=>[f.name,f]));
+        const oid=metadata.objectIdField||metadata.objectIdFieldName||[...fields.values()].find(f=>f.type==='esriFieldTypeOID')?.name;
+        if(metadata.geometryType!=='esriGeometryPolygon'||!fields.has('FOLIO_NUMBER')||!fields.has('USE_CODE')||!fields.has(oid))throw Error('Broward parcel schema changed; no acreage or assessment class was inferred');
+        source.orderField=oid;source.fields=source.fields.split(',').filter(f=>fields.has(f)).join(',');
+        source.useCodeType=fields.get('USE_CODE').type;base.where=serverWhere(state,mode,min,source,wholeSitesOnly);
+        status('Broward acreage is computed from GIS polygons, not a published lot-size field or survey. Applying acreage after retrieval.','info');
+      }
       if(state==="PA"){
         if(!source.url)throw Error("Pennsylvania searches require Lehigh or Northampton County; other PA counties are not connected");
         source=await window.RadarPA.prepare(source,{signal:controller.signal});checkCurrent();activeSource=source;
@@ -247,21 +263,22 @@
         if(!source.mappings.acres.length&&(min!==0||acreFilter.op!==">="))throw Error(source.name+" does not publish a recognized acreage field. Choose At least 0 acres to inspect records, or verify the county schema");
         if(mode!=="all"&&!(window.RadarPA.supportsMode?window.RadarPA.supportsMode(source,mode):source.supportsUse))throw Error(source.name+" does not publish a verified descriptive assessment classification. Choose All assessment types; industrial zoning cannot be inferred");
       }
-      if([SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
+      if(!countywide&&[SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)){
         // County layer is demonstrably fast. Page directly instead of asking FDOR for an
         // expensive 10.8-million-parcel statewide count before drawing any result.
         const batchSize=150,pages=6,seen=new Set();let finished=false;
         for(let page=0;page<pages;page++){
           status(source.name+": requesting page "+(page+1)+" · "+seen.size+" source features received…","info");
           const response=await arcgisQuery(source,base,{f:"geojson",outFields:source.fields,
-             returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
-             maxAllowableOffset:"0.00009",resultOffset:String(page*batchSize),
+             returnGeometry:"true",outSR:"4326",geometryPrecision:source===SOURCES.BRO?"7":"5",
+             maxAllowableOffset:source===SOURCES.BRO?"0":"0.00009",resultOffset:String(page*batchSize),
              resultRecordCount:String(batchSize),orderByFields:source.orderField+" ASC"},controller.signal);
           checkCurrent();
           if(!Array.isArray(response.features))throw Error("County GIS did not return parcel geometries");
           for(const feature of response.features){
             const item=normalize(feature,state,center,source);
             if(!item)throw Error("Source returned a parcel without stable identity or geometry");
+            if(source===SOURCES.BRO&&!item.geometryAcres)throw Error("Broward returned no measurable parcel polygon; acreage could not be applied");
             if(accept(item,matchesMode,acreFilter,center,radius)&&!seen.has(item.key)){
               seen.add(item.key);records.push(item);
             }
@@ -290,10 +307,10 @@
       checkCurrent();
       const total=count.count;
       if(!Number.isInteger(total)||total<0) throw Error("The public source did not return a reliable record count. Search was not accepted as complete.");
-      countResult=total;
+      countResult=total;expectedSourceCount=total;
       // Verify each ordered page against the source count. Never treat a short or
       // repeated page as proof that a capped service exhausted its results.
-      const featureLimit=MAX_FEATURES;
+      const featureLimit=countywide&&[SOURCES.PBC,SOURCES.BRO,SOURCES.MDC].includes(source)?900:MAX_FEATURES;
       const multipart=state==="PA"&&source.provider==="northampton",collector=multipart?window.RadarPA.createCollector(source,window.turf):null,pagesSeen=new Set();
       const batchSize=state==="PA"?50:state==="NJ"?75:150,objectIds=new Set();let received=0,finished=total===0;
       // Seek by the published parcel key instead of relying on returned OIDs
@@ -302,7 +319,7 @@
       while(received<featureLimit&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
         const data=await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
-          returnGeometry:"true",outSR:"4326",geometryPrecision:"5",
+          returnGeometry:"true",outSR:"4326",geometryPrecision:source===SOURCES.BRO?"7":"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,featureLimit-received)),
           orderByFields:multipart?source.id+" ASC,"+source.orderField+" ASC":(state==="PA"?source.id:source.orderField)+" ASC",...(state==="PA"&&!multipart?{where:window.RadarPA.pageWhere(base.where,source,lastParcelId),resultOffset:"0"}:{})},controller.signal);
@@ -317,11 +334,12 @@
           objectIds.add(String(objectId));
           const item=normalize(feature,state,center,source);
           if(!item)throw Error("Source returned parcels without stable identity or geometry");
+          if(source===SOURCES.BRO&&!item.geometryAcres)throw Error("Broward returned no measurable parcel polygon; acreage could not be applied");
           if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);
         }
         if(multipart){records=[];quarantined.clear();yearUnknown.clear();for(const feature of collector.features()){const item=normalize(feature,state,center,source);if(!item)throw Error('County parcel normalization failed');if(accept(item,matchesMode,acreFilter,center,radius))records.push(item);}}
         if(state==="PA")lastParcelId=data.features.at(-1).properties[source.id];
-        received+=data.features.length;
+        received+=data.features.length;receivedSourceCount=received;
         scanState="partial";sourceTime=new Date();records.sort((a,b)=>a.distance-b.distance);
         renderResults();renderMap();renderOwners();renderSource();
         if(received>total)break;
@@ -329,7 +347,7 @@
       }
       if(!finished){
         scanState="partial";
-        status(total>featureLimit?"Retrieved "+received+" of "+total+" source features before the "+featureLimit+"-record safety cap. These are PARTIAL candidates, sorted within the retrieved subset; narrow the radius to retrieve more completely.":"Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
+        status(countywide&&received>=featureLimit?"Partial: first "+received+" of "+total+" source parcels countywide; "+records.length+" meet the applied filters. Narrow by town or acreage. Rankings cover only the retrieved subset.":total>featureLimit?"Retrieved "+received+" of "+total+" source features before the "+featureLimit+"-record safety cap. These are PARTIAL candidates, sorted within the retrieved subset; narrow the radius to retrieve more completely.":"Source paging did not reconcile with its count ("+received+" received; "+total+" expected). Results are PARTIAL; more parcels may exist. Narrow or retry the search.","warning");
         return;
       }
       if(municipalityLookup){const reference=await municipalityLookup;checkCurrent();try{window.RadarPAReference.apply(records,reference,window.turf);}catch{/* Optional boundary failure leaves original published names/codes intact. */}}
@@ -337,7 +355,7 @@
       scanComplete=true;scanState="complete";
       selectedId=null; renderResults();renderMap();renderOwners();renderSource();
       if(multipart)countResult=records.length;
-      const msg=records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search. Distances use a map reference point and may exceed the radius for edge parcels.") :
+      const msg=countywide?records.length+" accepted parcels countywide in "+searchSnapshot.countyLabel+" County; "+received+" of "+total+" source records retrieved. No radius limit.":records.length ? (fmt(records.length)+" parcel geometries intersect the "+radius+"-mile search. Distances use a map reference point and may exceed the radius for edge parcels.") :
         "The source responded successfully but no accepted parcel geometries intersect the selected radius.";
       status(msg+(multipart?" Combined "+received+" county boundary rows into "+collector.features().length+" source parcel records; reported acreage is counted once per parcel.":""),"success");$("lastUpdated").textContent=sourceTime.toLocaleString();document.dispatchEvent(new CustomEvent("radar:scan-complete",{detail:{count:records.length,state:sourceState,source:source.name}}));
     } catch(e) {
@@ -355,14 +373,14 @@
   function renderResults(){
     renderQuality();
     filtered=currentFilters();$("resultInfo").textContent=records.length?
-      fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+scanState+(searchSnapshot?.unverified?.length?" · Candidates only: "+searchSnapshot.unverified.join(", ")+" unverified":""):
+      fmt(filtered.length)+" of "+fmt(records.length)+" scanned records · "+(activeSource||SOURCES[sourceState]).name+" · "+(searchSnapshot?.scope==='county'?'countywide · ':'')+scanState+(searchSnapshot?.unverified?.length?" · Candidates only: "+searchSnapshot.unverified.join(", ")+" unverified":""):
       "No completed parcel results loaded";
     const node=$("results");
     if(!filtered.length) {node.innerHTML='<div class="empty">No records to show. Choose a market and run a public parcel scan.</div>';return;}
     node.innerHTML=filtered.slice(0,listLimit).map(p=>'<button type="button" class="parcel '+(selectedId===p.key?"chosen":"")+
        '" data-pid="'+safe(p.key)+'"><span class="parcel-top"><strong>'+safe(p.address||"Parcel "+p.id)+
        '</strong><span class="pill">'+safe(p.type)+'</span></span><span class="parcel-meta">Parcel '+safe(p.id)+' · '+(p.acres==null?"Acreage not reported":fmt(p.acres)+" ac")+
-       ' · '+p.distance.toFixed(2)+' mi to map point</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"Open parcel details for published owner lookup":"PA owner enrichment not connected"))+'</span><span class="oz-observation" data-oz-key="'+safe(p.key)+'" data-oz-scan="'+scanId+'">'+safe(window.RadarProperty.ozLabel(p))+'</span></button>').join("");
+       (p.acreageQuality==='computed-polygon'?' · computed GIS acreage':'')+(searchSnapshot?.scope==='county'?' · countywide':' · '+p.distance.toFixed(2)+' mi to map point')+'</span><span class="parcel-owner">'+safe(p.owner||(p.state==="FL"?"Open parcel details for official owner lookup":p.state==="NJ"?"Open parcel details for published owner lookup":"PA owner enrichment not connected"))+'</span><span class="oz-observation" data-oz-key="'+safe(p.key)+'" data-oz-scan="'+scanId+'">'+safe(window.RadarProperty.ozLabel(p))+'</span></button>').join("");
     if(filtered.length>listLimit){
       const more=document.createElement('button');more.type='button';more.className='secondary';
       more.textContent='Show more parcels ('+listLimit+' of '+filtered.length+' displayed)';
@@ -384,7 +402,8 @@
       if(p.key===subjectParcel?.key){l.bindTooltip(subjectParcel.subjectLabel,{permanent:true,direction:'top'});if(l.setStyle)l.setStyle({color:'#ffce32',weight:4});}
       l.addTo(layers);l.on("click",e=>{if(centerMode||$("identifyParcel")?.getAttribute("aria-pressed")==="true")return;clearTimeout(clickTimer);if(e.originalEvent?.detail>1)return;clickTimer=setTimeout(()=>choose(p.key),450);});
     }
-    if(circle) map.removeLayer(circle);
+    if(circle){map.removeLayer(circle);circle=null;}
+    if(searchSnapshot?.scope==='county')return;
     circle=L.circle([sourceCenter.lat,sourceCenter.lon],{radius:(searchSnapshot?.radius||Number($("radiusSelect").value))*1609.344,color:"#058b87",fillOpacity:.035,weight:1,dashArray:"6 5"}).addTo(map);
   }
   function renderOwners(){
@@ -415,9 +434,9 @@
     selectedId=id;renderResults();renderMap();$("details").hidden=false;$("details").dataset.parcelKey=id;
     const owner=p.owner||"Use the public-source lookup below";
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
-      (p.acreageWarning?'<p class="acreage-warning">'+safe(p.acreageWarning)+' Source reports '+safe(fmt(p.reportedAcres))+' ac; mapped polygon approximately '+safe(fmt(p.geometryAcres))+' ac.</p>':'')+
+      (p.acreageWarning?'<p class="acreage-warning">'+safe(p.acreageWarning)+(p.acreageQuality==='computed-polygon'?'':' Source reports '+safe(fmt(p.reportedAcres))+' ac; mapped polygon approximately '+safe(fmt(p.geometryAcres))+' ac.')+'</p>':'')+
       '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.parcelNumber||p.id)+'</p>'+
-      '<div class="detail-grid"><div><span>Reported site acreage</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
+      '<div class="detail-grid"><div><span>'+(p.acreageQuality==='computed-polygon'?'Computed GIS polygon acreage':'Reported site acreage')+'</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
       '<div><span>Assessment use</span><strong>'+safe(p.use)+'</strong></div></div>'+
       '<div class="detail-label">Assessment owner name</div><div class="detail-value">'+safe(owner)+'</div>'+
       '<p class="muted">Public assessment observation; a matching owner name does not prove legal title, LLC control, or a development affiliation.</p>'+
@@ -532,7 +551,7 @@
   }
   function clearResults(){
     scanId++;if(scanAbort)scanAbort.abort();
-    scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;
+    scanAbort=null;scannerBusy=false;scanComplete=false;scanState="idle";activeSource=null;searchSnapshot=null;receivedSourceCount=0;expectedSourceCount=null;
     $("scanButton").disabled=!map;$("scanButton").textContent="Scan public parcels";
     quarantined.clear();yearUnknown.clear();yearFilter=null;inspected=null;subjectParcel=null;clearTimeout(clickTimer);listLimit=300;records=[];filtered=[];sourceTime=null;countResult=null;selectedId=null;
     $("details").hidden=true;
@@ -565,7 +584,7 @@
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},
     getStatus:()=>({message:$("statusText").textContent,kind:$("statusText").dataset.kind}),
     focusParcel:(key,{satellite=false}={})=>{$("textFilter").value="";choose(key,{navigation:true});if(satellite){$("basemap").value="satellite";$("basemap").dispatchEvent(new Event("change"));}},findPlace,setMarket,choose,clearResults,ingestOne,locateGPS,getYearUnknown:()=>[...yearUnknown.values()],getRecord:key=>(inspected?.key===key?inspected:null)||records.find(r=>r.key===key)||(subjectParcel?.key===key?subjectParcel:null)||yearUnknown.get(key),getResults:()=>records.slice(),getVisible:()=>filtered.slice(),
-    getMeta:()=>({state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,yearUnknownCount:yearUnknown.size,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
+    getMeta:()=>({scope:searchSnapshot?.scope||'radius',county:searchSnapshot?.county,countyLabel:searchSnapshot?.countyLabel,receivedSourceCount,expectedSourceCount,state:sourceState,time:sourceTime?.toISOString()||null,source:(activeSource||SOURCES[sourceState]).name,sourceURL:(activeSource||SOURCES[sourceState]).url,count:countResult,complete:scanComplete,status:scanState,scanId,ready:!!sourceTime&&scanComplete,yearUnknownCount:yearUnknown.size,quarantinedCount:quarantined.size,unverified:searchSnapshot?.unverified||[]}),
     setRadius:value=>{
       const radius=Number(value);if(!Number.isFinite(radius)||radius<.5||radius>100)throw Error("Radius must be between 0.5 and 100 miles");
       const select=$("radiusSelect");if(![...select.options].some(o=>Number(o.value)===radius))select.add(new Option(radius+" miles",String(radius)));
