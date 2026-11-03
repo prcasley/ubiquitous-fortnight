@@ -127,7 +127,7 @@
     return polygons.some(rings=>Array.isArray(rings)&&rings.length>0&&pointInRing(rings[0],lon,lat)&&
       !rings.slice(1).some(hole=>pointInRing(hole,lon,lat)));
   }
-  async function identifyAt(lat,lng){
+  async function identifyAt(lat,lng,{subject=false}={}){
    const b=source(),state=$("stateSelect")?.value,m=map();if(!b||!m||!state)return;
    const provider=b.getSource(state,lat,lng),uri=provider?.url;if(!uri){note("No public parcel service is available for this state.");return;}
    if(state==="PA"&&!provider.mappings){note("Run a PA parcel scan first to verify this county source schema before identifying a parcel.","warning");return;}
@@ -157,7 +157,8 @@
        return {f,d};
      }).sort((a,b)=>a.d-b.d)[0]?.f:features[0];
      if(!picked)throw Error("The source did not publish a valid nearby geometry");
-     const rec=b.ingestOne(picked,state,{lat,lon:lng});
+     if(subject&&!['Polygon','MultiPolygon'].includes(picked.geometry?.type))throw Error('A containing parcel polygon is required to verify the subject');
+     const rec=b.ingestOne(picked,state,{lat,lon:lng},undefined,{subject});
      if(!rec)throw Error("The returned feature lacks a stable parcel ID or coordinates");
      note(state==="FL"?
        (countyFL?"Clicked county parcel polygon identified by spatial hit test. Not a title survey.":"Nearest published Florida centroid displayed, not a verified clicked lot."):

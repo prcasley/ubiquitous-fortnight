@@ -46,3 +46,15 @@ test('generic NJ price request does not geocode an article as a town',()=>{asser
 test('multiword town spelling also requires confirmation',()=>{assert.equal(parse('industrial in Perth Ambboy NJ').suggestion,'industrial in perth amboy nj');assert.equal(parse('industrial in West Palm Beech FL').suggestion,'industrial in west palm beach fl');});
 
 test('plain spoken street address is an address, an acreage search is not',()=>{assert.equal(parse('40 Hilton St Easton PA').address,true);assert.equal(parse('Find 6 acre industrial parcels in Edison NJ').address,false);});
+
+for(const preposition of ['near','around','within 2 miles of','at'])test('address plus criteria retains street location: '+preposition,()=>{
+ const p=parse('Industrial over 5 acres '+preposition+' 7777 Southern Blvd, West Palm Beach FL');
+ assert.equal(p.location,'7777 Southern Blvd, West Palm Beach FL');assert.equal(p.streetAddress,p.location);assert.equal(p.address,false);assert.equal(p.state,'FL');assert.equal(p.type,'industrial');assert.equal(p.acres,5);assert.equal(p.comparison,'>');assert.equal(p.radius,preposition.startsWith('within')?2:null);
+});
+test('NJ Plaza address is retained while city and county searches remain places',()=>{
+ assert.equal(parse('industrial over 5 acres near 1 Harmon Plaza Secaucus NJ').streetAddress,'1 Harmon Plaza Secaucus NJ');
+ assert.equal(parse('Industrial over 5 acres in West Palm Beach FL').location,'West Palm Beach FL');
+ assert.equal(parse('Industrial over 5 acres in Palm Beach County').streetAddress,null);
+});
+
+test('numbered street names and unlisted address cities retain an explicit fallback',()=>{const p=parse('industrial over 5 acres near 123 5th Avenue New Brunswick NJ');assert.equal(p.streetAddress,'123 5th Avenue New Brunswick NJ');assert.equal(p.addressCity,'New Brunswick');});

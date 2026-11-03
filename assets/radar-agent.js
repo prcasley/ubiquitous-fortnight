@@ -46,13 +46,19 @@
      if(name==='Northern New Jersey'){intent.location='Parsippany, NJ';intent.region='all of Northern New Jersey (using a Parsippany radius)';}
    }
    const addressText=intent.q.replace(/^(?:where is|locate|find|show me|take me to)\s+/i,'');
-   intent.address=/^\d+(?:-\d+)?\s+.+\b(?:st|street|ave|avenue|rd|road|blvd|boulevard|hwy|highway|dr|drive|ln|lane|ct|court|way|pkwy|parkway)\b/i.test(addressText);
-   if(intent.address){intent.location=addressText;intent.search=true;}
+   const street=/^\d+(?:-\d+)?[A-Za-z]?\s+(?:[A-Za-z0-9][A-Za-z0-9.'’-]*\s+){0,8}(?:st|street|ave|avenue|rd|road|blvd|boulevard|hwy|highway|dr|drive|ln|lane|ct|court|way|pkwy|parkway|plaza|plz|place|pl|loop|trail|trl|terrace|ter|circle|cir)\b/i;
+   const locations=[addressText,...[...intent.q.matchAll(/\b(?:near|around|at|within\s+\d+(?:\.\d+)?\s+miles?\s+of)\s+(\d.+)/gi)].map(m=>m[1])];
+   const fullAddress=locations.find(text=>street.test(text)&&! /\b(?:acres?|ac|miles?|mi|within|over|under)\b/i.test(text.match(street)[0]));
+   intent.streetAddress=fullAddress?fullAddress.split(/\s+(?:with|that|which|within|over|under|at least|at most|built|newer than|older than|for sale)\b/i)[0].replace(/[,\s]+$/,''):null;
+   const cityTail=intent.streetAddress?.slice(intent.streetAddress.match(street)[0].length).replace(/^[,\s]+/,'').replace(/[,\s]+(?:NJ|FL|PA|new jersey|florida|pennsylvania)(?:\s+\d{5}(?:-\d{4})?)?$/i,'').trim();
+   intent.addressCity=intent.state&&cityTail&&/^[A-Za-z][A-Za-z .'-]+$/.test(cityTail)?cityTail:null;
+   intent.address=!!intent.streetAddress&&street.test(addressText)&&!intent.type&&intent.acres==null&&intent.radius==null;
+   if(intent.streetAddress){intent.location=intent.streetAddress;intent.search=true;}
    if(/\b(all types|any types)\b/.test(l)){intent.type='all';intent.search=true;}
    if(/\bios\b/.test(l)){intent.type=intent.type||'industrial';intent.ios=true;intent.search=true;}
    const year=l.match(/\b(?:built\s+)?(before|after|newer than|older than)\s+(\d{4})\b/);
    intent.year=year?{op:/before|older/.test(year[1])?'<':'>',value:Number(year[2])}:null;
-   if(intent.year)intent.search=true;
+   if(intent.year){intent.search=true;intent.address=false;}
    intent.top=Number((l.match(/\btop\s+(\d+)\b/)||[])[1])||null;if(intent.top)intent.sort='largest';
    if(/\b(biggest|largest|sort by acreage|the big one)\b/.test(l))intent.sort='largest';
    intent.forSale=intent.forSale||/\b(?:available|availability|for sale)\b/.test(l);
@@ -388,6 +394,8 @@
    }
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
    try{
+     let geocodeMatch=preserved?.addressMatch||null;
+     if(geocodeMatch)intent.streetAddress=geocodeMatch.requestedAddress;
      let state=intent.state||$ ("stateSelect").value;
      if(!["FL","NJ","PA"].includes(state)){putMessage("Currently connected public parcel sources are Florida (connected counties), New Jersey, and Lehigh/Northampton in Pennsylvania (live schema check required). Other counties/states are not connected.");return;}
      const previousState=$("stateSelect").value;$("stateSelect").value=state;
@@ -410,11 +418,13 @@
      }
      if(intent.location){
        $("placeInput").value=intent.location+(!stateFrom(intent.location)&&intent.state?", "+intent.state:"");
-       const located=await bridge().findPlace();
+       const located=await bridge().findPlace({address:!!intent.streetAddress,expectedState:intent.state,fallback:intent.streetAddress&&(intent.recognizedPlace||intent.addressCity)&&!/county/i.test(intent.recognizedPlace||intent.addressCity)?(intent.recognizedPlace||intent.addressCity)+', '+state:null});
        if(located!==true){
          putMessage((bridge().getStatus()?.message||"Location lookup failed")+" No parcel scan was run at a guessed location.");return;
        }
        state=$("stateSelect").value;locationKnown=true;
+       const geocode=bridge().getLastGeocode();geocodeMatch=geocode?{...geocode,requestedAddress:intent.streetAddress}:null;
+       if(geocode?.fallback)putMessage('I could not confidently match '+intent.streetAddress+'. Falling back to '+geocode.query+'; the search is centered on the city, not the address. No subject parcel is inferred.');
        const matchCounty=String(bridge().getLastGeocodeCounty?.()||"").trim();
        const recognized=countyEntries(state).find(c=>c.label.toLowerCase()===matchCounty.toLowerCase());
        if(!recognized){
@@ -428,7 +438,7 @@
        }
        applyCounty(state,recognized.key,{center:false});
      }
-     if(intent.address){
+     if(intent.address&&!geocodeMatch?.fallback){
        const point=bridge().getSearchCenter();const record=await window.PublicRadarGeo.identifyAt(point.lat,point.lon);
        if(record){putMessage('Address geocoded; a public parcel was identified at that map point. Verify the parcel address and geometry below; geocoding is not title verification.');window.RadarChatProperties?.render([record],{...bridge().getMeta(),time:record.retrievedAt,source:record.source.name,sourceURL:record.source.url,complete:true});}
        else putMessage('The address was geocoded, but no unique public parcel could be verified at that point. No parcel identity was guessed.');return;
@@ -438,11 +448,16 @@
      bridge().setRadius(intent.radius??preserved?.radius??5);
      const previous=bridge().getMeta().time;
      const priceExplanation=intent.pricePsf?` I read $${intent.pricePsf.amount}/SF as ${intent.pricePsf.basis==='closed-sale'?'closed-sale price':intent.pricePsf.basis==='asking-sale'?'asking sale price':intent.pricePsf.basis==='asking-rent'?'asking rent':'an unspecified price or rent'} per building square foot. Asking prices and closed-sale comps are different; neither is verified by this scan.`:'';
-     putMessage(`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)}, touching the ${$("radiusSelect").value}-mile search area around ${intent.location||intent.countyLabel||'the selected map location'}. ${intent.sort==='largest'?'Largest first.':'Nearest first.'}`+
+     putMessage(`Searching ${intent.type||'all property types'} with ${acreageDescription(intent)}, touching the ${$("radiusSelect").value}-mile search area around ${geocodeMatch?.fallback?geocodeMatch.query:intent.streetAddress||intent.location||intent.countyLabel||'the selected map location'}${intent.streetAddress&&!geocodeMatch?.fallback?' (address match score '+geocodeMatch.score+')':''}. ${intent.sort==='largest'?'Largest first.':'Nearest first.'}`+
        (missing.length?' '+missing.join(', ')+' cannot be verified here. Results are candidates for further research, not confirmed matches to those conditions.':'')+priceExplanation);
-     await bridge().scan({unverified:missing,year:intent.year,wholeSitesOnly:options.wholeSitesOnly??preserved?.wholeSitesOnly??false});
+     await bridge().scan({addressMatch:geocodeMatch,unverified:missing,year:intent.year,wholeSitesOnly:options.wholeSitesOnly??preserved?.wholeSitesOnly??false});
      if(intent.sort)bridge().sortResults(intent.sort);
      const meta=bridge().getMeta(),rows=bridge().getResults();
+     if(intent.streetAddress&&!geocodeMatch?.fallback){
+       const center=bridge().getSearchCenter(),subject=await window.PublicRadarGeo.identifyAt(center.lat,center.lon,{subject:true});
+       if(subject){putMessage(subject.subjectLabel+'. Public polygon contains the geocoded point; verify the address and boundary before relying on it. This separate subject card is not added to the matching-results count.');window.RadarChatProperties?.render([subject],{...meta,subjectParcel:true});}
+       else putMessage('The address is the search center, but no unique containing public parcel polygon could be verified. No subject parcel was inferred.');
+     }
      if(meta.time&&!options.replay){history.push({intent:{...intent},search:bridge().getSearch()});if(history.length>20)history.shift();}
      if(intent.year)putMessage('Applied published year built '+(intent.year.op==='<'?'before ':'after ')+intent.year.value+'. Missing years are listed separately and do not count as matches.');
      if(!meta.ready||!meta.complete||meta.time===previous){

@@ -113,12 +113,14 @@ def network(route):
         place=re.sub(r'\s+(?:nj|fl|pa|ny|new jersey|florida|pennsylvania)$','',normalized)
         if place=='40 hilton st easton': place='easton'
         if place=='5900 australian ave west palm beach': place='west palm beach'
-        found=places.get(place)
+        address_fixture={'7777 southern blvd west palm beach':('FL','Palm Beach',-80.175,26.6797),'1 harmon plaza secaucus':('NJ','Hudson',-74.070,40.793)}
+        exact_address=place in address_fixture
+        found=address_fixture.get(place) or places.get(place)
         if not found:
             respond(route,{'candidates':[]});return
         state,county,lon,lat=found
         if mode.get('persona') or (mode.get('crossBorder') and place=='easton'): mode['fixtureCenter']=(lon,lat)
-        respond(route,{'candidates':[{'score':100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':state,'Subregion':county+' County'}}]})
+        respond(route,{'candidates':[{'score':60 if exact_address and mode.get('addressLowScore') else 100,'address':query,'location':{'x':lon,'y':lat},'attributes':{'RegionAbbr':mode.get('addressState',state) if exact_address else state,'Subregion':(mode.get('addressCounty',county) if exact_address else county)+' County','Addr_type':mode.get('addressType','PointAddress') if re.match(r'^\d',normalized) else 'Locality'}}]})
         return
     if mode.get('njNomCase') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         if mode.get('ozFail'):respond(route,{'error':{'message':'Synthetic official nomination outage'}},503);return
@@ -330,6 +332,11 @@ def network(route):
         if mode.get('persona') and params.get('resultRecordCount')==['7']:
             env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
             features=[{'type':'Feature','properties':{'PARID':'ADDRESS-5900','SITE_ADDR_STR':'5900 Australian Ave','PROPERTY_USE':'DISTRIBUTION','ACRES':6,'YRBLT':1980},'geometry':parcel_polygon(lon,lat,6)}]
+        if mode.get('addressSearch') and params.get('resultRecordCount')==['7']:
+            env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
+            acres=2 if mode.get('subjectExcluded') else 6.05
+            props={'PAMS_PIN':'SUBJECT-NJ','PROP_LOC':'1 HARMON PLAZA','MUN_NAME':'SECAUCUS','PROP_CLASS':'4B','CALC_ACRE':acres,'COUNTY':'HUDSON'} if nj else {'PARID':'SUBJECT-FL','SITE_ADDR_STR':'7777 SOUTHERN BLVD','PROPERTY_USE':'INDUSTRIAL','ACRES':acres,'YRBLT':1980}
+            features=[{'type':'Feature','properties':props,'geometry':parcel_polygon(lon,lat,acres)}]
         if mode.get('mapInspect') and params.get('resultRecordCount')==['7']:
             env=json.loads(params['geometry'][0]);lon=(env['xmin']+env['xmax'])/2;lat=(env['ymin']+env['ymax'])/2
             features=[{'type':'Feature','properties':{'PARID':'INSPECT-HOME','SITE_ADDR_STR':'Synthetic inspection home','PROPERTY_USE':'SINGLE FAMILY RESIDENTIAL','ACRES':.2,'YRBLT':1991},'geometry':polygon(lon,lat)}]
