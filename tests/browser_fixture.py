@@ -143,6 +143,10 @@ def network(route):
             features.append({'type':'Feature','geometry':parcel_polygon(-74.363+i*.001,40.527,6+i),'properties':{'OBJECTID':i,'PAMS_PIN':'INV-'+str(i),'PROP_LOC':'Synthetic inventory '+str(i),'MUN_NAME':'Synthetic Edison','PROP_CLASS':(mode.get('inventoryClass','4B') if i==2 else '4B') if i!=1 else '1','CALC_ACRE':6+i,'COUNTY':'Middlesex','YR_CONSTR':1980,'PCLBLOCK':'12','PCLLOT':str(i+1),'PCL_MUN':'1205','DEED_BOOK':'123','DEED_PAGE':'456','LAND_VAL':100000,'IMPRVT_VAL':200000,'NET_VALUE':300000}})
         respond(route,{'features':features,'exceededTransferLimit':False});return
     if parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
+        mode['njNomRequestCount']=mode.get('njNomRequestCount',0)+1
+        if mode.get('njNomTransientBudget',0)>0:
+            mode['njNomTransientBudget']-=1
+            respond(route,{'error':{'message':'Synthetic transient nomination failure','code':mode.get('njNomErrorStatus',503)}},mode.get('njNomErrorStatus',503));return
         if mode.get('njNomFail'):
             respond(route,{'error':{'message':'Synthetic nomination outage'}},503);return
         overview='geometry' not in params

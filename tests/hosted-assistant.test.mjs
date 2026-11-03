@@ -100,3 +100,10 @@ test('real workspace routes require authentication and deliver hosted summaries 
     assert.equal((await fetch(base+'/api/radar-agent',{method:'POST',headers,body:JSON.stringify({...payload(),question:'x'.repeat(36000)})})).status,400);
   }finally{await new Promise(resolve=>server.close(resolve));store.close();}
 });
+
+test('legacy PR entity evidence and contact fields never enter hosted prompts',async()=>{
+ let sent;const service=configured(async(_url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{message:{content:'P-1 reports 3 acres.'}}]})};});
+ const input=payload();Object.assign(input.records[0],{published_assessment_entity:'LEGACY OWNER MUST STAY LOCAL',assessment_entity_source:'https://example.gov/private-owner-evidence',entityName:'ANOTHER OWNER MUST STAY LOCAL',contacts:[{email:'private-contact@example.test'}],mailingAddress:'PRIVATE MAILING ADDRESS'});
+ assert.equal((await service.answer(input)).status,200);
+ const body=JSON.stringify(sent);for(const value of ['LEGACY OWNER MUST STAY LOCAL','private-owner-evidence','ANOTHER OWNER MUST STAY LOCAL','private-contact@example.test','PRIVATE MAILING ADDRESS'])assert.equal(body.includes(value),false,value);
+});

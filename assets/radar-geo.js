@@ -17,7 +17,7 @@
  };
  const ids=f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20||f.properties?.Geography;
  const source=()=>window.PublicRadarBridge;
- let layers={},activeIdentify=false,requests={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();
+ let layers={},activeIdentify=false,requests={},retryTimers={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();
  const map=()=>source()?.getMap();
  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const note=(message,type="info")=>{
@@ -40,21 +40,21 @@
  }
  async function queryLayer(uri,params,signal){
    const url=uri+"/query?"+new URLSearchParams({...params,f:params.f||"json"}).toString();
-   const response=await fetch(url,{signal,credentials:"omit",mode:"cors"});
-   if(!response.ok)throw Error("The public map layer responded with HTTP "+response.status);
+   let response;try{response=await fetch(url,{signal,credentials:"omit",mode:"cors"});}catch(e){if(!signal.aborted)e.transient=true;throw e;}
+   if(!response.ok){const error=Error("The public map layer responded with HTTP "+response.status);error.transient=[408,429,500,502,503,504].includes(response.status);throw error;}
    const data=await response.json();
-   if(data.error)throw Error(data.error.message||"Map source error");
+   if(data.error){const error=Error(data.error.message||"Map source error");error.transient=[408,429,500,502,503,504].includes(Number(data.error.code));throw error;}
    return data;
  }
- async function loadOpportunityZone(kind){
+ async function loadOpportunityZone(kind,{retry=false}={}){
    const m=map(),d=OZ[kind];
    if(!m||!d)return;
-   requests[kind]?.abort();
+   clearTimeout(retryTimers[kind]);delete retryTimers[kind];requests[kind]?.abort();
    const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;
    const overview=m.getZoom()<10,center=m.getCenter(),state=center.lat>=24&&center.lat<=31.2&&center.lng>=-88&&center.lng<=-79?'FL':center.lat>=39.7&&center.lat<=42.3&&center.lng>=-80.6&&center.lng< -75.6?'PA':center.lat>=38.9&&center.lat<=41.4&&center.lng>=-75.6&&center.lng<=-73.88?'NJ':$('stateSelect')?.value||'NJ';
    const cacheKey=kind+':'+state,cached=overviewCache.get(cacheKey);
    if(overview&&cached&&Date.now()-cached.time<600000){group.clearLayers();for(const layer of cached.layers)group.addLayer(layer);layerStatus(kind,'On · '+state+' state overview (approximate)');note('OZ boundaries remain on. State overview is simplified; zoom in for boundary detail.');return;}
-   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);
+   let timedOut=false;const ctrl=new AbortController(),timer=setTimeout(()=>{timedOut=true;ctrl.abort();},20000);
    requests[kind]=ctrl;layerStatus(kind,"Loading reference polygons…");note("Loading "+d.label+" from its public reference GIS layer…");
    try {
      if(d.states&&!d.states.includes(state)){group.clearLayers();layerStatus(kind,'On · covers '+d.states.join(', ')+' only');note(d.label+' covers '+d.states.join(', ')+' only; nothing to show for '+state+'.');return;}
@@ -100,7 +100,12 @@
      layerStatus(kind,'On · '+polygon.length+(overview?' '+state+' overview tracts (approximate)':' detailed reference tracts displayed in this view'));
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
    }catch(e){
-     if(requests[kind]!==ctrl)return;
+     if(requests[kind]!==ctrl||ctrl.signal.aborted&&!timedOut)return;
+     if(kind==='ozNJ'&&!retry&&(timedOut||e.transient)){
+       layerStatus(kind,'Retrying once'+(group.getLayers().length?' · previous boundaries retained':'')+'…');
+       note('The nomination source is temporarily unavailable. Retrying automatically once…','info');
+       retryTimers[kind]=setTimeout(()=>{delete retryTimers[kind];if($(kind+'Toggle')?.checked)loadOpportunityZone(kind,{retry:true});},700);return;
+     }
      layerStatus(kind,group.getLayers().length?'On · previous boundaries displayed; new area Unavailable':'On · boundaries Unavailable — retry or choose another area');
      note("OZ layer could not be verified: "+String(e?.message||e)+". No tract-status conclusion was made.","warning");
    }finally{if(requests[kind]===ctrl)delete requests[kind];clearTimeout(timer);}
@@ -165,7 +170,7 @@
    for(const kind of Object.keys(OZ)){
      $(kind+"Toggle")?.addEventListener("change",e=>{
        if(e.target.checked)loadOpportunityZone(kind);
-       else{requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
+       else{clearTimeout(retryTimers[kind]);delete retryTimers[kind];requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
      });
    }
    $("identifyParcel")?.addEventListener("click",()=>{
@@ -177,7 +182,7 @@
    m.on("dblclick",()=>{clearTimeout(identifyTimer);identifyRequest?.abort();});
    m.on("click",e=>{if(!activeIdentify||e.originalEvent?.detail>1)return;clearTimeout(identifyTimer);identifyTimer=setTimeout(()=>{if(activeIdentify)identifyAt(e.latlng.lat,e.latlng.lng);},450);});
    document.addEventListener("radar:scan-state",e=>{if(e.detail.state==='idle'){clearTimeout(identifyTimer);identifyRequest?.abort();}});
-   m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){requests[k]?.abort();layers[k]?.clearLayers();layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
+   m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){clearTimeout(retryTimers[k]);delete retryTimers[k];requests[k]?.abort();layers[k]?.clearLayers();layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
    window.PublicRadarGeo={sources:OZ,loadOpportunityZone,identifyAt,getOverlayState:kind=>({requested:!!$(kind+'Toggle')?.checked,count:layers[kind]?.getLayers().length||0})};
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();

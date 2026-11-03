@@ -45,6 +45,20 @@ try:
   page.set_viewport_size({'width':360,'height':800});page.evaluate('scrollTo(0,0)')
   check('three overlays fit narrow phone with accessible full nomination label',page.evaluate('document.documentElement.scrollWidth<=innerWidth') and 'nomination' in page.locator('#ozNJToggle').get_attribute('aria-label').lower())
   page.uncheck('#ozNJToggle');check('hiding nominations does not turn eligibility off',page.is_checked('#oz2Toggle') and page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===0'))
+  page.check('#ozNJToggle');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1')
+  start=mode.get('njNomRequestCount',0);mode['njNomTransientBudget']=1
+  page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")');page.wait_for_function('document.getElementById("ozNJLegendStatus").textContent.includes("displayed")')
+  check('one transient failure retries automatically without moving map',mode['njNomRequestCount']-start==3 and mode['njNomTransientBudget']==0 and page.is_checked('#ozNJToggle'))
+  start=mode['njNomRequestCount'];mode['njNomTransientBudget']=100
+  page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")');page.wait_for_function('document.getElementById("ozNJLegendStatus").textContent.includes("Unavailable")');page.wait_for_timeout(900)
+  check('persistent transient outage retries exactly once and preserves boundaries',mode['njNomRequestCount']-start==2 and page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===1'))
+  mode['njNomTransientBudget']=0;mode['njNomErrorStatus']=400;mode['njNomTransientBudget']=1;start=mode['njNomRequestCount']
+  page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")');page.wait_for_timeout(900)
+  check('permanent request errors are not retried',mode['njNomRequestCount']-start==1)
+  mode['njNomErrorStatus']=503;mode['njNomTransientBudget']=1;start=mode['njNomRequestCount']
+  page.evaluate('PublicRadarGeo.loadOpportunityZone("ozNJ")');page.uncheck('#ozNJToggle');page.wait_for_timeout(1100)
+  check('turning layer off cancels a pending retry',mode['njNomRequestCount']-start==1 and not page.is_checked('#ozNJToggle') and page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===0'))
+  mode['njNomTransientBudget']=0
   check('no uncaught errors',not errors);b.close()
  print('KML/OZ browser suite passed:',len(checks),'local-safety and zoom-persistence checks.')
 finally:server.shutdown();server.server_close()
