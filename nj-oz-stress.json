@@ -1,0 +1,110 @@
+{
+  "mode": "live",
+  "url": "https://prcasley.github.io/ubiquitous-fortnight/",
+  "results": [
+    {
+      "test": "overview matches all 130 reviewed tract identities",
+      "ok": true,
+      "detail": "On \u00b7 130 NJ overview tracts (approximate)"
+    },
+    {
+      "test": "overview matches all 60 release municipality labels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "overview has no duplicate tract polygons",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "every release municipality renders its own tract at zoom 14",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "popup names municipality/county and distinguishes certification",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "popup uses corrected official announcement",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "ten rapid toggle cycles leave one clean layer set",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "toggle off removes all nomination shapes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "rapid seven-city pan settles on the last city",
+      "ok": true,
+      "detail": "['Long Branch city']"
+    },
+    {
+      "test": "Florida view explains NJ-only coverage",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "return to NJ restores the target tract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "desktop has no uncaught JS errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "phone emulation overview contains 130 tracts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "phone nomination tap target is at least 44px tall",
+      "ok": true,
+      "detail": "{'x': 255.65625, 'y': 563.625, 'width': 113.34375, 'height': 44.1875}"
+    },
+    {
+      "test": "phone has no horizontal page scroll",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "phone street-level tract renders",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "phone has no uncaught JS errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "outage reports unavailable without an absence conclusion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "truncated response is rejected, not treated as empty success",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "test": "slow source shows loading then complete overview",
+      "ok": true,
+      "detail": "On \u00b7 130 NJ overview tracts (approximate)"
+    }
+  ],
+  "passed": 20,
+  "total": 20,
+  "testedCommit": "b713c796b892cd9ffd2e1a40cc14b132ef3c68e8",
+  "runURL": "https://github.com/prcasley/ubiquitous-fortnight/actions/runs/41670334710"
+}
