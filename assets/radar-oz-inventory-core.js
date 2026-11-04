@@ -3,7 +3,7 @@
  'use strict';
  const nominationURL='https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0';
  const parcelURL='https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0';
- const fields=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE','LAND_VAL','IMPRVT_VAL','NET_VALUE'];
+ const fields=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE','DEED_DATE','SALE_PRICE','PCLQCODE','BLDG_DESC','LAND_VAL','IMPRVT_VAL','NET_VALUE'];
  function esriPolygon(geometry){
   if(!['Polygon','MultiPolygon'].includes(geometry?.type))throw Error('Published tract boundary is not a polygon');
   const polygons=geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
@@ -24,16 +24,16 @@
    if(!response.ok)throw Error('Public GIS returned HTTP '+response.status);const data=await response.json();if(data.error)throw Error('Public GIS could not complete this inventory query');return data;
   }finally{clearTimeout(timer);signal?.removeEventListener('abort',stop);}
  }
- async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,onProgress=()=>{},classes=[],minAcres=0}={}){
+ async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,onProgress=()=>{},classes=[],minAcres=0,boundaryFeature=null}={}){
   if(!/^34\d{9}$/.test(tract))throw Error('An exact 11-digit NJ tract is required');
   if(!Number.isInteger(limit)||limit<1||limit>5000)throw Error('Parcel retrieval limit must be 1–5,000');
   if(!Array.isArray(classes)||classes.some(c=>!['1','2','4A','4B','4C'].includes(c))||!Number.isFinite(minAcres)||minAcres<0||minAcres>99999)throw Error('Invalid published assessment class/acreage filter');
-  const report={tract,criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
+  const report={tract,boundarySource:boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service',criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
   const options={fetcher,signal};
   try{
-   const boundary=await json(nominationURL,{f:'geojson',where:"Geography = '"+tract+"'",outFields:'Geography',returnGeometry:'true',outSR:'4326',resultRecordCount:'2'},options);
+   const boundary=boundaryFeature?{features:[boundaryFeature]}:await json(nominationURL,{f:'geojson',where:"Geography = '"+tract+"'",outFields:'Geography',returnGeometry:'true',outSR:'4326',resultRecordCount:'2'},options);
    if(boundary.exceededTransferLimit||boundary.features?.length!==1||String(boundary.features[0].properties?.Geography)!==tract)throw Error('Nomination boundary did not return one exact tract');
-   const geometry=boundary.features[0].geometry,polygon=esriPolygon(geometry);
+   const geometry=boundary.features[0].geometry,polygon=esriPolygon(geometry);report.boundarySource=boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service';
    const meta=await json(parcelURL,null,options),available=new Set((meta.fields||[]).map(f=>f.name));
    const oid=meta.objectIdField||meta.fields?.find(f=>f.type==='esriFieldTypeOID')?.name;
    if(!oid||!available.has(oid)||!fields.every(f=>available.has(f))||meta.geometryType!=='esriGeometryPolygon')throw Error('NJ parcel schema could not be verified');

@@ -1,0 +1,25 @@
+/* Research scenarios, not tax qualification, seller motivation or ownership inference. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarNominationPlanning=api;})(globalThis,()=>{
+ 'use strict';
+ const corridors={port:{label:'Port / Turnpike',towns:['Newark city','Jersey City city','Elizabeth city','Bayonne city','Kearny town','Carteret borough','Perth Amboy city','Sayreville borough','Hillside township']},north:{label:'Route 80 / 46 / Meadowlands',towns:['South Hackensack twp./Teterboro borough','Hackensack city','Paterson city','Passaic city','Clifton city','Garfield city','Fairview borough','Mount Olive township','Parsippany-Troy Hills township']},south:{label:'I-295 / Delaware River / South',towns:['Trenton city','Hamilton township','Ewing township','Camden city','Pennsauken township','Paulsboro borough','Burlington city','Riverside township','Edgewater Park township','Vineland city','Millville city']}};
+ function inCorridor(tract,key){if(!key)return true;const c=corridors[key];if(!c)throw Error('Unknown research corridor');return c.towns.includes(tract.municipality??tract.properties?.Municipality);}
+ function finite(v){return typeof v==='number'&&Number.isFinite(v)&&v>=0?v:null;}
+ function dateISO(s){if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s))return null;const d=new Date(s+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===s?s:null;}
+ function assessment(r,now=new Date().toISOString().slice(0,10)){const land=finite(r.landValue),improvements=finite(r.improvementValue),sum=land==null||improvements==null?null:land+improvements,date=dateISO(r.recordedSaleDate);return {land,improvements,buildingShare:Number.isFinite(sum)&&sum>0?improvements/sum:null,landShare:Number.isFinite(sum)&&sum>0?land/sum:null,recordedTransferDate:!r.saleSuppressed&&finite(r.recordedSalePrice)>1&&date&&date<=''+now&&date!=='1979-01-01'?date:null,caveat:'Assessment allocations are not purchase allocations or adjusted tax basis. A recorded transfer does not establish the current owner’s holding period, original basis or willingness to sell.'};}
+ function scenario({buildingBasis,plannedSpend,thresholdPercent,months=30,startDate='',targetDate=''},today=new Date().toISOString().slice(0,10)){
+  if(finite(buildingBasis)==null||finite(plannedSpend)==null||![50,100].includes(thresholdPercent)||!Number.isInteger(months)||months<1||months>120)throw Error('Enter nonnegative basis and spending, an explicit 50%/100% scenario and 1–120 planning months');
+  if(startDate&&!dateISO(startDate)||targetDate&&!dateISO(targetDate)||!dateISO(today))throw Error('Use valid calendar dates');
+  const threshold=buildingBasis*(thresholdPercent/100),difference=plannedSpend-threshold;let endDate=null;
+  if(startDate){const [y,m,d]=startDate.split('-').map(Number),base=new Date(Date.UTC(y,m-1+months,1)),last=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+1,0)).getUTCDate();base.setUTCDate(Math.min(d,last));endDate=base.toISOString().slice(0,10);}
+  return {threshold,plannedSpend,difference,exceedsAssumedThreshold:difference>0,endDate,daysToTarget:targetDate?Math.round((Date.parse(targetDate+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000):null,caveat:'User-entered arithmetic scenario only. Assumed percentage and duration are not verified legal rules. Assessment values are not tax basis. Rural flags, nominations, a planned closing date and this calculation do not establish certification, eligibility or tax benefits.'};
+ }
+ function compare(nj,legacy,now=Date.now()){
+  const nominated=nj?.kind==='ozNJ'&&Number.isFinite(Date.parse(nj.checkedAt))&&Date.parse(nj.checkedAt)<=now&&now-Date.parse(nj.checkedAt)<=90*86400000&&nj.nominationVerified===true&&nj.status==='reference-intersection'&&nj.coverageBasis==='parcel-area'&&nj.overlapPercent>=95&&Date.parse(nj.validUntil)>now;
+  if(!nominated)return {status:'not-confirmed',label:'Meaningful NJ nomination overlap is not verified for this parcel; no new-versus-legacy classification.'};
+  if(legacy?.kind!=='oz1'||!Number.isFinite(Date.parse(legacy.checkedAt))||Date.parse(legacy.checkedAt)>now||now-Date.parse(legacy.checkedAt)>86400000)return {status:'unknown',label:'NJ state nomination verified; older OZ 1.0 map reference is unavailable or stale.'};
+  if(legacy.status==='no-reference-intersection')return {status:'nomination-without-legacy-reference',label:'NJ-nominated parcel; no intersection found in the checked OZ 1.0 reference. This is a spatial research comparison, not a newly certified zone or a tax determination.'};
+  if(['reference-intersection','reference-point-intersection'].includes(legacy.status))return {status:'both-references',label:'NJ-nominated parcel also intersects the older OZ 1.0 map reference. Reference overlap does not establish tax qualification.'};
+  return {status:'unknown',label:'NJ state nomination verified; older OZ reference did not produce a completed comparison.'};
+ }
+ return {corridors,inCorridor,assessment,scenario,compare,dateISO};
+});

@@ -16,3 +16,16 @@ body.split-workspace.map-expanded #details:not([hidden]){position:fixed;z-index:
 @media(max-width:900px){body.split-workspace.map-expanded #details:not([hidden]){left:0;right:0;top:auto;bottom:0;width:auto;max-height:32dvh}}
 
 .workspace-drawer a[download]{display:inline-flex;align-items:center;min-height:44px;padding:4px;text-decoration:underline}
+/* The mobile research panel has explicit Map / Split / Details snaps and a draggable, keyboard-operable handle. */
+.workspace-sheet{display:contents}.workspace-sheet-controls{display:none}
+@media(max-width:900px){
+ .radar-split{display:block;position:relative;overflow:hidden;height:calc(100dvh - 68px);min-height:0}
+ .workspace-map-slot{position:absolute;inset:0 0 auto;height:calc(100% - var(--sheet-size,50%));min-height:150px}
+ .workspace-sheet{position:absolute;left:0;right:0;bottom:0;height:var(--sheet-size,50%);display:flex;flex-direction:column;background:#f4f9fa;border:1px solid #b8d0d9;border-radius:14px 14px 0 0;box-shadow:0 -4px 18px #092b3c22;z-index:700;min-height:calc(140px + env(safe-area-inset-bottom));max-height:90%;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+ .workspace-sheet-controls{display:flex;gap:5px;align-items:center;flex:none;padding:3px 6px}.workspace-sheet-controls button{flex:1;min-height:44px;border:1px solid #a6c6cf;border-radius:8px;background:#fff;color:#143d49}.workspace-sheet-controls button[aria-pressed=true]{background:#d1efe9;border-color:#16796d;font-weight:700}
+ #workspaceSheetHandle{display:grid;place-items:center;width:44px;min-height:44px;touch-action:none;cursor:ns-resize;border-radius:8px;background:#e3ecef;font-weight:bold}#workspaceSheetHandle:focus-visible{outline:3px solid #bd8b18}
+ .workspace-mode-tabs{flex:none;padding:0 5px;gap:4px}.workspace-mode-tabs button{min-height:58px;padding:5px 3px}.workspace-drawer{flex:1;min-height:0;border:0;border-radius:0;padding:7px;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+ .radar-split[data-sheet="15"] .workspace-drawer{visibility:hidden}.radar-split[data-sheet="15"] .workspace-mode-tabs button{font-size:15px!important;min-height:58px}
+ body.split-workspace.map-expanded .workspace-sheet{visibility:hidden}
+}
+@media(prefers-reduced-motion:reduce){.workspace-sheet,.workspace-map-slot{transition:none}}
