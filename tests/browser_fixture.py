@@ -99,7 +99,7 @@ def network(route):
         normalized=re.sub(r'[,?.]', ' ',query).strip().lower()
         normalized=re.sub(r'\s+', ' ',normalized)
         places={
-            'newark':('NJ','Essex',-74.17,40.735), 'edison':('NJ','Middlesex',-74.363,40.527), 'secaucus':('NJ','Hudson',-74.063,40.789),
+            'camden':('NJ','Camden',-75.12,39.93),'phillipsburg':('NJ','Warren',-75.19,40.69),'newark':('NJ','Essex',-74.17,40.735), 'edison':('NJ','Middlesex',-74.363,40.527), 'secaucus':('NJ','Hudson',-74.063,40.789),
             'woodbridge':('NJ','Middlesex',-74.28,40.55), 'north bergen':('NJ','Hudson',-74.01,40.80),
             'perth amboy':('NJ','Middlesex',-74.27,40.51), 'port newark':('NJ','Essex',-74.14,40.69),
             'parsippany':('NJ','Morris',-74.42,40.86), 'south plainfield':('NJ','Middlesex',-74.41,40.58),
@@ -127,13 +127,16 @@ def network(route):
         nj='Parcels_Composite' in parsed.path;bro='BCPA' in parsed.path;mdc='PaParcelView' in parsed.path
         if bro and not parsed.path.endswith('/query'):
             fields=['FOLIO_NUMBER','USE_CODE','SITUS_STREET_NUMBER','SITUS_STREET_NAME','SITUS_STREET_TYPE',mode.get('broOID','OBJECTID')]
-            respond(route,{'geometryType':'esriGeometryPolygon','fields':[{'name':f,'type':('esriFieldTypeInteger' if mode.get('broNumeric') else 'esriFieldTypeString') if f=='USE_CODE' else 'esriFieldTypeOID' if f==mode.get('broOID','OBJECTID') else 'esriFieldTypeString'} for f in fields]});return
+            respond(route,{'extent':{'spatialReference':{'wkid':3857}},'geometryProperties':{'shapeAreaFieldName':'Shape__Area'},'geometryType':'esriGeometryPolygon','fields':[{'name':'Shape__Area','type':'esriFieldTypeDouble'}]+[{'name':f,'type':('esriFieldTypeInteger' if mode.get('broNumeric') else 'esriFieldTypeString') if f=='USE_CODE' else 'esriFieldTypeOID' if f==mode.get('broOID','OBJECTID') else 'esriFieldTypeString'} for f in fields]});return
         queries.append((parsed.hostname,params.get('where',['1=1'])[0]))
         total=mode.get('countySize',3)
+        large_bro=bro and mode.get('broLarge')
+        prefiltered=large_bro and 'Shape__Area >=' in params.get('where',[''])[0]
+        if large_bro:total=100 if prefiltered else 8508
         if params.get('returnCountOnly')==['true']:respond(route,{'count':total});return
         offset=int(params.get('resultOffset',['0'])[0]);limit=int(params.get('resultRecordCount',['150'])[0]);features=[]
         for i in range(offset,min(total,offset+limit)):
-            acres=15+i%3*10;lon,lat=(-74.1-(.45 if i%2 else 0),40.3) if nj else (-80.15-(.5 if i%2 else 0),26.15 if bro else 25.6 if mdc else 26.7)
+            acres=(20 if prefiltered or i>=5000 else 1) if large_bro else 15+i%3*10;lon,lat=(-74.1-(.45 if i%2 else 0),40.3) if nj else (-80.15-(.5 if i%2 else 0),26.15 if bro else 25.6 if mdc else 26.7)
             props={'PAMS_PIN':'COUNTY-NJ-'+str(i),'PROP_LOC':'County NJ '+str(i),'COUNTY':(re.search(r"UPPER\(COUNTY\) = '([^']+)'",params.get('where',[''])[0]).group(1) if re.search(r"UPPER\(COUNTY\) = '([^']+)'",params.get('where',[''])[0]) else 'MONMOUTH'),'MUN_NAME':'Synthetic town','CALC_ACRE':acres,'PROP_CLASS':'4B','OBJECTID':i} if nj else {'FOLIO_NUMBER':'COUNTY-BRO-'+str(i),'USE_CODE':'4800','SITUS_STREET_NUMBER':str(i+1),'SITUS_STREET_NAME':'COUNTY','SITUS_STREET_TYPE':'RD','OBJECTID':i} if bro else {'FOLIO':'COUNTY-MDC-'+str(i),'TRUE_SITE_ADDR':'County MDC '+str(i),'LOT_SIZE':acres*43560,'DOR_CODE_CUR':'048','OBJECTID':i} if mdc else {'PARID':'COUNTY-PBC-'+str(i),'SITE_ADDR_STR':'County FL '+str(i),'ACRES':acres,'PROPERTY_USE':'INDUSTRIAL','OBJECTID_1':i}
             if bro and mode.get('broOID'):props[mode['broOID']]=props.pop('OBJECTID')
             geometry=parcel_polygon(lon,lat,acres)
@@ -143,7 +146,7 @@ def network(route):
     if mode.get('njNomCase') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         if mode.get('ozFail'):respond(route,{'error':{'message':'Synthetic official nomination outage'}},503);return
         if params.get('returnCountOnly')==['true']:respond(route,{'count':1});return
-        respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-74.16,40.735,100),'properties':{'Geography':'34013001000','Municipality':'Newark city','County':'Essex'}}]});return
+        respond(route,{'features':[{'type':'Feature','geometry':mode.get('nominationGeometry') or parcel_polygon(-74.16,40.735,100),'properties':{'Geography':'34013001000','Municipality':'Newark city','County':'Essex'}}]});return
     if mode.get('nominationStress') and parsed.hostname=='services.arcgis.com' and '2026_Opportunity_Zone_2_0_Nominations' in parsed.path:
         records=json.loads((ROOT/'tests/data/nj-oz-release-20261029.json').read_text())['tracts'];towns=sorted({r['municipality'] for r in records});env=json.loads(params.get('geometry',['{}'])[0]);features=[]
         for r in records:
@@ -252,7 +255,7 @@ def network(route):
                     if multipart and i-base in (49,50):
                         feature['geometry']=parcel_polygon(-75.221 if i-base==49 else -75.219,40.69,.1 if i-base==49 else 5.9)
                         if mode.get('paPartConflict') and i-base==50:feature['properties'][acresfield]=7
-            if params.get('geometryType')==['esriGeometryPoint'] and not mode.get('paAmbiguous'): features=features[:1]
+            if (params.get('geometryType')==['esriGeometryPoint'] or mode.get('addressSearch') and params.get('resultRecordCount')==['7']) and not mode.get('paAmbiguous'): features=features[:1]
             respond(route,{'type':'FeatureCollection','features':features,'exceededTransferLimit':False})
         return
     if parsed.hostname=='overpass-api.de':

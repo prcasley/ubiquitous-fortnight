@@ -31,8 +31,8 @@ cases=[
 ('IOS sites 3-8 acres near Port Newark','NJ','industrial','between',3,8,5,'Port Newark','search'),
 ('vacant land over 5 acres in Mangonia Park FL','FL','vacant','>',5,None,5,'Mangonia Park','search'),
 ('industrial over 10 acres built before 1990 in Edison NJ','NJ','industrial','>',10,None,5,'Edison','search'),
-('Lehigh Valley industrial over 50 acres','PA','industrial','>',50,None,5,'Allentown','search'),
-('industrial over 25 acres within 2 miles of Allentown PA','PA','industrial','>',25,None,2,'Allentown','search'),
+('Lehigh Valley industrial over 50 acres','PA','industrial','>',50,None,5,'Allentown','unavailable'),
+('industrial over 25 acres within 2 miles of Allentown PA','PA','industrial','>',25,None,2,'Allentown','unavailable'),
 ('multifamily over 3 acres in Edison NJ','NJ','multifamily','>',3,None,5,'Edison','search'),
 ]
 try:
@@ -64,6 +64,7 @@ try:
                 check('missing years are separate',page.evaluate('PublicRadarBridge.getYearUnknown().length>0') and page.locator('.year-not-published').count()==1)
         else:
             check('non-search does not run a guessed scan: '+q,page.evaluate('PublicRadarBridge.getSearch()===null'))
+            if action=='unavailable':check('Lehigh direct browser source is explicitly unavailable','Lehigh County blocks direct cross-site browser requests' in page.locator('#agentLog').inner_text())
             if action=='help':check('help has four tappable examples: '+q,page.locator('.chat-chip').count()==4)
             if action=='compare':check('comparison asks which market to search',page.locator('.chat-chip').count()==2)
             if action=='font':check('text enlarged by chat',page.evaluate('getComputedStyle(document.body).fontSize')=='19px')

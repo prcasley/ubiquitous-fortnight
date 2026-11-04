@@ -4,7 +4,9 @@
   const P=window.RadarProperty,bridge=()=>window.PublicRadarBridge;
   const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=label;b.addEventListener('click',action);return b;};
   const link=(label,url)=>{const a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
+  let lastRows=[],lastScan=null;
   function render(rows,meta){
+    lastRows=rows.slice();lastScan=meta.scanId;
     if(!rows.length)return;
     const host=document.getElementById('agentLog'),section=document.createElement('section');section.className='agent-message bot chat-properties';
     host.dataset.scrollAnchor='';section.dataset.scan=String(meta.scanId);
@@ -59,5 +61,5 @@
       group.classList.add('previous-search');for(const b of group.querySelectorAll('[data-action=focus-parcel]'))b.disabled=true;
     }
   });
-  window.RadarChatProperties={render};
+  window.RadarChatProperties={render,getRows:()=>lastScan===bridge().getMeta().scanId?lastRows.slice():[]};
 })();

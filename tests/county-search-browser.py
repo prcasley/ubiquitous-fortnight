@@ -10,7 +10,7 @@ try:
  mode['countySearch']=True
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox'])
-  for county,state in [('Monmouth','NJ'),('Palm Beach','FL'),('Broward','FL'),('Miami-Dade','FL'),('Lehigh','PA')]:
+  for county,state in [('Monmouth','NJ'),('Palm Beach','FL'),('Broward','FL'),('Miami-Dade','FL')]:
    external_requests.clear();queries.clear();ctx,page=open_page(browser);ask(page,'Industrial over '+('5' if state=='PA' else '10')+' acres in '+county+' County '+state)
    search=page.evaluate('PublicRadarBridge.getSearch()');rows=page.evaluate('PublicRadarBridge.getResults()');meta=page.evaluate('PublicRadarBridge.getMeta()')
    check(county+' countywide complete with results',search['scope']=='county' and meta['complete'] and len(rows)>0)
@@ -42,8 +42,8 @@ try:
   check('Broward numeric use-code schema uses numeric ranges',page.evaluate('PublicRadarBridge.getMeta().complete') and any('USE_CODE BETWEEN 4000 AND 4999' in parse_qs(urlparse(u).query).get('where',[''])[0] for u in external_requests));check('Broward pages on its published OID field',any(parse_qs(urlparse(u).query).get('orderByFields')==['FID ASC'] for u in external_requests));ctx.close()
   mode['broNoGeometry']=True;ctx,page=open_page(browser);ask(page,'industrial over 10 acres in Broward County FL')
   check('missing Broward polygon is not treated as zero matches',page.evaluate('!PublicRadarBridge.getMeta().complete') and 'no measurable parcel polygon' in page.locator('#statusText').text_content());ctx.close();mode.pop('broNoGeometry')
-  mode['paFail']=True;ctx,page=open_page(browser);external_requests.clear();ask(page,'industrial over 10 acres in Lehigh County PA')
-  check('PA outage is explicit, no centroid fallback',page.evaluate('!PublicRadarBridge.getMeta().complete') and not any('findAddressCandidates' in u for u in external_requests) and page.get_by_role('button',name='Allentown',exact=True).count()==1);ctx.close();mode.pop('paFail')
+  ctx,page=open_page(browser);external_requests.clear();ask(page,'industrial over 10 acres in Lehigh County PA')
+  check('Lehigh is marked browser-unavailable without a doomed fetch',page.evaluate('PublicRadarBridge.getSearch()===null') and 'Lehigh County blocks direct cross-site browser requests' in page.locator('#agentLog').inner_text() and not any('gis.lehighcounty.org' in u for u in external_requests));ctx.close()
   ctx,page=open_page(browser);external_requests.clear();ask(page,'industrial over 10 acres in Orange County FL')
   check('unconnected county offers towns instead of radius scan',page.evaluate('PublicRadarBridge.getSearch()===null') and 'No county-centroid circle was substituted' in page.locator('#agentLog').inner_text() and page.get_by_role('button',name='Orlando',exact=True).count()==1 and not any('findAddressCandidates' in u for u in external_requests));ctx.close()
   browser.close()

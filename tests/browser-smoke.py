@@ -363,12 +363,9 @@ try:
         trip_before=pa.evaluate('localStorage.getItem("capital-radar-field-trip-v1")')
         pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
         pa.locator('#agentPrompt').press('Enter')
-        pa.wait_for_function('window.PublicRadarBridge.getMeta().complete')
-        assert pa.locator('#stateSelect').input_value()=='PA'
-        assert pa.locator('#market').input_value()=='lehigh'
-        assert pa.locator('#countySelect').input_value()=='Lehigh'
-        assert pa.evaluate('window.PublicRadarBridge.getResults()[0].key').startswith('lehigh:PA:42077:')
-        assert 'Built 1984' in pa.locator('.chat-property-card').first.inner_text()
+        pa.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled')
+        assert 'Lehigh County blocks direct cross-site browser requests' in pa.locator('#agentLog').inner_text()
+        assert not pa.evaluate('PublicRadarBridge.getMeta().complete')
         pa.fill('#agentPrompt','Find industrial over 5 acres near Easton PA')
         pa.locator('#agentPrompt').press('Enter')
         pa.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getResults()[0]?.provider==="northampton"')
@@ -383,13 +380,13 @@ try:
         pa.wait_for_function('document.getElementById("agentLog").textContent.includes("Address located in NY")')
         assert "Couldn't verify the requested location" not in pa.locator('#agentLog').inner_text()
         mode['paFail']=True
-        pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
+        pa.fill('#agentPrompt','Find industrial over 5 acres in Northampton County PA')
         pa.locator('#agentPrompt').press('Enter')
         pa.wait_for_function('window.PublicRadarBridge.getMeta().status==="failed"')
         assert 'Pennsylvania coverage could not be verified' in pa.locator('#agentLog').inner_text()
         mode['paFail']=False
         mode['paNoClass']=True
-        pa.fill('#agentPrompt','Find industrial over 5 acres near Allentown PA')
+        pa.fill('#agentPrompt','Find industrial over 5 acres in Northampton County PA')
         pa.locator('#agentPrompt').press('Enter')
         pa.wait_for_function('document.getElementById("statusText").textContent.includes("verified descriptive assessment classification")')
         assert not pa.evaluate('window.PublicRadarBridge.getMeta().complete')

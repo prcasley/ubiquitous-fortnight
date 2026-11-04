@@ -97,3 +97,5 @@ test('Northampton family fallback cannot override conflicting official code defi
  m.types=[{domains:{LUC:{codedValues:[{code:'701',name:'Industrial'}]}}},{domains:{LUC:{codedValues:[{code:'701',name:'Residential'}]}}}];
  const s=PA.schema(PA.sources.Northampton,m);assert.equal(s.useFamilyFallback,false);assert.equal(PA.attributes({LUC:'701'},s).type,'Other');
 });
+
+test('a county family table cannot replace a missing published use-code field',()=>{assert.equal(PA.supportsMode({...PA.sources.Northampton,mappings:{use:[]},supportsUse:false},'industrial'),false);});

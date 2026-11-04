@@ -28,7 +28,7 @@ try:
   for phrase in ['Which of these are in an opportunity zone?','OZ 2','OZ2','Show nominated parcels']:
    scan=page.evaluate('PublicRadarBridge.getMeta().scanId');submit(page,phrase)
    log=page.locator('#agentLog').inner_text()
-   check('official nomination route: '+phrase,'1 of 5 checked parcels intersect the 130 tracts New Jersey nominated' in log and 'Newark city · tract 34013001000' in log and page.evaluate('PublicRadarBridge.getMeta().scanId')==scan)
+   check('official nomination route: '+phrase,'1 of 5 checked parcels meet the 95% mapped-area screening rule against the 130 tracts New Jersey nominated' in log and 'Newark city · tract 34013001000' in log and page.evaluate('PublicRadarBridge.getMeta().scanId')==scan)
    check('eligibility-only tract never called nominated: '+phrase,'NJ-nominated OZ 2.0 tract 34013006800' not in log and 'Third-party OZ 2 eligibility reference' not in page.locator('.chat-properties').last.inner_text())
   submit(page,'Summarize this for the board');check('board summary names nomination stage, not generic OZ2','NJ nominations (not federal certification): 1/5' in page.locator('.board-summary').last.inner_text())
   page.select_option('#executiveMarket','newark');page.fill('#executiveAcres','2');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled && PublicRadarBridge.getResults().some(r=>r.ozObservations?.ozNJ?.nominationVerified)')
@@ -38,7 +38,7 @@ try:
   mode['ozFail']=False;mode['njNomCase']=False
   submit(page,'industrial over 2 acres in West Palm Beach FL');submit(page,'opportunity zone')
   check('FL keeps eligibility with explicit missing official nomination list','No official state nomination list connected for FL' in page.locator('.chat-properties').last.inner_text())
-  submit(page,'industrial over 2 acres in Allentown PA');submit(page,'OZ2')
+  submit(page,'industrial over 2 acres in Northampton County PA');submit(page,'OZ2')
   check('PA keeps eligibility with explicit missing nomination list','No official state nomination list connected for PA' in page.locator('.chat-properties').last.inner_text())
   page.set_viewport_size({'width':390,'height':844});check('official labels fit phone width',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
   check('no uncaught browser errors',not errors);browser.close()

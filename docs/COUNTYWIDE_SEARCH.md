@@ -1,6 +1,8 @@
 # Countywide parcel retrieval
 
-Explicit county requests use the full connected county source instead of geocoding a county centroid and applying a five-mile circle. NJ uses its published COUNTY field; Palm Beach, Broward, Miami-Dade, Lehigh and Northampton use their county layers. Connected Martin and St. Lucie FDOR searches use their county code. City and street-address searches retain their radius behavior.
+November 4 update: see [Executive research safeguards](EXECUTIVE_OZ_HARDENING.md). Lehigh is now marked unavailable for direct browser access; Broward now uses verified server-side size prefilters before paging.
+
+Explicit county requests use the full connected county source instead of geocoding a county centroid and applying a five-mile circle. NJ uses its published COUNTY field; Palm Beach, Broward, Miami-Dade and Northampton use their county layers. Lehigh remains cataloged for future proxy-based access but is disabled in the browser. Connected Martin and St. Lucie FDOR searches use their county code. City and street-address searches retain their radius behavior.
 
 County scans do not draw a radius circle. Chat, parcel cards and the result list identify countywide coverage. Default acreage ordering covers retrieved records, not an unretrieved countywide ranking. Source records are counted before paging. County FL layer scans retain the 900-feature cap; NJ, PA and connected FDOR retrieval retain the 1,600-feature cap. A cap displays “Partial: first N of M source parcels countywide,” the accepted count, and town/acreage narrowing options. A failed source is not treated as a zero-property finding. Unsupported counties are refused with town options where available; no centroid search is substituted. A radius requested around an entire county boundary is explicitly listed as unapplied; choose a town or address for a radius search.
 

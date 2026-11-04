@@ -14,7 +14,7 @@ try:
   check('all shortlist images start eagerly',page.evaluate('[...document.querySelectorAll(".acquisition-card img")].every(n=>n.loading==="eager")'))
   page.locator('.acquisition-card').first.get_by_role('button',name='Open parcel card',exact=True).click()
   check('Deal Nav follows the selected parcel',not page.locator('#dealNavNearby').is_disabled() and 'Synthetic NJ parcel' in page.locator('#dealNavSelected').inner_text())
-  page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled');check('third-party tract reference never becomes a certified prediction','not verified' in page.locator('#ozStatusResults').inner_text() and 'No probability' in page.locator('#ozStatusResults').inner_text())
+  page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled');check('third-party tract reference never becomes a certified prediction','check unavailable' in page.locator('#ozStatusResults').inner_text() and 'No probability' in page.locator('#ozStatusResults').inner_text())
   mode['njNomination']=True
   page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled')
   check('exact NJ nomination tract joins official-reference snapshot without certification', 'state nominated' in page.locator('#ozStatusResults').inner_text() and 'not Treasury certification' in page.locator('#ozStatusResults').inner_text() and page.locator('#ozStatusResults a',has_text='Official evidence record').count()==1)
