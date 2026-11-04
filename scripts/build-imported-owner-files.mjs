@@ -7,5 +7,5 @@ const payload={format:'RadarPublishedImportedOwners',version:1,sourceFile:source
 await writeFile(new URL('assets/data/imported-owner-records.json',root),JSON.stringify(payload,null,2)+'\n');
 const columns=[...fields,'recordedInFileDate','evidenceRole','currentOwnershipVerified'];
 const cell=value=>'"'+String(typeof value==='string'&&/^[=+\-@\t\r]/.test(value)?"'"+value:value??'').replaceAll('"','""')+'"';
-await writeFile(new URL('assets/data/imported-owner-records.csv',root),[columns.map(cell).join(','),...records.map(r=>columns.map(k=>cell(r[k])).join(','))].join('\r\n')+'\r\n');
+await writeFile(new URL('assets/data/imported-owner-records.csv',root),[columns.map(cell).join(','),...records.map(r=>columns.map(k=>cell(r[k])).join(','))].join('\n')+'\n');
 console.log('Published imported ownership observations:',records.length,'(historical, not verified current owners).');

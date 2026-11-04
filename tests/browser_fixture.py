@@ -15,7 +15,7 @@ import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
-from playwright.sync_api import sync_playwright, Page, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright, Page, Locator, TimeoutError as PlaywrightTimeoutError
 
 # Playwright's page-side waiter uses eval, which strict script-src correctly blocks.
 # Poll through DevTools evaluation instead; keep CSP enforced in every browser suite.
@@ -68,6 +68,36 @@ def parcel_polygon(lon,lat,acres):
 
 mode = {'fail': False, 'partial': False, 'collision': False, 'chat': False, 'cards': False, 'imageryFail': False}
 mode.update({'njPaging':False,'repeatPage':False,'countDrift':False,'njCap':False})
+
+# Legacy workflow tests now navigate the actual mode tabs before interacting with a moved panel.
+# The dedicated workspace suite disables this helper and verifies the navigation itself manually.
+def reveal_workspace(locator):
+    if mode.get('workspaceManual'):return
+    page=locator.page
+    if not page.evaluate('!!window.RadarWorkspace'):return
+    root=locator
+    if root.count()==0:
+        selector=locator._impl_obj._selector.split(' >> ')[0]
+        root=page.locator(selector)
+    if root.count()==0:return
+    target=root.first.evaluate('(e)=>e.closest("[data-workspace-mode]")?.dataset.workspaceMode||null')
+    if target and page.evaluate('RadarWorkspace.getMode()')!=target:
+        _workspace_locator_click(page.locator('#workspace-tab-'+target))
+    if not root.first.is_visible():
+        for details in root.first.locator('xpath=ancestor::details[not(@open)]').all():
+            _workspace_locator_click(details.locator(':scope > summary'))
+_workspace_locator_click=Locator.click
+for _method in ['click','fill','press','check','uncheck','select_option','set_input_files','screenshot','scroll_into_view_if_needed']:
+    def _wrapped(self,*args,_original=getattr(Locator,_method),**kwargs):
+        reveal_workspace(self)
+        return _original(self,*args,**kwargs)
+    setattr(Locator,_method,_wrapped)
+for _method in ['click','fill','press','check','uncheck','select_option','set_input_files']:
+    def _wrapped_page(self,selector,*args,_original=getattr(Page,_method),**kwargs):
+        reveal_workspace(self.locator(selector))
+        return _original(self,selector,*args,**kwargs)
+    setattr(Page,_method,_wrapped_page)
+
 def png_chunk(tag, data):
     return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
 PNG=b'\x89PNG\r\n\x1a\n'+png_chunk(b'IHDR',struct.pack('>IIBBBBB',2,2,8,6,0,0,0))+png_chunk(b'IDAT',zlib.compress((b'\x00'+b'\x77\x99\x88\xff'*2)*2))+png_chunk(b'IEND',b'')
@@ -170,6 +200,7 @@ def network(route):
             names=['PAMS_PIN','PROP_LOC','MUN_NAME','PROP_CLASS','CALC_ACRE','COUNTY','YR_CONSTR','PCLBLOCK','PCLLOT','PCL_MUN','DEED_BOOK','DEED_PAGE','LAND_VAL','IMPRVT_VAL','NET_VALUE']
             respond(route,{'geometryType':'esriGeometryPolygon','objectIdField':'OBJECTID','fields':[{'name':'OBJECTID','type':'esriFieldTypeOID'}]+[{'name':n} for n in names]});return
         if params.get('returnCountOnly')==['true']:respond(route,{'count':3});return
+        if params.get('returnIdsOnly')==['true']:respond(route,{'objectIds':[0,1,2]});return
         if mode.get('inventoryFail'):respond(route,{'error':{'message':'Synthetic inventory outage'}},503);return
         offset=int(params.get('resultOffset',['0'])[0]);take=int(params.get('resultRecordCount',['250'])[0]);features=[]
         for i in range(offset,min(3,offset+take)):

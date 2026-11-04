@@ -119,6 +119,7 @@ def run_stress(pw, url=DEFAULT_URL, network=None, synthetic=False):
         ctx,page,errors=open_app(**pw.devices['iPhone 13'])
         set_view(page,40.15,-74.6,8);toggle(page,True);settle(page)
         record('phone emulation overview contains 130 tracts',len(features(page))==130)
+        if page.locator('#workspaceLayers').count():page.get_by_role('button',name='Map layers',exact=True).click()
         rect=page.locator('#ozNJToggle').locator('..').bounding_box();record('phone nomination tap target is at least 44px tall',rect is not None and rect['height']>=44,str(rect))
         record('phone has no horizontal page scroll',page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'))
         lat,lon,g=points['Elizabeth city'][0];set_view(page,lat,lon,14);settle(page);record('phone street-level tract renders',g in {str(f['properties']['Geography']) for f in features(page)})

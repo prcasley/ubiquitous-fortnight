@@ -24,10 +24,11 @@
    if(!response.ok)throw Error('Public GIS returned HTTP '+response.status);const data=await response.json();if(data.error)throw Error('Public GIS could not complete this inventory query');return data;
   }finally{clearTimeout(timer);signal?.removeEventListener('abort',stop);}
  }
- async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,onProgress=()=>{}}={}){
+ async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,onProgress=()=>{},classes=[],minAcres=0}={}){
   if(!/^34\d{9}$/.test(tract))throw Error('An exact 11-digit NJ tract is required');
   if(!Number.isInteger(limit)||limit<1||limit>5000)throw Error('Parcel retrieval limit must be 1–5,000');
-  const report={tract,status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
+  if(!Array.isArray(classes)||classes.some(c=>!['1','2','4A','4B','4C'].includes(c))||!Number.isFinite(minAcres)||minAcres<0||minAcres>99999)throw Error('Invalid published assessment class/acreage filter');
+  const report={tract,criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
   const options={fetcher,signal};
   try{
    const boundary=await json(nominationURL,{f:'geojson',where:"Geography = '"+tract+"'",outFields:'Geography',returnGeometry:'true',outSR:'4326',resultRecordCount:'2'},options);
@@ -36,27 +37,31 @@
    const meta=await json(parcelURL,null,options),available=new Set((meta.fields||[]).map(f=>f.name));
    const oid=meta.objectIdField||meta.fields?.find(f=>f.type==='esriFieldTypeOID')?.name;
    if(!oid||!available.has(oid)||!fields.every(f=>available.has(f))||meta.geometryType!=='esriGeometryPolygon')throw Error('NJ parcel schema could not be verified');
-   const base={where:'1=1',geometry:JSON.stringify(polygon),geometryType:'esriGeometryPolygon',inSR:'4326',spatialRel:'esriSpatialRelIntersects'};
+   const predicates=[];if(classes.length)predicates.push("PROP_CLASS IN ("+classes.map(c=>"'"+c+"'").join(',')+")");if(minAcres>0)predicates.push('CALC_ACRE >= '+minAcres);
+   const base={where:predicates.join(' AND ')||'1=1',geometry:JSON.stringify(polygon),geometryType:'esriGeometryPolygon',inSR:'4326',spatialRel:'esriSpatialRelIntersects'};
    const counted=await json(parcelURL,{...base,f:'json',returnCountOnly:'true',returnGeometry:'false'},options);
    if(!Number.isSafeInteger(counted.count)||counted.count<0)throw Error('Parcel count was not verified');report.expected=counted.count;
+   const listed=await json(parcelURL,{...base,f:'json',returnIdsOnly:'true',returnGeometry:'false'},options),ids=listed.objectIds;
+   if(!Array.isArray(ids)||ids.length!==report.expected||new Set(ids).size!==ids.length||ids.some(id=>!Number.isSafeInteger(id)||id<0))throw Error('Parcel ID list did not reconcile with the source count');ids.sort((a,b)=>a-b);
    const seen=new Set(),size=Math.max(1,Math.min(250,pageSize));
    for(let offset=0;offset<Math.min(report.expected,limit);){
     if(signal?.aborted)throw Error('Inventory stopped');
     const take=Math.min(size,limit-offset,report.expected-offset);
-    const data=await json(parcelURL,{...base,f:'geojson',outFields:[oid,...fields].join(','),returnGeometry:'true',outSR:'4326',orderByFields:oid+' ASC',resultOffset:String(offset),resultRecordCount:String(take)},options);
+    const wanted=ids.slice(offset,offset+take);
+    const data=await json(parcelURL,{...base,objectIds:wanted.join(','),f:'geojson',outFields:[oid,...fields].join(','),returnGeometry:'true',outSR:'4326',orderByFields:oid+' ASC',resultOffset:'0',resultRecordCount:String(take)},options);
     if(!Array.isArray(data.features)||!data.features.length||data.features.length>take)throw Error('Parcel paging returned an empty or oversized page');
     for(const feature of data.features){
-     const id=feature.properties?.[oid];if(!Number.isSafeInteger(id)||id<0||seen.has(String(id)))throw Error('Parcel paging repeated or omitted source record identities');seen.add(String(id));report.received++;
+     const id=feature.properties?.[oid];if(!Number.isSafeInteger(id)||!wanted.includes(id)||seen.has(String(id)))throw Error('Parcel paging repeated or omitted source record identities');seen.add(String(id));report.received++;
      const pin=String(feature.properties?.PAMS_PIN||'').trim();
      try{if(!pin||pin.length>200)throw Error();esriPolygon(feature.geometry);if(!geo.booleanIntersects(feature,{type:'Feature',geometry,properties:{}}))throw Error();report.features.push({type:'Feature',geometry:feature.geometry,properties:{...Object.fromEntries([oid,...fields].map(key=>[key,feature.properties[key]])),PAMS_PIN:pin}});}catch{report.rejected++;}
     }
-    offset+=data.features.length;if(offset===report.expected&&data.exceededTransferLimit)throw Error('Source reports more records than its count');onProgress({tract,received:report.received,expected:report.expected});
+    offset+=data.features.length;if(data.exceededTransferLimit)throw Error('Source truncated an explicit ID batch');onProgress({tract,received:report.received,expected:report.expected});
     if(data.features.length<take)throw Error('Parcel response ended before the reported count');
    }
    const after=await json(parcelURL,{...base,f:'json',returnCountOnly:'true',returnGeometry:'false'},options);
    if(after.count!==report.expected)throw Error('Parcel count changed during retrieval');
    report.status=report.received===report.expected&&!report.rejected?'complete':'partial';
-   report.message=report.status==='complete'?'Count reconciled for this tract; boundary intersections include parcels crossing tract edges.':report.rejected?'Some source rows failed identity or boundary checks.':'Retrieval cap reached; more parcels exist. Narrow the run to this tract or export the accepted records.';
+   report.message=report.status==='complete'?'Count reconciled for this tract’s requested assessment/acreage scope; boundary intersections include parcels crossing tract edges.':report.rejected?'Some source rows failed identity or boundary checks.':'Retrieval cap reached; more parcels exist. Narrow the run to this tract or export the accepted records.';
   }catch(error){report.status=report.received?'partial':'unavailable';report.message=signal?.aborted?'Inventory stopped; completed records retained.':String(error.message||error);}
   return report;
  }

@@ -1,0 +1,24 @@
+{
+  "format": "RadarUploadedNominationDownloads",
+  "version": 1,
+  "tractCount": 130,
+  "matchedCurrentEvidenceGeoidSet": true,
+  "comparisonDate": "2026-11-04",
+  "comparisonEvidence": "assets/data/oz-designation-evidence.json",
+  "sourceAnnouncement": "https://www.nj.gov/dca/news/approved/20261029.shtml",
+  "notice": "User-supplied boundary snapshot matching the 130 connected NJ state nomination tract identifiers. Not a federal certification list, not owner data, and not an automatic refresh of official nomination evidence. Uploaded boundaries have not been independently surveyed.",
+  "files": {
+    "csv": {
+      "file": "NJ_OZ2_2026_Nominations.csv",
+      "originalSHA256": "2d7f28454e2726195dac68b4c88b59b3ac04e331e3150e25fb7561824ce48cc8"
+    },
+    "geojson": {
+      "file": "NJ_OZ2_2026_Nominations.geojson",
+      "originalSHA256": "94b78e55261f849923f2e503ee04e04af5be273ad65a83acea53210082e4486f"
+    },
+    "kml": {
+      "file": "NJ_OZ2_2026_Nominations.kml",
+      "originalSHA256": "60da751b40ef9a8dde0db7ee1dcb03b9f655b3a09a056c52f0335779d02fbee6"
+    }
+  }
+}

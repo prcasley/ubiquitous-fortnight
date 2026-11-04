@@ -246,6 +246,7 @@
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
       if(countywide&&(!window.PublicRadarCounty||state==='FL'&&source===SOURCES.FL&&!['Martin','StLucie'].includes(window.PublicRadarCounty)))throw Error('Whole-county source is not configured; no centroid-circle search was substituted');
+      if(source===SOURCES.FL&&window.RadarFLPolygons){const polygons=await window.RadarFLPolygons.resolve(SOURCES.FL,{signal:controller.signal});checkCurrent();if(polygons.source){source=polygons.source;activeSource=source;base.where=serverWhere(state,mode,min,source,wholeSitesOnly);}status(polygons.message,polygons.source?'info':'warning');}
       if(source===SOURCES.BRO){
         const metadata=await window.RadarGISTransport.request(source.url+'?f=json',{signal:controller.signal,timeoutMs:20000,attempts:2});checkCurrent();
         const fields=new Map((metadata.fields||[]).map(f=>[f.name,f]));
@@ -599,7 +600,7 @@
     getSearch:()=>searchSnapshot?JSON.parse(JSON.stringify(searchSnapshot)):null,
     setAcreageFilter:(value,op,upper)=>{const f=domain.acreageFilter(value,op,upper);$("minAcres").value=f.value;$("acreageComparison").value=f.op;$("maxAcres").value=f.max??"";$("maxAcresField").hidden=f.op!=="between";},
     sortResults:sort=>{records.sort(sort==="largest"?(a,b)=>(b.acres??-1)-(a.acres??-1):(a,b)=>a.distance-b.distance);renderResults();},
-    getSource:(state,lat,lon)=>state==="PA"?(activeSource?.mappings?activeSource:preparedPA.get(window.PublicRadarCounty)||providerFor(state,lat,lon)):providerFor(state,lat,lon),
+    getSource:(state,lat,lon)=>state==="FL"&&activeSource?.polygonCandidate?activeSource:state==="PA"?(activeSource?.mappings?activeSource:preparedPA.get(window.PublicRadarCounty)||providerFor(state,lat,lon)):providerFor(state,lat,lon),
     getCenter:()=>map?{lat:map.getCenter().lat,lon:map.getCenter().lng}:null,
     getSearchCenter:()=>({...searchAnchor}),cancelCenterSelection:()=>{centerMode=false;$("setSearchCenter").setAttribute("aria-pressed","false");$("setSearchCenter").textContent="Set search center";},setCenter:(lat,lon,zoom=13)=>{searchAnchor={lat,lon};traceMap('search-center',{targetZoom:zoom,caller:new Error().stack?.split('\n').slice(1,4).join(' | ')});if(map)map.setView([lat,lon],zoom,{animate:false});},getMap:()=>map,getMapTrace:()=>mapTrace.map(e=>({...e})),getLayers:()=>layers,
     setStatus:status,getLastGeocode:()=>lastGeocode?{...lastGeocode}:null,getSubject:()=>subjectParcel,getLastGeocodeCounty:()=>lastGeocodeCounty,getSources:()=>({FL:providerFor("FL",map?.getCenter().lat,map?.getCenter().lng).url,NJ:SOURCES.NJ.url,PA:providerFor("PA")?.url})};

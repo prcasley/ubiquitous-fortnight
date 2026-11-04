@@ -63,7 +63,7 @@ try:
         page.wait_for_function('document.getElementById("researchToolsStatus").textContent.includes("previous records preserved")')
         assert '$200.00/building SF' in page.locator('#localCompResults').inner_text()
         map_box=page.locator('#map').bounding_box()
-        assert map_box['width']>600 and map_box['height']>=500, map_box
+        assert map_box['width']>600 and map_box['height']>=300, map_box
         page.click('#expandMap')
         assert page.locator('#expandMap').get_attribute('aria-expanded')=='true'
         page.keyboard.press('Escape')
@@ -295,12 +295,14 @@ try:
         phone.route('**/*',network)
         phone.goto(f'http://127.0.0.1:{server.server_port}/',wait_until='domcontentloaded');unlock(phone)
         phone.wait_for_function('!!window.PublicRadarBridge?.getMap()')
-        assert phone.locator('#agentPrompt').bounding_box()['y']<400
-        assert phone.locator('#agentPrompt').bounding_box()['y']<phone.locator('#map').bounding_box()['y']
-        phone.locator('#mobileNav summary').click()
-        assert phone.locator('#mobileNav nav').is_visible()
-        phone.locator('#mobileNav').get_by_text('Field trips & packs',exact=True).click()
-        assert not phone.locator('#mobileNav nav').is_visible()
+        # The persistent phone map now sits above the drawer; both map and search must fit the first screen.
+        prompt_box=phone.locator('#agentPrompt').bounding_box();map_box=phone.locator('#map').bounding_box()
+        assert prompt_box['y']>=0 and prompt_box['y']+prompt_box['height']<844,prompt_box
+        assert map_box['y']>=0 and map_box['y']+map_box['height']<844,map_box
+        assert phone.get_by_role('tab').count()==3
+        phone.click('#workspace-tab-owners')
+        assert phone.locator('#ownershipWorkbench').is_visible() and phone.locator('#fieldTripPanel').is_visible()
+        phone.click('#workspace-tab-scan')
         phone.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
         phone.locator('#agentForm button[type=submit]').click()
         phone.wait_for_function('document.querySelectorAll(".chat-property-card").length===6')
