@@ -107,8 +107,14 @@ def network(route):
             'west palm beach':('FL','Palm Beach',-80.13,26.72), 'palm beach':('FL','Palm Beach',-80.13,26.72),
             'palm beach county':('FL','Palm Beach',-80.13,26.72), 'mangonia park':('FL','Palm Beach',-80.07,26.76),
             'allentown':('PA','Lehigh',-75.49,40.602), 'easton':('PA','Northampton',-75.22,40.69),
-            'erie':('PA','Erie',-80.08,42.12), 'albany':('NY','Albany',-73.75,42.65)
+            'erie':('PA','Erie',-80.08,42.12), 'albany':('NY','Albany',-73.75,42.65),
+            'new jersey turnpike exit 8a':('NJ','Middlesex',-74.474,40.347)
         }
+        if re.fullmatch(r'\d{5}',normalized):
+            zips={'08817':('Edison','NJ'),'33411':('West Palm Beach','FL'),'10001':('New York','NY')}
+            if normalized in zips:respond(route,{'candidates':[{'score':100,'address':normalized,'location':{'x':-74.3937,'y':40.5125},'attributes':{'Addr_type':'Postal','City':zips[normalized][0],'RegionAbbr':zips[normalized][1]}}]})
+            else:respond(route,{'candidates':[]})
+            return
         # State abbreviations alone and unknown towns intentionally return no candidates.
         place=re.sub(r'\s+(?:nj|fl|pa|ny|new jersey|florida|pennsylvania)$','',normalized)
         if place=='40 hilton st easton': place='easton'
@@ -290,6 +296,10 @@ def network(route):
         else:
             respond(route, {'type': 'FeatureCollection', 'features': [] if mode.get('screeningClear') else [{'type': 'Feature', 'geometry': parcel_polygon(-80.13,26.72,1000), 'properties': {'FLD_ZONE': 'AE', 'ATTRIBUTE': 'PEM1'}}]})
         return
+    if parsed.hostname=='services1.arcgis.com' and "PARCEL_NUMBER='" in params.get('where',[''])[0] and 'SITE_ADDR_STR' in params.get('outFields',[''])[0]:
+        respond(route,{'features':[{'attributes':{'SITE_ADDR_STR':'7777 SOUTHERN BLVD','MUNICIPALITY':'WEST PALM BEACH','PARCEL_NUMBER':'00424327050064201'}}] if '00424327050064201' in params['where'][0] else []});return
+    if parsed.hostname=='services2.arcgis.com' and "PCLBLOCK='" in params.get('where',[''])[0] and 'PROP_LOC' in params.get('outFields',[''])[0] and 'returnCountOnly' not in params:
+        respond(route,{'features':[{'attributes':{'PROP_LOC':'25 SYNTHETIC WAY','MUN_NAME':'EDISON TWP','PCLBLOCK':'7','PCLLOT':'2','PAMS_PIN':'1205_7_2'}}] if "PCLBLOCK='7'" in params['where'][0] else []});return
     if parsed.hostname in ('services1.arcgis.com','services2.arcgis.com','services9.arcgis.com'):
         where = params.get('where', [''])[0]
         queries.append((parsed.hostname, where))
