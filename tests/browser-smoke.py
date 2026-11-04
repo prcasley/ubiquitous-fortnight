@@ -25,7 +25,8 @@ try:
         # Free-source ownership is explicit, dated and saved only as a business observation.
         page.locator('#details .public-owner-section button').click()
         page.wait_for_function('document.getElementById("ownerCompanies").textContent.includes("SYNTHETIC HOLDINGS LLC")')
-        assert 'Published assessment name' in page.locator('#details').inner_text()
+        page.wait_for_function('document.getElementById("details").textContent.includes("Published assessment name:")')
+        assert 'SYNTHETIC HOLDINGS LLC' in page.locator('#details').inner_text()
         page.locator('#ownerDossier textarea').fill('Synthetic organization research note')
         page.locator('#ownerDossier textarea').blur()
         evidence=page.locator('#ownerDossier form').first

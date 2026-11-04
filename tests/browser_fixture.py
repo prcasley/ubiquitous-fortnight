@@ -344,6 +344,7 @@ def network(route):
                 if nj and "PROP_CLASS = '4C'" in where: props['PROP_CLASS']='4C'
                 if nj and "PROP_CLASS = '1'" in where: props['PROP_CLASS']='1'
                 if not nj and '%MULTI%' in where: props['PROPERTY_USE']='MULTIFAMILY'
+            if nj and mode.get('ownershipKeys'):props['PAMS_PIN']='1205_21_'+str(i+1)+'_C0001'
             props['OBJECTID']=i
             if not nj and not fdor:props['OBJECTID_1']=i
             if nj: props['YR_CONSTR']=1974 if i%2==0 else 0

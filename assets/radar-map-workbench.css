@@ -52,3 +52,36 @@
 @media (max-width:700px){.oz-legend p[data-off]{display:none}}
 .oz-toggles{display:contents}
 @media(max-width:900px){.map-column .map-actions .oz-toggles{display:grid;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.map-column .map-actions .oz-toggles .oz-more{display:none}}
+
+/* Expanded map (Nov 4): the map fills the whole screen. One compact toolbar row that scrolls sideways
+   on phones; the legend floats over the map and only lists layers that are switched on; captions hide. */
+.map-expanded #mapPanel{position:fixed;inset:0;margin:0;padding:0 0 env(safe-area-inset-bottom);border-radius:0;box-shadow:none;display:flex;flex-direction:column;z-index:10000;max-width:none;width:auto;height:100dvh}
+.map-expanded #mapPanel .panel-head{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;padding:calc(6px + env(safe-area-inset-top)) 10px 6px;margin:0;border-bottom:1px solid #d5e4e8}
+.map-expanded #mapPanel .panel-head>div:first-child{flex:none}
+.map-expanded #mapPanel .panel-head h2{font-size:15px;margin:0;white-space:nowrap}
+.map-expanded #mapPanel .panel-sub,.map-expanded .oz-more,.map-expanded .map-caption,.map-expanded .map-banner{display:none}
+.map-expanded #mapPanel .map-actions{flex:1 1 auto;display:flex;flex-wrap:nowrap;align-items:center;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;min-width:0;padding-bottom:2px}
+.map-expanded #mapPanel .map-actions>*,.map-expanded #mapPanel .oz-toggles>*{flex:none;white-space:nowrap}
+.map-expanded #mapPanel .oz-toggles{display:flex;flex-wrap:nowrap;gap:6px}
+.map-expanded #mapPanel .map-actions button,.map-expanded #mapPanel .map-actions select,.map-expanded #mapPanel .layer-toggle{min-height:40px;padding:6px 10px;font-size:14px}
+.map-expanded #expandMap{order:-1;background:#092b3c;color:#fff;border-color:#092b3c}
+.map-expanded #mapPanel .map-wrap{flex:1 1 auto;min-height:0;height:auto;max-height:none;position:relative}
+.map-expanded #mapPanel #map{height:100%;min-height:0;max-height:none}
+.map-expanded #mapPanel .oz-legend{position:absolute;left:10px;bottom:calc(26px + env(safe-area-inset-bottom));z-index:1001;max-width:min(380px,calc(100vw - 20px));max-height:35dvh;overflow:auto;padding:6px 10px;border:1px solid #d5e4e8;border-radius:8px;background:#ffffffee;box-shadow:0 2px 10px #0003;font-size:12px}
+.map-expanded #mapPanel .oz-legend p[data-off]{display:none}
+.map-expanded #mapPanel .oz-legend p:last-child{font-size:10.5px;color:#416375;margin-top:4px}
+.map-expanded #mapPanel .oz-legend:not(:has(p:not([data-off]):not(:last-child))){display:none}
+@media(max-width:600px){.map-expanded #mapPanel .panel-head>div:first-child{display:none}.map-expanded #mapPanel .panel-head{padding-left:6px;padding-right:6px}}
+.map-expanded #mapPanel .map-actions>*,.map-expanded #mapPanel .oz-toggles>*{width:auto;max-width:none}
+.map-expanded #mapPanel .oz-legend p{display:grid;grid-template-columns:14px minmax(0,1fr);gap:2px 8px;align-items:start;margin:3px 0}
+.map-expanded #mapPanel .oz-legend p small{grid-column:2;margin:0}
+.map-expanded #mapPanel .oz-legend p:last-child{display:block}
+.map-expanded #mapResearchNote{display:none}
+@media(max-width:600px){.map-expanded #mapPanel .oz-legend{font-size:12px;max-width:calc(100vw - 20px);right:10px}.map-expanded #mapPanel .oz-legend p:last-child{display:none}}
+/* Selected property stays readable while the map is expanded: right-hand card on desktop, bottom sheet on phones. */
+.map-expanded #details:not([hidden]){position:fixed;z-index:10001;right:10px;top:64px;width:min(380px,calc(100vw - 20px));max-height:calc(100dvh - 110px);overflow:auto;overscroll-behavior:contain;margin:0;border-radius:10px;box-shadow:0 4px 18px #0004;background:#fff}
+@media(max-width:600px){.map-expanded #details:not([hidden]){left:0;right:0;top:auto;bottom:0;width:auto;max-height:42dvh;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom)}}
+
+.oz-municipality-chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}.oz-municipality-chips button{min-height:44px;text-align:left}#selectedOwnershipResearch form{display:grid;gap:10px}#selectedOwnershipResearch label{display:grid;gap:5px}#selectedOwnershipResearch a{overflow-wrap:anywhere}#selectedOwnershipResearch button{min-height:44px;margin:6px 6px 6px 0}
+/* Long search action labels wrap instead of widening a phone viewport. */
+@media(max-width:900px){#scanner>.radar-agent .agent-form button{white-space:normal;overflow-wrap:anywhere;min-width:0}}

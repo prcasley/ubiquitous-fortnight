@@ -1,0 +1,62 @@
+"""Selected-only evidence, provenance, privacy, local notes, nomination filters and PR9 map behavior."""
+from browser_fixture import *
+checks=[];owner_requests=[];summary_payloads=[];protected=False;facility_center=None
+fields=['PAMS_PIN','OWNER_NAME','ST_ADDRESS','CITY_STATE','ZIP_CODE','PCL_MUN','PCLBLOCK','PCLLOT','PCLQCODE','PROP_CLASS','COUNTY','MUN_NAME']
+def check(label,value):assert value,label;checks.append(label)
+def routes(route):
+ global facility_center
+ u=urlparse(route.request.url);q=parse_qs(u.query)
+ if u.hostname=='127.0.0.1' and u.path=='/assets/data/imported-owner-records.json':
+  data=json.loads((ROOT/'assets/data/imported-owner-records.json').read_text());data['records'].append({'state':'NJ','pcn':'1205_21_1_C0001','owner':'IMPORTED LEGACY LLC','ownerMailing':'456 Historical Ln','recordedInFileDate':'2026-09-28','sourceURL':'https://county.example/historical'});respond(route,data);return
+ if u.hostname=='127.0.0.1' and u.path=='/api/radar-agent/status':respond(route,{'available':True});return
+ if u.hostname=='127.0.0.1' and u.path=='/api/radar-agent' and route.request.method=='POST':
+  body=json.loads(route.request.post_data);summary_payloads.append(body);respond(route,{'generated':True,'answer':'Public acreage facts only.','sourceURL':body['sourceURL'],'recordCount':body['totalCount'],'sampleCount':len(body['records']),'caveat':'Verify source facts.'});return
+ if u.hostname=='services2.arcgis.com' and 'Parcels_Composite_NJ_WM' in u.path:
+  if not u.path.endswith('/query'):respond(route,{'geometryType':'esriGeometryPolygon','fields':[{'name':n,'type':'esriFieldTypeString'} for n in fields]});return
+  if 'OWNER_NAME' in q.get('outFields',[''])[0]:
+   owner_requests.append(q);m=re.search(r"PAMS_PIN = '([^']+)'",q.get('where',[''])[0]);assert m,'exact selected identity required';pin=m.group(1)
+   owner='PROTECTED' if protected else 'TEST ASSESSOR LLC' if '_1_' in pin else 'OTHER ASSESSOR LLC'
+   respond(route,{'features':[{'attributes':{'PAMS_PIN':pin,'OWNER_NAME':owner,'ST_ADDRESS':'123 Private Marker St STE 100','CITY_STATE':'Edison NJ','ZIP_CODE':'08817','PCL_MUN':'1205','PCLBLOCK':'21','PCLLOT':pin.split('_')[2],'PCLQCODE':'C0001','PROP_CLASS':'4B','COUNTY':'MIDDLESEX','MUN_NAME':'EDISON'}}]});return
+ if u.hostname=='echodata.epa.gov':
+  if 'get_facilities' in u.path:facility_center=(float(q['p_lat'][0]),float(q['p_long'][0]));respond(route,{'Results':{'QueryID':'12345','QueryRows':'1'}});return
+  respond(route,{'Results':{'Facilities':[{'RegistryID':'110000123456','FacName':'FACILITY ONLY LLC','FacLat':facility_center[0],'FacLong':facility_center[1]}]}});return
+ network(route)
+def ask(page,text):page.fill('#agentPrompt',text);page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled')
+try:
+ mode['ceo']=True;mode['persona']=True;mode['ownershipKeys']=True
+ with sync_playwright() as p:
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);context=browser.new_context(accept_downloads=True);page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',routes)
+  page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page)
+  page.wait_for_function('document.querySelectorAll("#ozMunicipalityChips [data-municipality]").length===60')
+  banner=page.locator('#ozEvidence').inner_text();check('banner uses dated real counts and distinguishes nomination/certification',all(x in banner for x in ['130','20 counties','60 municipalities','13 source-flagged rural','State nomination is not Treasury certification']) and '2026-11-27' not in banner)
+  page.locator('#ozMunicipalityFilters summary').click();page.locator('#ozMunicipalityChips [data-municipality]').first.click();check('municipality chip scopes tract choices',page.evaluate('RadarOZInventory.getState().filteredTracts<130&&document.getElementById("ozInventoryTract").options.length===RadarOZInventory.getState().filteredTracts'))
+  page.get_by_role('button',name='All municipalities',exact=True).click();page.check('#ozInventoryRural');check('rural filter uses agency flags rather than guessed counts',page.evaluate('RadarOZInventory.getState().filteredTracts===13'));page.uncheck('#ozInventoryRural')
+  ask(page,'industrial over 5 acres in Edison NJ');check('search does not harvest owner/mailing fields',len(owner_requests)==0)
+  keys=page.evaluate('PublicRadarBridge.getResults().map(r=>r.key)');page.evaluate('(key)=>PublicRadarBridge.choose(key)',keys[0]);page.wait_for_function('(key)=>RadarOwnerAuto.getResearch(key)?.status==="observed"',arg=keys[0])
+  panel=page.locator('#selectedOwnershipResearch');check('selected record shows a dated recipient without claiming headquarters','Tax-bill mailing recipient' in panel.inner_text() and 'not proof of headquarters' in panel.inner_text() and '123 Private Marker St STE 100' in panel.inner_text())
+  check('published imported names are visible separately without replacing current evidence','IMPORTED LEGACY LLC' in panel.inner_text() and 'Historical assessment observation' in panel.inner_text() and page.evaluate('(key)=>PublicRadarBridge.getRecord(key).owner==="TEST ASSESSOR LLC"',keys[0]))
+  check('only selected qualified parcel was queried',all("PAMS_PIN = '1205_21_1_C0001'"==q['where'][0] for q in owner_requests) and all('*' not in q['outFields'][0] for q in owner_requests))
+  page.get_by_label('Organization name copied from an official record',exact=True).fill('LOCAL REVIEW LLC');page.get_by_label('Exact public source / filing URL',exact=True).fill('https://county.example/record');page.get_by_label('Record observation date',exact=True).fill('2026-10-01');panel.get_by_role('button',name='Save cited entity locally',exact=True).click()
+  check('cited local entity persists without replacing the published assessment name',page.evaluate('(key)=>PublicRadarBridge.getRecord(key).owner==="TEST ASSESSOR LLC"&&localStorage.getItem("capital-radar-cited-parcel-entities-v1").includes("LOCAL REVIEW LLC")',keys[0]))
+  page.evaluate('(key)=>PublicRadarBridge.choose(key)',keys[1]);page.wait_for_function('(key)=>RadarOwnerAuto.getResearch(key)?.status==="observed"',arg=keys[1])
+  check('shared mailing does not propagate the first owner to another parcel','association only, not a portfolio or common-owner finding' in panel.inner_text() and page.evaluate('(key)=>PublicRadarBridge.getRecord(key).owner==="OTHER ASSESSOR LLC"',keys[1]))
+  page.evaluate('(key)=>PublicRadarBridge.choose(key)',keys[0]);data={'format':'RadarLocalOwnershipEvidence','version':1,'byPamsPin':{'1205_21_1_C0001':{'evidence':[{'kind':'recorded-sale-party','name':'OLD BUYER LLC','sourceURL':'https://county.example/deed','observedAt':'2018-01-01'}]}}}
+  page.set_input_files('#localOwnerEvidenceFile',{'name':'evidence.json','mimeType':'application/json','buffer':json.dumps(data).encode()});page.wait_for_function('document.getElementById("localOwnerEvidenceStatus").textContent.includes("1 exact parcel")')
+  check('historical sale party remains separate from current assessment evidence','recorded-sale-party · OLD BUYER LLC' in panel.inner_text() and page.evaluate('(key)=>PublicRadarBridge.getRecord(key).owner==="TEST ASSESSOR LLC"',keys[0]))
+  panel.get_by_role('button',name='Find nearby EPA facility references').click();page.wait_for_function('document.getElementById("selectedFacilityResearch").textContent.includes("FACILITY ONLY LLC")')
+  check('EPA facility never becomes a property owner','not a property-owner or decision-maker match' in panel.inner_text() and page.evaluate('(key)=>PublicRadarBridge.getRecord(key).owner==="TEST ASSESSOR LLC"',keys[0]))
+  with page.expect_download() as download:panel.get_by_role('button',name='Export selected cited research (local)').click()
+  exported=json.loads(Path(download.value.path()).read_text());check('local export preserves distinct roles and citations',exported['facilityReferences']['facilities'][0]['role']=='facility-reference-not-owner' and exported['analystCitation']['name']=='LOCAL REVIEW LLC' and exported['importedOwnerObservations'][0]['owner']=='IMPORTED LEGACY LLC')
+  page.evaluate('()=>PublicRadarAssistant.explain("Summarize public acreage")');page.wait_for_function('document.getElementById("assistantStatus").textContent.includes("Summary ready")')
+  payload=json.dumps(summary_payloads[-1]);check('hosted prompts exclude owners, mailing recipients, operator names and local notes',all(s not in payload for s in ['TEST ASSESSOR LLC','Private Marker','LOCAL REVIEW LLC','OLD BUYER LLC','FACILITY ONLY LLC','IMPORTED LEGACY LLC','456 Historical Ln']) and all(not any('owner' in k.lower() or 'mail' in k.lower() or 'contact' in k.lower() for k in row) for row in summary_payloads[-1]['records']))
+  protected=True;page.evaluate('(key)=>PublicRadarBridge.choose(key)',keys[2]);page.wait_for_function('(key)=>RadarOwnerAuto.getResearch(key)?.status==="observed"',arg=keys[2]);check('protected owner responses suppress extra mailing display','123 Private Marker' not in panel.inner_text())
+  before=len(owner_requests);page.evaluate('()=>{PublicRadarBridge.ingestOne({type:"Feature",properties:{PAMS_PIN:"1205_1_1",PROP_CLASS:"2",COUNTY:"MIDDLESEX",PROP_LOC:"Synthetic home",CALC_ACRE:1},geometry:{type:"Point",coordinates:[-74.363,40.527]}},"NJ",{lat:40.527,lon:-74.363});return true}')
+  check('residential selection triggers no automatic extra ownership research',len(owner_requests)==before and 'limited to commercial' in panel.inner_text())
+  page.set_viewport_size({'width':390,'height':844});page.click('#expandMap');page.wait_for_timeout(100);check('expanded map fills phone without body overflow',page.locator('#mapPanel').evaluate('(e)=>e.getBoundingClientRect().width')>=385 and page.evaluate('document.documentElement.scrollWidth<=innerWidth'));page.keyboard.press('Escape');check('Escape restores normal map view',not page.locator('body').evaluate('(e)=>e.classList.contains("map-expanded")'))
+  page.click('#expandMap');page.locator('#details').get_by_role('link',name='Review selected-property mailing, deed and facility research').click();check('research link exits fullscreen so the selected workspace is reachable',not page.locator('body').evaluate('(e)=>e.classList.contains("map-expanded")'))
+  check('no uncaught browser errors',not errors)
+  blocked=browser.new_context();blocked.add_init_script("Storage.prototype.getItem=Storage.prototype.setItem=function(){throw new DOMException('Storage blocked','SecurityError')}");bp=blocked.new_page();bp.route('**/*',routes);bp.on('pageerror',lambda e:errors.append(str(e)));bp.goto(f'http://127.0.0.1:{server.server_port}/');unlock(bp);ask(bp,'industrial over 5 acres in Edison NJ')
+  protected=False;bk=bp.evaluate('PublicRadarBridge.getResults()[0].key');bp.evaluate('(key)=>PublicRadarBridge.choose(key)',bk);bp.wait_for_function('(key)=>RadarOwnerAuto.getResearch(key)?.status==="observed"',arg=bk)
+  bp.get_by_label('Organization name copied from an official record',exact=True).fill('UNSAVED REVIEW LLC');bp.get_by_label('Exact public source / filing URL',exact=True).fill('https://county.example/record');bp.get_by_label('Record observation date',exact=True).fill('2026-10-01');bp.get_by_role('button',name='Save cited entity locally',exact=True).click();check('blocked storage keeps the citation in the tab with a visible export warning','Browser storage unavailable; export' in bp.locator('#selectedOwnershipResearch').inner_text() and 'UNSAVED REVIEW LLC' in bp.locator('#selectedOwnershipResearch').inner_text() and not errors);browser.close()
+ print('Ownership research browser suite passed:',len(checks),'checks.')
+finally:server.shutdown();server.server_close()

@@ -3,7 +3,7 @@ import json,os,subprocess,sys,time
 from pathlib import Path
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
-SUITES=['browser-smoke','executive-browser','ceo-browser','sprint1-browser','acquisition-browser','deal-nav-browser','easton-browser','northampton-multipart-browser','hosted-footprints-browser','executive-entry-browser','archive-browser','reliability-browser','kml-oz-browser','oz-inventory-browser','oz-overlay-stress-browser','fl-eligibility-browser','address-search-browser','county-search-browser','nj-slow-count-browser','nj-nomination-chat-browser','executive-oz-hardening-browser','plain-language-browser']
+SUITES=['browser-smoke','executive-browser','ceo-browser','sprint1-browser','acquisition-browser','deal-nav-browser','easton-browser','northampton-multipart-browser','hosted-footprints-browser','executive-entry-browser','archive-browser','reliability-browser','kml-oz-browser','oz-inventory-browser','oz-overlay-stress-browser','fl-eligibility-browser','address-search-browser','county-search-browser','nj-slow-count-browser','nj-nomination-chat-browser','executive-oz-hardening-browser','plain-language-browser','ownership-research-browser']
 def run(suites=SUITES,output=None):
  output=Path(output or ROOT/'test-results'/'browser');output.mkdir(parents=True,exist_ok=True);results=[]
  for name in suites:

@@ -1,15 +1,17 @@
 /* Browser-session nomination inventory; owner observations stay out of published data. */
 (() => {
  'use strict';const $=id=>document.getElementById(id),C=()=>window.RadarOZInventoryCore,B=()=>window.PublicRadarBridge;
- let tracts=[],reports=new Map(),rows=[],owners=new Map(),busy=false,controller=null,visible=50;
+ let tracts=[],reports=new Map(),rows=[],owners=new Map(),busy=false,controller=null,visible=50,municipality=null;
  const node=(tag,text)=>{const n=document.createElement(tag);n.textContent=text||'';return n;};
  const button=(text,action)=>{const b=node('button',text);b.type='button';b.className='secondary';b.addEventListener('click',action);return b;};
  const link=(text,href)=>{const a=node('a',text);a.href=href;a.target='_blank';a.rel='noopener noreferrer';return a;};
  const say=text=>{$('ozInventoryStatus').textContent=text;};
  function normalize(row){try{const point=window.turf.pointOnFeature(row.feature).geometry.coordinates,record=B().normalizeRecord(row.feature,'NJ',{lon:point[0],lat:point[1]});if(record){record.type={'4A':'Commercial','2':'Residential'}[String(row.feature.properties.PROP_CLASS)]||record.type;record.retrievedAt=reports.get(row.tracts[0])?.checkedAt;record.scanStatus='inventory';}return record;}catch{return null;}}
  function rebuild(){rows=C().mergeReports([...reports.values()]).map(r=>({...r,record:normalize(r)}));visible=50;render();}
+ function scopedTracts(){return tracts.filter(t=>(!municipality||t.county+'|'+t.municipality===municipality)&&(!$('ozInventoryRural').checked||t.sourceRuralFlag==='Yes'));}
+ function fillTractChoices(){for(const b of $('ozMunicipalityChips').querySelectorAll('button'))b.setAttribute('aria-pressed',String((b.dataset.municipality||null)===municipality));const selected=$('ozInventoryTract').value,scope=scopedTracts();$('ozInventoryTract').textContent='';for(const t of scope){const o=node('option',t.county+' · '+t.municipality+' · '+t.geoid);o.value=t.geoid;$('ozInventoryTract').append(o);}$('ozInventoryTract').value=scope.some(t=>t.geoid===selected)?selected:scope[0]?.geoid||'';$('ozInventoryAll').textContent='Build all '+scope.length+' filtered tracts';visible=50;render();}
  function filtered(){const q=$('ozInventoryQuery').value.trim().toLowerCase(),type=$('ozInventoryType').value,min=Number($('ozInventoryAcres').value);
-  return rows.filter(row=>{const r=row.record;return (!q||[row.id,r?.address,...row.tracts,owners.get(row.id)?.publishedName||''].join(' ').toLowerCase().includes(q))&&(!type||r?.type===type)&&(!min||r?.acres>=min);}).sort((a,b)=>(b.record?.acres??-1)-(a.record?.acres??-1));}
+  const scope=new Set(scopedTracts().map(t=>t.geoid));return rows.filter(row=>{const r=row.record;return row.tracts.some(t=>scope.has(t))&&(!q||[row.id,r?.address,...row.tracts,owners.get(row.id)?.publishedName||''].join(' ').toLowerCase().includes(q))&&(!type||r?.type===type)&&(!min||r?.acres>=min);}).sort((a,b)=>(b.record?.acres??-1)-(a.record?.acres??-1));}
  function contact(row){return window.RadarOwnership.contactStatus(row.record,owners.get(row.id));}
  function render(){
   const complete=[...reports.values()].filter(r=>r.status==='complete').length,partial=[...reports.values()].filter(r=>r.status==='partial').length,failed=[...reports.values()].filter(r=>r.status==='unavailable').length;
@@ -17,7 +19,7 @@
   $('ozInventorySummary').textContent=`${rows.length.toLocaleString()} unique accepted parcels · ${matched.length.toLocaleString()} shown by filters · ${complete}/${tracts.length} tracts complete · ${partial} partial · ${failed} unavailable · ${tracts.length-reports.size} not checked · ${named} published names loaded. This is ${tracts.length>0&&complete===tracts.length?'a count-reconciled':'an incomplete'} parcel inventory, not a sale list or certification.`;
   const host=$('ozInventoryResults');host.textContent='';
   for(const row of matched.slice(0,visible)){
-   const r=row.record,card=node('article');card.className='acquisition-card';card.dataset.parcel=row.id;card.append(node('h3',r?.address||row.feature.properties.PROP_LOC||'Address not published'),node('p','Parcel '+row.id+' · '+row.tracts.length+' nominated tract reference(s): '+row.tracts.join(', ')));
+   const r=row.record,card=node('article');card.className='acquisition-card';card.dataset.parcel=row.id;card.append(node('h3',r?.address||row.feature.properties.PROP_LOC||'Address not published'),node('p','Parcel '+row.id+' · '+row.tracts.length+' intersecting tract reference(s), not a parcel nomination: '+row.tracts.join(', ')));
    card.append(node('p',r?`${r.acres==null?'Acreage not accepted':r.acres.toFixed(2)+' acres · '+Math.round(r.acres*43560).toLocaleString()+' sq ft'} · ${r.type} · ${r.yearBuilt?'built '+r.yearBuilt:'year not published'}`:'Parcel facts could not be normalized; review the official source.'));
    const assessment=row.feature.properties,money=value=>value==null||value===''||!Number.isFinite(Number(value))||Number(value)<0?'not published':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(value));
    card.append(node('p','Published assessment: land '+money(assessment.LAND_VAL)+' · improvements '+money(assessment.IMPRVT_VAL)+' · net '+money(assessment.NET_VALUE)+'. Not asking prices or verified market values.'));
@@ -34,9 +36,9 @@
   }
   $('ozInventoryMore').hidden=matched.length<=visible;$('ozInventoryExport').disabled=!rows.length||busy;
   const coverage=$('ozInventoryCoverage');coverage.textContent='';for(const t of tracts){const report=reports.get(t.geoid),p=node('p',`${t.county} · ${t.municipality} · ${t.geoid}: ${report?report.status+' · '+report.received+'/'+(report.expected??'?')+' source rows · '+report.message:'not checked'}`);coverage.append(p);}
-  for(const id of ['ozInventoryBuild','ozInventoryAll','ozInventoryOwners'])$(id).disabled=busy||!tracts.length; $('ozInventoryStop').disabled=!busy;
+  for(const id of ['ozInventoryBuild','ozInventoryAll','ozInventoryOwners'])$(id).disabled=busy||!scopedTracts().length; $('ozInventoryStop').disabled=!busy;
  }
- async function build(all){if(busy)return;busy=true;controller=new AbortController();render();const selected=all?tracts.filter(t=>reports.get(t.geoid)?.status!=='complete'):tracts.filter(t=>t.geoid===$('ozInventoryTract').value);let done=0,unavailableStreak=0;
+ async function build(all){if(busy)return;busy=true;controller=new AbortController();render();const selected=all?scopedTracts().filter(t=>reports.get(t.geoid)?.status!=='complete'):scopedTracts().filter(t=>t.geoid===$('ozInventoryTract').value);let done=0,unavailableStreak=0;
   try{for(const t of selected){if(controller.signal.aborted)break;const remaining=20000-[...reports.values()].filter(r=>r.tract!==t.geoid).reduce((sum,r)=>sum+r.features.length,0);if(remaining<=0){say('Session limit reached (20,000 source rows). Export this research, then reload to build individual unchecked tracts. Remaining tracts are not complete.');break;}
     const report=await C().collectTract(t.geoid,{signal:controller.signal,limit:Math.min(5000,remaining),onProgress:p=>say(`Building ${done+1}/${selected.length} · ${t.municipality} · ${p.received}/${p.expected} source rows…`)});
     const previous=reports.get(t.geoid);if(!previous||report.status==='complete'||report.features.length>=previous.features.length)reports.set(t.geoid,report);else {reports.set(t.geoid,{...previous,status:'partial',message:'Retry unavailable; previously retrieved records retained from '+previous.checkedAt+'. '+report.message});say('Retry unavailable; previously retrieved records retained.');}
@@ -53,10 +55,15 @@
   try{const response=await fetch('assets/data/oz-designation-evidence.json',{cache:'no-cache',credentials:'omit'});if(!response.ok)throw Error('Reference HTTP '+response.status);const data=await response.json();const records=data.records.filter(r=>/^34\d{9}$/.test(r.geoid)&&r.sourceId==='nj-dca-oz2-nominations'&&r.stage==='state-nominated');
    if(records.length!==130||new Set(records.map(r=>r.geoid)).size!==130)throw Error('Nomination snapshot count/identities changed; review required');
    if(records.some(r=>window.RadarOZStatusCore.resolve(r.geoid,data).stage!=='state-nominated'))throw Error('Nomination evidence is expired or not verified; refresh the official reference before building this inventory');
-   tracts=records.sort((a,b)=>[a.county,a.municipality,a.geoid].join().localeCompare([b.county,b.municipality,b.geoid].join()));for(const t of tracts){const option=node('option',`${t.county} · ${t.municipality} · ${t.geoid}`);option.value=t.geoid;$('ozInventoryTract').append(option);}$('ozInventoryTract').value=tracts.find(t=>/Perth Amboy/i.test(t.municipality))?.geoid||tracts[0].geoid;
+   tracts=records.sort((a,b)=>[a.county,a.municipality,a.geoid].join().localeCompare([b.county,b.municipality,b.geoid].join()));
+   const stats=window.RadarOwnershipResearchCore.nominationStats(data),host=$('ozMunicipalityChips');if(stats.status!=='state-nominated')throw Error('Nomination summary metadata requires review or refresh');
+   const allButton=button('All municipalities',()=>{municipality=null;fillTractChoices();});host.append(allButton);
+   for(const town of stats.towns){const b=button(town.municipality+' · '+town.county,()=>{municipality=town.key;fillTractChoices();say('Municipality filter: '+town.municipality+', '+town.county+' County. '+scopedTracts().length+' nomination tract reference(s); parcel coverage still requires retrieval.');});b.dataset.municipality=town.key;host.append(b);}
+   $('ozMunicipalityFilters').querySelector('summary').textContent=stats.municipalityCount+' nominated municipalities — choose a filter';$('ozInventoryRuralLabel').textContent=stats.ruralCount==null?'Rural flags unavailable':stats.ruralCount+' source-flagged rural tracts only';$('ozInventoryRural').disabled=stats.ruralCount==null;
+   $('ozInventoryRural').addEventListener('change',fillTractChoices);fillTractChoices();$('ozInventoryTract').value=scopedTracts().find(t=>/Perth Amboy/i.test(t.municipality))?.geoid||scopedTracts()[0]?.geoid||'';
    say('130 nomination tract references loaded. Build one tract or all tracts. Parcel retrieval is live and may take several minutes; owner names load only when requested.');
-  }catch(e){say('Nomination inventory unavailable: '+e.message+'. No parcel coverage is claimed.');}render();
+  }catch(e){tracts=[];say('Nomination inventory unavailable: '+e.message+'. No parcel coverage is claimed.');}render();
  }
- window.RadarOZInventory={getState:()=>({tracts:tracts.length,parcels:rows.length,reports:[...reports.values()].map(({features,...r})=>r),busy})};
+ window.RadarOZInventory={getState:()=>({tracts:tracts.length,parcels:rows.length,municipality,filteredTracts:scopedTracts().length,ruralOnly:$('ozInventoryRural').checked,reports:[...reports.values()].map(({features,...r})=>r),busy})};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
