@@ -37,9 +37,45 @@
   if(!text)return out;
   const hasResults=!!context.hasResults;
 
+  if(/^(?:ok(?:ay)?|k|thanks?(?: you)?(?: so much| very much)?|thank you|ty|thx|great|perfect|cool|got it|awesome|nice|good|sounds good|appreciate it|ok(?:ay)? thanks?(?: you)?|that'?s (?:great|helpful|perfect))[.!]*$/i.test(text)){out.intent='smalltalk';out.answer="You're welcome. Ask about another town, county or address, or about a property in your results.";return out;}
+  // 0. Clean up how people actually type: emoji, greetings, sign-offs, filler words, spelled-out
+  //    numbers and common misspellings. Corrections are reported, never silent.
+  text=tidy(text.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu,' '));
+  const courtesy=/^(?:(?:hi|hello|hey|hiya|good (?:morning|afternoon|evening|day)|greetings|dear radar)(?: there)?[,!.\s]*)+/i;
+  text=text.replace(courtesy,'');
+  text=text.replace(/[,.!\s]*(?:(?:many |thank you |thanks |kind |best )?(?:thanks|thank you|regards|cheers|best)[,!.]?)(?:\s+(?:so much|very much|in advance))?[,!.]?(?:\s+[A-Z][a-z]+\.?)?\s*$/i,'');
+  text=text.replace(/\b(?:could|can|would|will) you (?:please |kindly )?(?:help me )?(?:find|show(?: me)?|look for|pull up|get(?: me)?|search(?: for)?)\b/ig,'find').replace(/\b(?:i'?m|i am|we'?re|we are) (?:looking|searching|hunting) for\b|\bi(?:'d| would) like(?: to (?:see|find))?\b|\bi (?:need|want)\b/ig,'find');
+  text=text.replace(/\b(?:please|kindly|pls|plz)\b/ig,' ').replace(/(?:^|\s)(?:uh+|um+|umm+|er+|hmm+|yeah|you know|i guess|kind of|sort of|basically|like)(?=[\s,.]|$)/ig,' ').replace(/\bsomething (with|like|around|about|over|near)\b/ig,'$1');
+  text=tidy(text.replace(/\bfind\s+find\b/ig,'find'));
+  const NUM={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,hundred:100};
+  const unitWord='(acres?|ac\\b|acre lots?|miles?|mi\\b|minutes?|mins?|million|mil\\b|k\\b)';
+  text=text.replace(/\b(?:a\s+)?half(?:\s+an?)?\s+acre\b|\bhalf-acre\b|\b1\/2\s*(?:an?\s+)?acre\b/ig,'0.5 acres').replace(/\b(?:a\s+)?quarter(?:\s+of\s+an?)?\s+acre\b|\b1\/4\s*acre\b/ig,'0.25 acres').replace(/\b(?:an|one)\s+acre\b/ig,'1 acre')
+   .replace(new RegExp('\\ba\\s+dozen\\s+'+unitWord,'ig'),'12 $1').replace(new RegExp('\\ba\\s+couple(?:\\s+of)?\\s+'+unitWord,'ig'),'2 $1').replace(new RegExp('\\ba\\s+few\\s+'+unitWord,'ig'),'3 $1')
+   .replace(new RegExp('\\b('+Object.keys(NUM).join('|')+')(?:[\\s-]+('+Object.keys(NUM).join('|')+'))?(?=[\\s-]+'+unitWord+')','ig'),(m,a,b)=>String(NUM[a.toLowerCase()]+(b?NUM[b.toLowerCase()]:0)));
+  const TYPOS={warehose:'warehouse',wharehouse:'warehouse',warehous:'warehouse',wearhouse:'warehouse',whareouse:'warehouse',warehoses:'warehouses',industral:'industrial',industiral:'industrial',industial:'industrial',indusrial:'industrial',indistrial:'industrial',industrail:'industrial',jersy:'Jersey',jersery:'Jersey',jersye:'Jersey',prop:'property',props:'properties',acers:'acres',acrs:'acres',acerage:'acreage',edisson:'Edison',edision:'Edison',eddison:'Edison',seacaucus:'Secaucus',secacus:'Secaucus',secaucas:'Secaucus',seacaucas:'Secaucus',secaucaus:'Secaucus',secucus:'Secaucus',newwark:'Newark',nework:'Newark',elizibeth:'Elizabeth',elizabth:'Elizabeth',elisabeth:'Elizabeth',woodbrige:'Woodbridge',woodbirdge:'Woodbridge',kearney:'Kearny',carterett:'Carteret',cartaret:'Carteret',lynden:'Linden',patterson:'Paterson',hobokin:'Hoboken',piscatway:'Piscataway',piscataway:'Piscataway',trenten:'Trenton',camdan:'Camden'};
+  text=text.replace(/\b(almac[eé]n(?:es)?|bodegas?|naves? industrial(?:es)?|terrenos?)\b(\s+en\b)?/ig,(m,w,en)=>{out.changed=true;notes.push('I read "'+w+'" as '+(/terreno/i.test(w)?'land':'warehouse')+'.');return (/terreno/i.test(w)?'vacant land':'warehouse')+(en?' in':'');});
+  const fixed=[];text=text.replace(/\b[A-Za-z]+\b/g,w=>{const t=TYPOS[w.toLowerCase()];if(t&&t.toLowerCase()!==w.toLowerCase()){if(/^[A-Z]/.test(t))fixed.push(w+' → '+t);return t;}return w;});
+  if(fixed.length)notes.push('I read '+fixed.map(x=>'"'+x.split(' → ')[0]+'" as '+x.split(' → ')[1]).join(', ')+'.');
+  if(text!==tidy(String(raw??'')))out.changed=true;
+  if(!text){out.answer='Hello! Tell me a town, county, ZIP code or street address, and what kind of property you want, for example "industrial over 5 acres in Edison NJ".';return out;}
+
+  // Small talk and acknowledgements get a short human answer, never "unrecognized filter".
+  if(/^(?:ok(?:ay)?|k|thanks?(?: you)?(?: so much| very much)?|thank you|ty|thx|great|perfect|cool|got it|awesome|nice|good|sounds good|appreciate it|ok(?:ay)? thanks?(?: you)?|that'?s (?:great|helpful|perfect))[.!]*$/i.test(text)){out.intent='smalltalk';out.answer="You're welcome. Ask about another town, county or address, or about a property in these results.";return out;}
+  if(/^(?:yes|yeah|yep|yup|sure|no|nope|nah|correct|right)[.!]*$/i.test(text)){out.intent='smalltalk';out.answer='If a question with buttons is showing above, tap your choice. Otherwise tell me a town, address or question about these results.';return out;}
+
+  // How to use the app (print, email, save, find the map or list).
+  {const l=text.toLowerCase();
+   if(/\b(print|printout|print out|pdf|hard copy)\b/.test(l)&&!/\b(bigger|larger|smaller|size|font|text)\b/.test(l)){out.intent='help';out.answer='To print properties: open a property, choose "Add selected property to trip" (Field trip & field pack section), then "Generate field pack". It downloads a page you can print or save as PDF with Ctrl+P (Cmd+P on a Mac). To print the screen as it is, use your browser\'s Print.';return out;}
+   if(/\b(e-?mail|send (?:this|it|these|them)|forward|share (?:this|it|these))\b/.test(l)&&!/\b(owner|seller|broker)'?s? e-?mail\b/.test(l)){out.intent='help';out.answer='Radar can\'t send email. Say "export these" to download the results as a file, or generate a field pack, then attach the file to your email.';return out;}
+   if(/^(?:save|keep|bookmark)(?: (?:this|it|these|them|the results|my search))?[.!]*$/.test(l)){out.intent='help';out.answer='Field trips and notes stay in this browser automatically. To keep a copy you can share, say "export these" or use "Export trip backup".';return out;}
+   if(/\b(where(?:'s| is)|show(?: me)?|can'?t (?:see|find)|open)\s+(?:the\s+)?map\b/.test(l)){out.intent='help';out.answer='The map is the "Live parcel map" panel next to the chat (on a phone, scroll down below the chat). "Expand map" makes it full screen.';return out;}
+   if(/\b(?:go back to|back to|show(?: me)?|where(?:'s| is| are))\s+(?:the\s+)?(?:list|results|properties)\b/.test(l)){out.intent='help';out.answer=hasResults?'Your results are in the "Parcel results" panel and in the property cards below the chat. Say "go back" to return to your previous search.':'There are no results yet. Tell me a town and property type, for example "industrial over 5 acres in Edison NJ".';return out;}
+   if(/^(?:how (?:do i|does this|to) (?:use|work)(?: this| it)?|i'?m lost|what (?:do i do|now)|instructions)[?.!]*$/.test(l)){out.text='help';out.changed=true;return out;}
+  }
+
   // 1. Pasted broker email or long message: pull out the property address.
   const sentences=text.split(/[.!?]\s+/).filter(s=>s.trim().length>3).length;
-  if(text.length>160&&sentences>=2){
+  if((text.length>160&&sentences>=2)||(STREET.test(text)&&/\b(for sale|for lease|asking|listing|listed|zoned|offering|available now|\$\s?\d)/i.test(text))){
    const a=extractAddress(text);
    if(a){
     const acres=text.match(/(\d+(?:\.\d+)?)\s*(?:ac\b|acres?)/i),price=text.match(/\$\s?(\d+(?:\.\d+)?)\s*(m|mm|million|k|thousand)?\b/i);
@@ -73,27 +109,103 @@
   if(bl){needs.blockLot={block:bl[1],lot:bl[2],town:tidy(bl[3]||'').replace(/\b(?:twp|township|boro|borough|city|town)\b\.?/ig,'').trim()||null};if(!needs.blockLot.town){delete needs.blockLot;out.answer='Which town is Block '+bl[1]+' Lot '+bl[2]+' in? Block and lot numbers repeat in every New Jersey municipality, for example "Block 12 Lot 3 Edison NJ".';}return out;}
 
   // 5. Follow-up questions about the current results (only when results exist and no new search is described).
-  const looksLikeNewSearch=TYPE_WORD.test(text)||/\b(in|near|around)\s+[A-Z]/.test(text)||STREET.test(text)||/\b\d{5}\b/.test(text);
+  const aboutThisOne=/\b(there|it|this one|that one|this property|that property|this site|that site)\b/i.test(text)&&!/\b(in|near|around)\s+[A-Z]/.test(text)&&!STREET.test(text);
+  const looksLikeNewSearch=!aboutThisOne&&(TYPE_WORD.test(text)||/\b(in|near|around)\s+[A-Z]/.test(text)||STREET.test(text)||/\b\d{5}\b/.test(text));
   if(hasResults&&!looksLikeNewSearch){
    const l=text.toLowerCase();
    if(/^(start over|start again|begin again|reset|clear(?: (?:it|this|everything|all|results|the results|the map))?|new search)[.!]?$/i.test(text)){out.intent='reset';out.answer='Cleared. What would you like to find? For example: industrial over 5 acres in Edison NJ, or a street address.';return out;}
-   if(/\b(phone|number|cell|email|e-mail|contact|call|reach|get (?:a )?hold of|broker|agent)\b/.test(l)&&!/\bparcel number\b/.test(l)){out.intent='contact';out.answer="Radar doesn't have owner phone numbers or emails; public parcel records don't include them. Open a property and choose Look up published owner to get the assessment name, then use the county tax/deed records or the state business registry to research a contact. Nothing is looked up or guessed automatically.";return out;}
+   const ord=l.match(/\b(?:the\s+)?(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|1st|2nd|3rd|4th|5th|6th|7th|8th|9th|10th)(?:\s+(?:one|property|result|parcel|site))?\b|(?:#|number|no\.?)\s*(\d{1,3})\b/);
+   const ordN=ord?({first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10}[ord[1]]||parseInt(ord[1]||ord[2],10)):null;
+   const askOZ=/\b(q\.?\s?o\.?\s?z|opp(?:ortunity)?\.?\s*zones?|oz\b|oz2|tax[- ]?(?:break|zone))/.test(l);
+   if(ordN&&!askOZ){out.ordinal=ordN;}
+   if(/\bflood/.test(l)){out.intent='flood';return out;}
+   if(/\b(zon(?:ing|ed)|permitted|allowed to build|can (?:i|we) build|build (?:a|an)\b|by[- ]right|variance|use group)\b/.test(l)){out.intent='zoning';return out;}
+   if(/\b(trucks?|trailers?|docks?|loading|clear height|ceiling|parking|doors?|power|amps?|sprinkler)\b/.test(l)){out.intent='building-facts';return out;}
+   if(/\b(cheap(?:est|er)?|expensive|priciest|lowest price|best (?:deal|price)|price per|asking)\b/.test(l)){out.answer='Prices and listings aren\'t connected to Radar, so I can\'t rank by price. I can show published tax-assessed values (ask "how much is it worth" about a property) or sort by size ("show the largest").';return out;}
+   if(ordN&&!askOZ&&!/\b(own|owner|worth|value|flood|zon)/.test(l)){out.intent='open-ordinal';return out;}
+   if(/\b(phone(?: number)?|contact number|cell(?: number)?|email|e-mail|contact info|contact them|call (?:them|him|her|the owner|the seller)|who (?:do|should|can) (?:i|we) (?:call|contact|talk to|reach)|reach (?:them|him|her|the owner)|get (?:a )?hold of|broker|listing agent|agent)\b/.test(l)&&!/\bparcel number\b/.test(l)){out.intent='contact';out.answer="Radar doesn't have owner phone numbers or emails; public parcel records don't include them. Open a property and choose Look up published owner to get the assessment name, then use the county tax/deed records or the state business registry to research a contact. Nothing is looked up or guessed automatically.";return out;}
    if(/\b(worth|value|valued|appraise[sd]?|assess(?:ed|ment)?|what(?:'s| is) it (?:going )?for|price|cost|how much)\b/.test(l)&&!/\bper\s*(?:sf|square)/.test(l)&&!/\bcomps?\b/.test(l)){out.intent='value';return out;}
    if(/\b(q\.?\s?o\.?\s?z\.?|opp(?:ortunity)?\.?\s*zones?|tax[- ]?(?:break|benefit|incentive|credit|advantage|zone)s?|oz(?:\s*2(?:\.0)?)?(?:\s*status)?|oz2)\b/.test(l)&&!/\b(close|closing|before|deadline|when|timeline|qualif(?:y|ies|ication)|designat|certif|lease|own)/.test(l)&&!/\b(first|second|third|last|this one|that one|the one|it|#\d)\b/.test(l)&&!(/\b(opportunity zones?|oz\s?[12](?:\.0)?)\b/.test(l)&&/\b(which|are|is|show)\b/.test(l)&&!/\bmap\b/.test(l))){out.text=/\boz\s*1\b|\b2018\b/.test(l)?'Which of these are in OZ 1?':'Which of these are in an opportunity zone?';out.changed=true;out.followUp=true;return out;}
    if(/\b(plain english|explain|what does (?:that|this|it) mean|i don'?t (?:understand|get it|follow)|confus|simpler|in english|layman)\b/.test(l)){out.text='what does that mean';out.changed=true;out.followUp=true;return out;}
    if(/\b(bigger|larger)\b/.test(l)&&!/\d/.test(l)){out.text='Show the largest properties in this scan';out.changed=true;out.followUp=true;notes.push('Showing the largest first. To require a minimum size, say for example "over 20 acres".');return out;}
    if(/\b(smaller)\b/.test(l)&&!/\d/.test(l)){out.answer='Tell me the size limit you want, for example "under 5 acres", and I will narrow these results.';return out;}
    if(/\b(highway|hwy|turnpike|parkway|interstate|i-?\s?\d{2,3}|route|rt\.?\s?\d+|exit|ramp|rail|port|airport)\b/.test(l)&&/\b(near|close|by|next to|access|off|only|within)\b/.test(l)){out.answer="Distance to highways, rail or ports isn't a search filter yet. Open a property and choose Check site facts to see the nearest named highway and road notes for that parcel. Your current results are unchanged.";return out;}
-   if(/\b(it|that one|this one|that|this|the first one|first one|the one)\b/.test(l)&&/\b(own|owner|owns|owned)\b/.test(l)){out.intent='owner-referent';return out;}
+   if((ordN||/\b(it|that one|this one|that|this|the first one|first one|the one|there)\b/.test(l))&&/\b(own|owner|owns|owned)\b/.test(l)){out.intent='owner-referent';return out;}
   }
 
   // Places outside the connected states: say so instead of quietly switching states.
-  if(/\b(NY|N\.Y\.|New York|CT|Connecticut|DE|Delaware|MD|Maryland)\b/.test(text)&&!/\bnew york (?:ave|avenue)\b/i.test(text))notes.push('Radar covers New Jersey, Florida and two Pennsylvania counties. If you meant a place in another state, it is not connected; check that the results below are where you intended.');
+  checkState:{const other=text.match(/\b(NY|N\.Y\.|New York|CT|Connecticut|DE|Delaware|MD|Maryland|GA|Georgia|TX|Texas|CA|California|OH|Ohio|NC|SC)\b/i);
+   if(other&&!/\bnew york (?:ave|avenue|st|street|rd|road)\b/i.test(text)&&!/\b(?:ga|ca|oh|de|sc|nc|md)\b/.test(other[0])&&!STREET.test(text)){
+    let town=tidy(text.replace(other[0],'').replace(/\b(industrial|warehouses?|vacant|land|in|near|around|find|show me|property|properties)\b/ig,' ')).replace(/[,.]+$/,'');
+    // Only intercept when the town also exists in NJ, so the one-tap fix is real; otherwise the chat's own
+    // geocoder answer ("Address located in NY…") explains the coverage.
+    if(!/^(edison|newark|princeton|camden|trenton|paterson|elizabeth|clinton|franklin|washington|salem|bloomfield|montclair|linden|woodbridge|kearny|bayonne|hoboken|union|dover|morristown|vineland|secaucus|carteret|rahway|hamilton|middletown|freehold|piscataway|lakewood|wayne|clifton|passaic|hackensack|jersey city|perth amboy|new brunswick|east orange|orange|plainfield|summit|westfield|cranford|fairfield|livingston|millburn|chatham|madison|lincoln park)$/i.test(town))town='';
+    if(!town)break checkState;
+    out.answer='Radar\'s parcel data covers New Jersey, Florida and Lehigh/Northampton counties in Pennsylvania, so I can\'t search '+other[0]+'.'+(town?' If you meant '+town.replace(/\b\w/g,c=>c.toUpperCase())+' in New Jersey, tap below.':'');
+    const Town=town.replace(/\b\w/g,c=>c.toUpperCase());if(town)out.choices=[['Search '+Town+', NJ',tidy(text.replace(other[0],'NJ'))]];
+    return out;
+   }}
 
   // 6. Statewide-only requests.
   if(/\b(?:in|across|throughout|anywhere in|all of)\s+(?:the state of\s+)?(new jersey|n\.?j\.?|florida|fl|pennsylvania|pa)[.!?]?\s*$/i.test(text)&&(TYPE_WORD.test(text)||/\b(acres?|sf|sq|square|storage|land|dirt|sites?|parcels?|properties|warehouse|terminal|ios|flex)\b/i.test(text))&&!/\b(who|own|owner|lease|sale|sold|comps?|price)\b/i.test(text)&&!/\b(county|[A-Z][a-z]+,\s*(?:NJ|FL|PA))\b/.test(text)&&!STREET.test(text)){
    out.answer='Statewide searches are not available; they would return tens of thousands of parcels. Name a town, county or address, for example "industrial over 10 acres in Middlesex County NJ" or "industrial near Exit 8A on the NJ Turnpike".';return out;
   }
+
+  // 6b. Several towns at once: ask which first instead of searching a nonsense place name.
+  {const two=text.match(/\b(?:in|near|around|between)\s+([A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){0,2})\s*(?:,\s*NJ\s*)?(?:and|&|or|plus|then)\s+([A-Z][A-Za-z.]*(?:\s+[A-Z][A-Za-z.]*){0,2})\b/i);
+   if(two&&!/\b(acres?|miles?)\b/i.test(two[2])&&!/^(?:the|a|an)\b/i.test(two[1])&&!/\bbetween\s+\d/i.test(text)){
+    const a=two[1].trim(),b=two[2].trim();
+    out.answer='I search one area at a time. Which should I start with?';
+    out.choices=[[a,tidy(text.replace(two[0],(two[0].match(/^\w+/)[0])+' '+a))],[b,tidy(text.replace(two[0],(two[0].match(/^\w+/)[0])+' '+b))]];
+    return out;
+   }}
+
+  // 6c. Opportunity-zone slang together with a place: search the place, then run the official OZ check.
+  {const oz=/\b(q\.?\s?o\.?\s?z\.?|opp(?:ortunity)?\.?\s*zones?|(?:trump|new|federal|biden)?\s*tax[- ]?(?:break|benefit|incentive|credit)?\s*zones?|tax breaks?|oz\s*2(?:\.0)?|oz2|oz)\b/i;
+   if(oz.test(text)&&/\b(?:in|near|around)\s+[A-Za-z]/i.test(text)&&!/\b(?:which|are any|is (?:it|this|the))\b/i.test(text)){
+    let search=tidy(text.replace(/\b(?:those|these|the|any)?\s*(?:new\s+)?(?:trump|federal|biden)?\s*(?:q\.?\s?o\.?\s?z\.?|opp(?:ortunity)?\.?\s*zones?|tax[- ]?(?:break|benefit|incentive|credit)?\s*zones?|tax breaks?|oz\s*2(?:\.0)?|oz2|oz)\b(?:\s+(?:properties|parcels|sites|land|areas?))?/ig,' '));
+    if(/\b(?:in|near|around)\s*$/i.test(search)||/^\s*(?:show\s+(?:me\s+)?)?only\b|\bonly\s+(?:the\s+)?(?:ones|parcels|properties)\b/i.test(text)){}else{ // "show only parcels in OZ 2" is a filter on current results, left to the chat
+    if(!TYPE_WORD.test(search))search='industrial '+search;
+    out.text=search.match(COMMAND)?search:'Find '+search;out.then='Which of these are in an opportunity zone?';out.changed=true;
+    notes.push('I\'ll search there first, then check the results against the official opportunity-zone list.');
+    text=out.text;
+   }}}
+
+  // 6d. Casual "anything in X" / "what do you have in X".
+  text=text.replace(/^(?:do you have|got|have you got|is there|are there|what do you have|what(?:'s| is) (?:out there|there))\s+(?:anything|any(?:thing)?\s+(?:property|properties|sites?|land))?\s*(?=\b(?:in|near|around)\b)/i,()=>{out.changed=true;notes.push('No property type was named, so I\'m showing industrial. Say "all types" to see everything.');return 'Find industrial ';});
+  text=text.replace(/^anything\s+(?=\b(?:in|near|around)\b)/i,()=>{out.changed=true;return 'Find industrial ';});
+
+  // 6e. Landmarks and businesses: center on something the map can find, and say so.
+  {const LANDMARKS=[[/\b(?:newark (?:liberty )?(?:international )?airport|ewr|newark liberty)\b/i,'Newark Liberty International Airport, NJ','Newark Liberty Airport'],[/\b(?:the\s+)?meadowlands\b/i,'East Rutherford, NJ','the Meadowlands (East Rutherford)'],[/\bport (?:elizabeth|newark-elizabeth)\b/i,'Elizabeth, NJ','Port Elizabeth (Elizabeth)'],[/\bmetlife(?: stadium)?\b/i,'East Rutherford, NJ','MetLife Stadium (East Rutherford)'],[/\braritan center\b/i,'Raritan Center, Edison, NJ','Raritan Center (Edison)']];
+   for(const [rx,place,label] of LANDMARKS){if(rx.test(text)){text=tidy(text.replace(new RegExp('\\b(?:near|by|around|close to|next to|at)?\\s*(?:the\\s+)?'+rx.source.replace(/^\\b/,''),'i'),' near '+place));out.changed=true;notes.push('Centering on '+label+'.');if(!TYPE_WORD.test(text))text='industrial '+text;break;}}
+   const biz=text.match(/\b(?:near|by|next to|close to|around)\s+(?:the\s+)?(?:[A-Za-z0-9&'.-]+\s+){1,4}?(?:warehouse|building|store|plant|facility|distribution center|dc|campus|terminal|headquarters|hq|office|factory|mall)\s+in\s+([A-Z][A-Za-z .'-]+?)(?=$|[,.?!]|\s+(?:with|over|under|nj|new jersey)\b)/i);
+   if(biz){text=tidy(text.replace(biz[0],'in '+biz[1]));out.changed=true;notes.push('Business names aren\'t searchable in public parcel records, so I centered on '+biz[1]+'.');if(!TYPE_WORD.test(text))text='industrial '+text;}
+  }
+
+  // 6f. Roads: road frontage is not a filter; keep the town and say so.
+  text=text.replace(/\b(?:on|off|along|by|near|fronting|facing)\s+(?:of\s+)?(?:the\s+)?(?:(?:route|rt\.?|rte\.?|highway|hwy\.?|state highway|us|interstate|i-?)\s*\d{1,3}[a-z]?|(?:nj\s+)?turnpike|garden state parkway|parkway)\b(?!\s+exit)/ig,m=>{if(/^(?:near|by)\b/i.test(m)&&/turnpike|parkway/i.test(m))return m; // the chat reports Turnpike/Parkway proximity itself
+   out.changed=true;notes.push('Road frontage ("'+tidy(m)+'") isn\'t a search filter, so I searched the whole area. Open a property and choose Check site facts to see its nearest named highway.');return ' ';});
+  text=tidy(text);
+  if(/^(?:in|near|around)\s+[A-Z]/i.test(text)&&!TYPE_WORD.test(text)){text='industrial '+text;out.changed=true;}
+
+  // 6g. Drive times: Radar uses straight-line distance.
+  text=text.replace(/\b(?:within\s+)?(?:an?\s+)?(\d{1,3})[\s-]*(?:min(?:ute)?s?)\s+(?:drive|away|ride|commute)\s+(?:of|from)\b|\b(\d{1,3})[\s-]*(?:min(?:ute)?s?)\s+(?:drive\s+)?(?:from|of)\b/ig,(m,a,b)=>{const mins=Number(a||b),miles=Math.max(1,Math.min(25,Math.round(mins/2)));out.changed=true;notes.push('Drive times aren\'t available, so I used a straight-line radius of about '+miles+' miles for "'+tidy(m)+'".');return 'within '+miles+' miles of';});
+  text=text.replace(/(?<!within\s)\b(\d{1,2})\s+miles?\s+(?:from|of|away from|outside(?: of)?)\b/ig,(m,n)=>{out.changed=true;return 'within '+n+' miles of';});
+
+  // 6h. Land measured in square feet is acreage, not building size.
+  text=text.replace(/(\d[\d,]*(?:\.\d+)?)\s*(k|thousand)?\s*(?:sf|s\.f\.|sq\.?\s*ft\.?|sqft|square\s*f(?:ee|oo)t)\s+(?:of\s+)?(?:land|lot|dirt|ground|site|yard|acreage)\b|\b(?:land|lot)\s+(?:of\s+)?(\d[\d,]*(?:\.\d+)?)\s*(k|thousand)?\s*(?:sf|sq\.?\s*ft\.?|square\s*f(?:ee|oo)t)\b/ig,(m,n1,k1,n2,k2)=>{
+   const n=Number(String(n1||n2).replace(/,/g,''))*((k1||k2)?1000:1),ac=n/43560;out.changed=true;
+   notes.push(Math.round(n).toLocaleString('en-US')+' square feet of land is about '+ac.toFixed(2)+' acres, so I searched for about '+ac.toFixed(1)+' acres.');return 'about '+ac.toFixed(2)+' acres ';});
+  text=tidy(text);
+
+  // 6i. Conditions Radar cannot apply are named, never dropped silently.
+  const cannot=[];
+  // Price-per-SF, comps and for-sale questions keep their wording: the chat answers those itself.
+  if(!/\bper\s+(?:sq|square)|\/\s*s\.?f\b|\bpsf\b|\bcomps?\b|\bfor sale\b|\bon the market\b/i.test(text))text=text.replace(/(?:\b(?:under|below|less than|up to|max(?:imum)?|no more than|around|about|for|budget(?: of)?|priced at|at)\s+)?\$\s?\d[\d,.]*\s*(?:m|mm|million|mil|k|thousand|b|billion)?\b|\b(?:under|below|less than|up to|budget of|around|about)\s+\d[\d,.]*\s*(?:m|mm|million|mil|k|thousand)\b|\b\d[\d,.]*\s*(?:million|mil|mm)\b(?!\s*(?:sf|square))/ig,m=>{const t=tidy(m);return ' '+(t.includes('$')?t:t.replace(/(\d)/,'$$$1'))+' ';}); // the chat marks budgets as "I couldn't apply" itself; just make sure it sees a $
+  text=text.replace(/\b(newest|newer|brand new|modern|recently built|oldest|older)\b(?!\s+than\s+\d)/ig,m=>{cannot.push('"'+m+'": say "built after 2000" or "built before 1990" to filter by published build year');return ' ';});
+  text=text.replace(/[,]?\s*\b(?:but\s+)?(?:not|no|except|excluding|other than|without|avoid(?:ing)?)\s+(?:near|by|in|on|close to|next to)?\s*(?:the\s+)?(?:[a-z]+\s+){0,3}?(airport|highway|river|residential|houses|homes|schools?|wetlands?|flood(?:\s*zones?)?|landfill|rail(?:road)?|port|downtown)\b/ig,m=>{cannot.push('exclusions ("'+tidy(m)+'"): results still include everything else that matched');return ' ';});
+  text=tidy(text);
+  if(cannot.length)notes.push('I couldn\'t apply: '+cannot.join('; ')+'.');
 
   // 7. Building size (not in public parcel data).
   const sf=/(?:\b(?:around|about|approx(?:imately)?\.?|roughly|over|under|at least|minimum of|a|an|of)\s+)*(?:\d[\d,]*(?:\.\d+)?\s*(?:k|K|thousand|m|mm|million)?)\s*(?:sf|s\.f\.|sq\.?\s*ft\.?|sqft|square\s*f(?:ee|oo)t|feet)\b(?:\s+(?:building|warehouse|box|facility))?/i;
@@ -145,12 +257,14 @@
   out.text=tidy(text);return out;
  }
 
+ // Every public lookup is bounded so a stalled source can never freeze the chat.
+ async function bounded(fetcher,url,ms=15000){const c=typeof AbortController==='function'?new AbortController():null;let timer;try{return await Promise.race([fetcher(url,{credentials:'omit',...(c?{signal:c.signal}:{})}),new Promise((_,reject)=>{timer=setTimeout(()=>{c?.abort();reject(Error('the public source did not respond within '+Math.round(ms/1000)+' seconds'));},ms);})]);}finally{clearTimeout(timer);}}
  async function geocode(query,fetcher){
   const u='https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?'+new URLSearchParams({f:'json',SingleLine:query,countryCode:'USA',maxLocations:'3',outFields:'City,RegionAbbr,Subregion,Addr_type,Match_addr',outSR:'4326',forStorage:'false'});
-  const r=await fetcher(u,{credentials:'omit'});if(!r.ok)throw Error('Geocoder HTTP '+r.status);const d=await r.json();if(d.error)throw Error('Geocoder error');return d.candidates||[];
+  const r=await bounded(fetcher,u);if(!r.ok)throw Error('Geocoder HTTP '+r.status);const d=await r.json();if(d.error)throw Error('Geocoder error');return d.candidates||[];
  }
  async function arcgis(url,params,fetcher){
-  const r=await fetcher(url+'/query?'+new URLSearchParams({f:'json',...params}),{credentials:'omit'});if(!r.ok)throw Error('Parcel source HTTP '+r.status);const d=await r.json();if(d.error)throw Error('Parcel source error');return d.features||[];
+  const r=await bounded(fetcher,url+'/query?'+new URLSearchParams({f:'json',...params}));if(!r.ok)throw Error('Parcel source HTTP '+r.status);const d=await r.json();if(d.error)throw Error('Parcel source error');return d.features||[];
  }
  const NJGIN='https://services2.arcgis.com/XVOqAjTOJ5P6ngMu/ArcGIS/rest/services/Parcels_Composite_NJ_WM/FeatureServer/0';
  const PBC='https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0';
@@ -176,7 +290,8 @@
 
  /* Resolve lookups. Never guesses: if a lookup is ambiguous or fails, it says so. */
  async function resolve(norm,{fetcher=root.fetch,bridge=root.PublicRadarBridge,ownership=root.RadarOwnership,selectedKey=null,lastAction=null}={}){
-  const out={text:norm.text,notes:[...norm.notes],answer:norm.answer,intent:norm.intent||null,followUp:!!norm.followUp};
+  /* Outcome rule: every message ends as an action that says how it was read, a question with choices, or an honest "can't do that". */
+  const out={text:norm.text,notes:[...norm.notes],answer:norm.answer,intent:norm.intent||null,followUp:!!norm.followUp,choices:norm.choices||null,then:norm.then||null};
   const n=norm.needs||{};
   try{
    if(n.coords){
@@ -205,13 +320,28 @@
     else if(c)out.answer='ZIP '+n.zip+' is in '+c.attributes.RegionAbbr+'. Radar\'s parcel sources cover New Jersey, Florida (Palm Beach, Broward, Miami-Dade, Martin/St. Lucie) and Lehigh/Northampton counties in Pennsylvania.';
     else out.answer='I could not match ZIP '+n.zip+'. Try the town name instead.';
    }
+   const rows=bridge?.getResults?.()||[],visible=bridge?.getVisible?.()||rows;
+   const nth=norm.ordinal?(visible.length?visible:rows)[norm.ordinal-1]:null;
+   if(norm.ordinal&&!nth){out.answer='There are only '+(visible.length||rows.length)+' properties in these results.';return out;}
+   if(nth){bridge?.choose?.(nth.key);selectedKey=nth.key;out.select=nth.key;lastAction=null;}
+   const target=nth||(selectedKey&&bridge?.getRecord?.(selectedKey))||(lastAction==='largest'?[...rows].sort((a,b)=>(b.acres??-1)-(a.acres??-1))[0]:null);
+   const where=r=>(r.address||'parcel '+r.id);
+   if(out.intent==='open-ordinal'){out.answer='#'+norm.ordinal+': '+where(nth)+' · '+(nth.acres!=null?nth.acres.toFixed(2)+' acres':'acreage not published')+' · '+(nth.type||'type not published')+'. Ask "who owns it", "is it in a flood zone" or "how much is it worth".';out.render=[nth];}
+   if(out.intent==='zoning'){out.answer=(target?where(target)+' is assessed as '+(target.type||'an unpublished class')+(target.use?' ('+target.use+')':'')+'. That is a tax class, not zoning. ':'')+'Zoning isn\'t in the public parcel records Radar reads, so I can\'t say what can be built. Check the town\'s zoning map or ask its zoning office.';}
+   if(out.intent==='building-facts'){out.answer='Radar has no site-plan or building data (loading docks, clear height, truck or trailer parking, power).'+(target?' What the records show for '+where(target)+': '+(target.acres!=null?target.acres.toFixed(2)+' acres':'acreage not published')+(target.yearBuilt?', built '+target.yearBuilt:'')+'.':'')+' Ask the owner or broker for a site plan.';}
+   if(out.intent==='flood'){
+    if(!target)out.answer='Which property? Click one in the results or say "is the first one in a flood zone".';
+    else{const S=root.RadarScreening;if(!S){out.answer='The flood screening tool isn\'t loaded on this page.';}else{const r=await Promise.race([S.screen(target,'flood'),new Promise(res=>setTimeout(()=>res({status:'error',reason:'FEMA did not respond in time'}),30000))]);
+     out.answer=r.status==='mapped-intersection'?'FEMA maps '+(r.overlapPercent!=null?r.overlapPercent.toFixed(1)+'% of ':'part of ')+where(target)+' in a high-risk flood zone (A/V'+(r.allZoneLabels?.length?'; zones on the parcel: '+r.allZoneLabels.join(', '):'')+'). This is a map screening, not a flood determination; get a survey or flood certificate before relying on it.'
+      :r.status==='no-mapped-intersection'?'FEMA\'s map shows no high-risk (A/V) flood zone on '+where(target)+(r.allZoneLabels?.length?' (zones present: '+r.allZoneLabels.join(', ')+')':'')+'. That is a map screening, not a guarantee; lower-risk zones and local flooding can still apply.'
+      :'The FEMA flood check for '+where(target)+' couldn\'t be completed ('+(r.reason||r.status)+'). No flood conclusion was made; try again or use Screen selected parcel.';}}
+   }
    if(out.intent==='value'){
-    const rows=bridge?.getResults?.()||[];const pick=selectedKey&&bridge.getRecord(selectedKey)?[bridge.getRecord(selectedKey)]:lastAction==='largest'?[...rows].sort((a,b)=>(b.acres??-1)-(a.acres??-1)).slice(0,1):rows.slice(0,5);
+    const pick=target?[target]:rows.slice(0,5);
     const lines=pick.map(r=>'• '+(r.address||r.id)+': '+[money(r.assessedValue)?'assessed '+money(r.assessedValue):'assessed value not published',money(r.landValue)?'land '+money(r.landValue):null,money(r.recordedSalePrice)?'last recorded sale '+money(r.recordedSalePrice)+(r.recordedSaleDate?' ('+String(r.recordedSaleDate).slice(0,10)+')':''):null].filter(Boolean).join(' · '));
     out.answer=(pick.length?'Published tax-record values'+(pick.length>1?' for the first '+pick.length+' results':'')+':\n'+lines.join('\n')+'\n':'')+'These are public assessment figures, not market value, an appraisal or an asking price. Listings and comparable sales are not connected.';
    }
    if(out.intent==='owner-referent'){
-    const rows=bridge?.getResults?.()||[];const target=selectedKey&&bridge.getRecord(selectedKey)||(lastAction==='largest'?[...rows].sort((a,b)=>(b.acres??-1)-(a.acres??-1))[0]:null);
     if(!target)out.answer='Which property do you mean? Click it in the results (or say "who owns the largest one") and ask again.';
     else{
      const r=await ownership.lookup(target);

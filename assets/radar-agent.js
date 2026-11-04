@@ -589,26 +589,38 @@
    document.addEventListener('radar:scan-complete',()=>{plainSelected=null;plainLast=null;});
    async function submitPlain(raw){
      const box=$("agentPrompt");box.value='';box.focus();
-     // "it" right after "show me the biggest one" means that parcel, even if another selection event lands late.
+     // Outcome rule: every message ends in an action that says how it was read, a question with choices,
+     // or an honest "can't do that". The safety net below guarantees the chat is never silent.
+     const log=$("agentLog"),marker=log?.lastElementChild||null;
      const previous=plainLast;plainLast=/\b(?:biggest|largest)\b/i.test(raw)?'largest':null;
-     const P=window.RadarPlainLanguage;if(!P||busy)return ask(raw);
-     let norm;try{norm=P.normalize(raw,{hasResults:bridge().getResults().length>0});}catch{return ask(raw);}
+     const P=window.RadarPlainLanguage;
+     const replied=()=>{if(!log)return true;if(marker&&!marker.isConnected)return true;let e=marker?marker.nextElementSibling:log.firstElementChild;while(e){if(!e.classList.contains('user'))return true;e=e.nextElementSibling;}return false;};
+     const finish=async(task,resolved)=>{
+       try{await task;}catch{}
+       if(resolved?.then&&!busy&&bridge().getResults().length&&bridge().getMeta().complete!==undefined){try{await ask(resolved.then,{quietUser:false});}catch{}}
+       if(clean(raw)&&!replied())putMessage("I didn't catch that. Try a town, county, ZIP code or street address with a property type, for example \"industrial over 5 acres in Edison NJ\", or ask about a property in your results. Type help for more examples.");
+     };
+     if(!P||busy)return finish(ask(raw));
+     let norm;try{norm=P.normalize(raw,{hasResults:bridge().getResults().length>0});}catch{return finish(ask(raw));}
      let resolved=norm;
-     if(Object.keys(norm.needs||{}).length||norm.intent){
+     const answer=r=>{if(r.choices?.length)chips(r.answer,r.choices);else putMessage(r.answer);if(r.render?.length)window.RadarChatProperties?.render(r.render,bridge().getMeta());};
+     if(Object.keys(norm.needs||{}).length||norm.intent||norm.ordinal){
        // Lookups take a moment: block a second send and say what is happening.
        const button=$("agentForm").querySelector('[type=submit]');button.disabled=true;putMessage(clean(raw),'user');const wait=putMessage('Looking that up in the public records…');
        try{resolved=await P.resolve(norm,{bridge:bridge(),selectedKey:previous==='largest'?null:plainSelected,lastAction:previous});}finally{button.disabled=false;wait?.remove?.();}
-       if(resolved.answer){putMessage(resolved.answer);if(norm.intent==='reset'){bridge().clearResults?.();plainSelected=null;plainLast=null;}return;}
-       if(resolved.notes?.length)putMessage(resolved.notes.join(' '));return ask(resolved.text,{intent:parseIntent(resolved.text),quietUser:true});
+       if(resolved.select)plainSelected=resolved.select;
+       if(resolved.answer){answer(resolved);if(norm.intent==='reset'){bridge().clearResults?.();plainSelected=null;plainLast=null;}return finish(null);}
+       if(resolved.notes?.length)putMessage(resolved.notes.join(' '));
+       return finish(ask(resolved.text,{intent:parseIntent(resolved.text),quietUser:true}),resolved);
      }
-     if(resolved.answer){putMessage(clean(raw),'user');putMessage(resolved.answer);if(norm.intent==='reset'){bridge().clearResults?.();window.RadarChatProperties?.clear?.();plainSelected=null;plainLast=null;}return;}
-     const text=resolved.text||raw;if(text===raw){if(!resolved.notes?.length||busy)return ask(raw);putMessage(clean(raw),'user');putMessage(resolved.notes.join(' '));return ask(raw,{quietUser:true});}
-     // Show the user's own words; search with the translated request and say how it was read.
+     if(resolved.answer){putMessage(clean(raw),'user');answer(resolved);if(norm.intent==='reset'){bridge().clearResults?.();plainSelected=null;plainLast=null;}return finish(null);}
+     const text=resolved.text||raw;
+     if(text===raw){if(!resolved.notes?.length||busy)return finish(ask(raw),resolved);putMessage(clean(raw),'user');putMessage(resolved.notes.join(' '));return finish(ask(raw,{quietUser:true}),resolved);}
      // Order: the user's words, how they were read, then Radar's reply (so the answer stays last).
      const meaningful=!resolved.followUp&&text.replace(/^Find\s+/i,'').toLowerCase()!==clean(raw).toLowerCase();
-     if(busy||!(resolved.notes?.length||meaningful))return ask(raw,{intent:parseIntent(text)});
+     if(busy||!(resolved.notes?.length||meaningful))return finish(ask(raw,{intent:parseIntent(text)}),resolved);
      putMessage(clean(raw),'user');putMessage((meaningful?'I understood this as: “'+text.replace(/^Find\s+/i,'')+'”. ':'')+(resolved.notes||[]).join(' '));
-     return ask(raw,{intent:parseIntent(text),quietUser:true});
+     return finish(ask(raw,{intent:parseIntent(text),quietUser:true}),resolved);
    }
    $("agentForm").addEventListener("submit",e=>{e.preventDefault();submitPlain($("agentPrompt").value);});
    document.querySelectorAll("[data-agent-example]").forEach(b=>b.addEventListener("click",()=>{$("agentPrompt").value="";ask(b.dataset.agentExample);}));

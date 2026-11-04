@@ -44,5 +44,33 @@
         caveat:'Published assessment observation; not independently verified title or beneficial ownership.'};
     }finally{clearTimeout(timeout);signal?.removeEventListener('abort',cancel);}
   }
-  return {sources,lookupOwner,entity,entityKey};
+  // Batch version for automatic display: one request per 100 parcels per county source, owner name only
+  // (no mailing or contact fields). Blank, redacted or protected names stay blank; nothing is inferred.
+  async function lookupOwners(records,{fetcher=globalThis.fetch,signal,chunk=100,timeoutMs=20000}={}){
+    const out=new Map(),retrievedAt=new Date().toISOString(),byProvider=new Map();
+    for(const r of records){const source=sources[r.provider];if(!source?.owner||r.provider==='northampton'||!r.id)continue;const k=r.provider+(r.provider==='fdor'?':'+r.jurisdiction:'');if(!byProvider.has(k))byProvider.set(k,[]);byProvider.get(k).push(r);}
+    for(const [k,rows] of byProvider){
+      const provider=k.split(':')[0],source=sources[provider],county=provider==='fdor'?Number(rows[0].jurisdiction):null;
+      if(provider==='fdor'&&![6,13,53,60,66].includes(county))continue;
+      for(let i=0;i<rows.length;i+=chunk){
+        if(signal?.aborted)return out;
+        const part=rows.slice(i,i+chunk),ids=[...new Set(part.map(r=>String(r.id).trim()).filter(id=>id&&id.length<=200))];
+        const where=source.id+' IN ('+ids.map(id=>"'"+id.replace(/'/g,"''")+"'").join(',')+')'+(county!=null?' AND CO_NO = '+county:'');
+        const body=new URLSearchParams({f:'json',where,outFields:[source.id,source.owner].join(','),returnGeometry:'false',resultRecordCount:String(ids.length*3)});
+        const controller=new AbortController(),cancel=()=>controller.abort(),timer=setTimeout(cancel,timeoutMs);signal?.addEventListener('abort',cancel,{once:true});
+        try{
+          const response=await fetcher(source.url+'/query',{method:'POST',body,credentials:'omit',mode:'cors',signal:controller.signal,cache:'no-store'});
+          if(!response.ok)throw Error('HTTP '+response.status);const data=await response.json();if(data.error)throw Error('source error');
+          const seen=new Map();for(const f of data.features||[]){const id=String(f.attributes?.[source.id]??'');const name=String(f.attributes?.[source.owner]||'').trim().slice(0,400);if(!seen.has(id))seen.set(id,new Set());seen.get(id).add(name);}
+          for(const r of part){const names=seen.get(String(r.id).trim());let status='not-published',name='';
+            if(names&&names.size===1){const raw=[...names][0];name=/^(?:(?:REDACTED|WITHHELD|PROTECTED)(?:\b|$)|(?:PRIVATE|NOT AVAILABLE|N\/?A|UNKNOWN|NULL)$)/i.test(raw)?'':raw;status=name?'published':'not-published';}
+            else if(names&&names.size>1)status='conflicting';else if(!names)status='no-match';
+            out.set(r.key,{status,publishedName:name,classification:name&&entity(name)?'organization-style':name?'unclassified':null,sourceName:source.name,sourceURL:source.url,retrievedAt});}
+        }catch(e){for(const r of part)out.set(r.key,{status:'unavailable',message:String(e.message||e).slice(0,120),sourceName:source.name,retrievedAt});}
+        finally{clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
+      }
+    }
+    return out;
+  }
+  return {sources,lookupOwner,lookupOwners,entity,entityKey};
 });
