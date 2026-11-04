@@ -66,8 +66,9 @@ test('pasted broker email: the address is pulled out and the unverifiable claims
 test('statewide and out-of-coverage requests are explained, not guessed',()=>{
  assert.match(n('cold storage over 100000 sf in New Jersey').answer,/Statewide searches are not available/);
  assert.match(n('industrial anywhere in Florida').answer,/Statewide/);
- assert.ok(n('Edison NY industrial').notes.some(x=>/not connected/.test(x)));
- assert.ok(!n('industrial near 100 New York Ave Newark NJ').notes.some(x=>/not connected/.test(x)),'New York Avenue is a street, not a state');
+ for(const q of ['Edison NY industrial','edison ny industrial'])assert.match(n(q).answer,/can't search ny/i,q);
+ assert.deepEqual(n('Edison NY industrial').choices,[['Search Edison, NJ','Edison NJ industrial']]);
+ assert.equal(n('industrial near 100 New York Ave Newark NJ').answer,null,'New York Avenue is a street, not a state');
 });
 
 test('follow-ups get honest answers, never a list that answers a different question',()=>{

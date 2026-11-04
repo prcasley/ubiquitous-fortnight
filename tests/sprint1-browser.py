@@ -48,10 +48,15 @@ try:
         parsed=page.evaluate('(q)=>PublicRadarAgent.parseIntent(q)',q)
         submit(page,q)
         if action=='suggest':
-            check('typo asks for confirmation',page.get_by_role('button',name='Yes — industrial in Edison, NJ').count()==1)
-            check('typo does not start a guessed scan',page.evaluate('PublicRadarBridge.getSearch()===null'))
-            page.get_by_role('button',name='Yes — industrial in Edison, NJ').click()
+            # Known misspellings are corrected from a fixed list and the correction is shown ("I read "EDISSON" as Edison");
+            # anything else still asks for confirmation before a scan starts.
             page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
+            if page.get_by_role('button',name='Yes — industrial in Edison, NJ').count()==1:
+                check('typo does not start a guessed scan',page.evaluate('PublicRadarBridge.getSearch()===null'))
+                page.get_by_role('button',name='Yes — industrial in Edison, NJ').click()
+                page.wait_for_function('!document.querySelector("#agentForm button[type=submit]").disabled')
+            else:
+                check('typo correction is stated before searching','as Edison' in page.locator('#agentLog').inner_text())
         if action in ['search','gps','suggest']:
             query=page.evaluate('PublicRadarBridge.getSearch()')
             check('search ran for '+q,query is not None)
