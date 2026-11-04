@@ -1,0 +1,31 @@
+name: Live persona check (published site)
+# Types into the published Radar the way brokers and executives do. Manual or weekly; it reads
+# live public GIS, so a source outage is reported separately from a real failure.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '43 13 * * 1' # Mondays, after the nomination refresh
+permissions:
+  contents: read
+jobs:
+  persona:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Run plain-language conversations against GitHub Pages
+        run: python scripts/live-persona-check.py
+        env:
+          RADAR_USE_MANAGED_CHROMIUM: '1'
+      - name: Save results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-persona-results
+          path: test-results/live-persona.json
+          if-no-files-found: warn

@@ -326,7 +326,7 @@
  function chips(message,choices){const row=putMessage(message);for(const [label,query] of choices){const b=document.createElement('button');b.type='button';b.className='secondary chat-chip';b.textContent=label;b.addEventListener('click',()=>{b.disabled=true;ask(query);});row.append(b);}return row;}
  function clarify(){
    const reply=lastReply,query=bridge().getSearch(),count=bridge().getResults().length;
-   if(reply.includes('OZ')||reply.includes('reference intersection'))return 'In plain English: a colored OZ reference match is a research lead. It does not confirm final designation or that a property qualifies for a tax benefit. '+(count?count+' accepted parcels remain in your current search.':'Search for a property first to check a specific parcel.');
+   if(reply.includes('OZ')||reply.includes('reference intersection')||/nominat|opportunity zone|eligib/i.test(reply))return 'In plain English: a colored OZ reference match is a research lead. It does not confirm final designation or that a property qualifies for a tax benefit. '+(count?count+' accepted parcels remain in your current search.':'Search for a property first to check a specific parcel.');
    if(/published assessment (?:name|entity)/i.test(reply))return 'In plain English: that is the name printed in an assessor record, not proof of the current legal owner or who controls an LLC. Verify the deed and official records before acting.';
    if(reply.startsWith('Exported'))return 'In plain English: the downloaded CSV contains your accepted public parcel records, published construction years, source links and retrieval dates. It excludes private notes, contacts and owner inferences. Missing-year records are not year-filter matches.';
    if(reply.startsWith("I couldn't apply:"))return 'In plain English: '+reply.slice("I couldn't apply:".length).trim()+' did not filter the results. The visible parcels are candidates under the other filters, so check that condition separately.';
@@ -379,7 +379,7 @@
      }
    }
    if(busy){putMessage("A public-source search is already in progress. Finish it before submitting another request.");return;}
-   putMessage(clean(raw),"user");
+   if(!options.quietUser)putMessage(clean(raw),"user");
    if(intent.invalidReason){putMessage(intent.invalidReason+" Your current results were retained.");return;}
    if(intent.sort&&!intent.questionOwnership&&!intent.questionOZ&&!intent.location&&!intent.state&&!intent.countyLabel&&!intent.nearMe&&intent.acres==null&&intent.type==null){
      const meta=bridge().getMeta(),rows=bridge().getResults();
@@ -582,8 +582,36 @@
  }
  function init(){
    if(!bridge()||!$("agentForm"))return;
-   $("agentForm").addEventListener("submit",e=>{e.preventDefault();ask($("agentPrompt").value);});
-   document.querySelectorAll("[data-agent-example]").forEach(b=>b.addEventListener("click",()=>{$("agentPrompt").value=b.dataset.agentExample;ask(b.dataset.agentExample);}));
+   // Plain-language front door: clear the box after every send (follow-ups were being spliced into the
+   // previous text), translate broker phrasing, and answer honestly what the public scan cannot do.
+   let plainSelected=null,plainLast=null;
+   document.addEventListener('radar:parcel-selected',e=>{plainSelected=e.detail?.key||null;});
+   document.addEventListener('radar:scan-complete',()=>{plainSelected=null;plainLast=null;});
+   async function submitPlain(raw){
+     const box=$("agentPrompt");box.value='';box.focus();
+     // "it" right after "show me the biggest one" means that parcel, even if another selection event lands late.
+     const previous=plainLast;plainLast=/\b(?:biggest|largest)\b/i.test(raw)?'largest':null;
+     const P=window.RadarPlainLanguage;if(!P||busy)return ask(raw);
+     let norm;try{norm=P.normalize(raw,{hasResults:bridge().getResults().length>0});}catch{return ask(raw);}
+     let resolved=norm;
+     if(Object.keys(norm.needs||{}).length||norm.intent){
+       // Lookups take a moment: block a second send and say what is happening.
+       const button=$("agentForm").querySelector('[type=submit]');button.disabled=true;putMessage(clean(raw),'user');const wait=putMessage('Looking that up in the public records…');
+       try{resolved=await P.resolve(norm,{bridge:bridge(),selectedKey:previous==='largest'?null:plainSelected,lastAction:previous});}finally{button.disabled=false;wait?.remove?.();}
+       if(resolved.answer){putMessage(resolved.answer);if(norm.intent==='reset'){bridge().clearResults?.();plainSelected=null;plainLast=null;}return;}
+       if(resolved.notes?.length)putMessage(resolved.notes.join(' '));return ask(resolved.text,{intent:parseIntent(resolved.text),quietUser:true});
+     }
+     if(resolved.answer){putMessage(clean(raw),'user');putMessage(resolved.answer);if(norm.intent==='reset'){bridge().clearResults?.();window.RadarChatProperties?.clear?.();plainSelected=null;plainLast=null;}return;}
+     const text=resolved.text||raw;if(text===raw){if(!resolved.notes?.length||busy)return ask(raw);putMessage(clean(raw),'user');putMessage(resolved.notes.join(' '));return ask(raw,{quietUser:true});}
+     // Show the user's own words; search with the translated request and say how it was read.
+     // Order: the user's words, how they were read, then Radar's reply (so the answer stays last).
+     const meaningful=!resolved.followUp&&text.replace(/^Find\s+/i,'').toLowerCase()!==clean(raw).toLowerCase();
+     if(busy||!(resolved.notes?.length||meaningful))return ask(raw,{intent:parseIntent(text)});
+     putMessage(clean(raw),'user');putMessage((meaningful?'I understood this as: “'+text.replace(/^Find\s+/i,'')+'”. ':'')+(resolved.notes||[]).join(' '));
+     return ask(raw,{intent:parseIntent(text),quietUser:true});
+   }
+   $("agentForm").addEventListener("submit",e=>{e.preventDefault();submitPlain($("agentPrompt").value);});
+   document.querySelectorAll("[data-agent-example]").forEach(b=>b.addEventListener("click",()=>{$("agentPrompt").value="";ask(b.dataset.agentExample);}));
    $("stateSelect").addEventListener("change",applyNewLocation);
    $("countySelect").addEventListener("change",()=>{
       locationKnown=true;pendingSearch=null;

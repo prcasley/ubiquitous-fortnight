@@ -498,7 +498,8 @@
       }
       let usedQuery=q,usedFallback=false;
       const allowed=c=>c.location&&Number.isFinite(c.location.x)&&Number.isFinite(c.location.y)&&Number(c.score)>= (address?90:75)&&(!expectedState||c.attributes?.RegionAbbr===expectedState)&&(!address||['PointAddress','StreetAddress','Subaddress'].includes(c.attributes?.Addr_type));
-      let cand=(await candidates(q)).find(allowed);
+      // Prefer connected states: "Monmouth" must not resolve to Monmouth, Oregon when an NJ match exists.
+      const first=await candidates(q);let cand=first.find(c=>allowed(c)&&['FL','NJ','PA'].includes(String(c.attributes?.RegionAbbr||'').toUpperCase()))||first.find(allowed);
       if(!cand&&address&&fallback){usedQuery=fallback;usedFallback=true;cand=(await candidates(fallback)).find(c=>c.location&&Number.isFinite(c.location.x)&&Number.isFinite(c.location.y)&&Number(c.score)>=75&&(!expectedState||c.attributes?.RegionAbbr===expectedState));}
       if(!cand)throw Error("No confident US "+(address?'street address':'location')+" returned. Click directly on the map instead.");
       const state=String(cand.attributes?.RegionAbbr||"").toUpperCase();
