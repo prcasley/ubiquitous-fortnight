@@ -1,7 +1,7 @@
 {
   "format": "RadarNJOZRoundComparison",
   "version": 1,
-  "checkedAt": "2026-11-05T20:26:30.679Z",
+  "checkedAt": "2026-11-05T20:38:27.077Z",
   "validUntil": "2027-01-30T20:56:15.000Z",
   "legacySourceURL": "https://geo.dot.gov/server/rest/services/Hosted/OZ_Opportunity_Zones/FeatureServer/0",
   "legacySourceCount": 169,
