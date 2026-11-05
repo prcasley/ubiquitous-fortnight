@@ -1,0 +1,1829 @@
+{
+  "format": "RadarNJOZRoundComparison",
+  "version": 1,
+  "checkedAt": "2026-11-05T20:26:30.679Z",
+  "validUntil": "2027-01-30T20:56:15.000Z",
+  "legacySourceURL": "https://geo.dot.gov/server/rest/services/Hosted/OZ_Opportunity_Zones/FeatureServer/0",
+  "legacySourceCount": 169,
+  "legacyTractIds": [
+    "34001000400",
+    "34001001900",
+    "34001002300",
+    "34001002400",
+    "34001010600",
+    "34001011702",
+    "34001012100",
+    "34001012702",
+    "34003006300",
+    "34003015400",
+    "34003018200",
+    "34003021200",
+    "34003021500",
+    "34003021600",
+    "34003023100",
+    "34003023200",
+    "34003023402",
+    "34003030100",
+    "34003030300",
+    "34003036100",
+    "34005700104",
+    "34005700703",
+    "34005701204",
+    "34005702207",
+    "34005702807",
+    "34007600200",
+    "34007600700",
+    "34007601300",
+    "34007601500",
+    "34007601800",
+    "34007607702",
+    "34007608504",
+    "34007610300",
+    "34007610400",
+    "34007610600",
+    "34007610800",
+    "34009021400",
+    "34009021804",
+    "34011020100",
+    "34011020503",
+    "34011030100",
+    "34011040500",
+    "34011041100",
+    "34013001400",
+    "34013004100",
+    "34013004802",
+    "34013005000",
+    "34013006800",
+    "34013007400",
+    "34013007501",
+    "34013007502",
+    "34013008000",
+    "34013008100",
+    "34013009600",
+    "34013010600",
+    "34013010900",
+    "34013011300",
+    "34013013100",
+    "34013013200",
+    "34013013300",
+    "34013018300",
+    "34013018600",
+    "34013018700",
+    "34013018900",
+    "34013022900",
+    "34013023100",
+    "34015501001",
+    "34015501101",
+    "34015501402",
+    "34015501406",
+    "34017001900",
+    "34017002000",
+    "34017002900",
+    "34017004102",
+    "34017004600",
+    "34017004700",
+    "34017004800",
+    "34017005200",
+    "34017006000",
+    "34017006300",
+    "34017006800",
+    "34017010300",
+    "34017010800",
+    "34017012700",
+    "34017014600",
+    "34017014800",
+    "34017015500",
+    "34017016200",
+    "34017016400",
+    "34017016900",
+    "34017017800",
+    "34019011400",
+    "34021000100",
+    "34021000200",
+    "34021000800",
+    "34021000900",
+    "34021001000",
+    "34021002000",
+    "34021002100",
+    "34021002902",
+    "34023003600",
+    "34023004500",
+    "34023004600",
+    "34023004800",
+    "34023004900",
+    "34023005300",
+    "34023005500",
+    "34023005602",
+    "34023005700",
+    "34023005800",
+    "34023006800",
+    "34023008300",
+    "34023009300",
+    "34025803400",
+    "34025805800",
+    "34025806000",
+    "34025807003",
+    "34025807300",
+    "34025807600",
+    "34025808100",
+    "34025810900",
+    "34027044800",
+    "34027044900",
+    "34027045000",
+    "34027045100",
+    "34029715000",
+    "34029715200",
+    "34029715402",
+    "34029715500",
+    "34029715600",
+    "34029715800",
+    "34029720101",
+    "34029720102",
+    "34029720202",
+    "34029731101",
+    "34029731205",
+    "34031124601",
+    "34031125100",
+    "34031175200",
+    "34031175301",
+    "34031175402",
+    "34031175900",
+    "34031181500",
+    "34031181800",
+    "34031182302",
+    "34031182500",
+    "34031182800",
+    "34031182900",
+    "34031183200",
+    "34031203600",
+    "34031264200",
+    "34033020600",
+    "34033022100",
+    "34035051100",
+    "34035051200",
+    "34035051700",
+    "34037371200",
+    "34039031100",
+    "34039031200",
+    "34039031602",
+    "34039032400",
+    "34039035300",
+    "34039035400",
+    "34039036000",
+    "34039039000",
+    "34039039300",
+    "34039039800",
+    "34039039900",
+    "34041030700"
+  ],
+  "nominationCount": 130,
+  "boundarySource": "Uploaded 2026 NJ nomination snapshot; IDs/county reconciled to dated NJ evidence",
+  "nominationEvidence": "assets/data/oz-designation-evidence.json",
+  "legacyGeometrySHA256": "fa2de8d1e5350d4dc500dc1d99ef557df85666f5e20993e39bc58dcdf126cc18",
+  "method": "Geodesic area overlap of nomination polygons against complete NJ federal OZ 1 map reference; union of clipped areas prevents double counting. Census IDs are not treated as a complete vintage crosswalk.",
+  "thresholds": {
+    "substantialLegacyOverlapPercent": 95,
+    "zeroTolerancePercent": 0.000001
+  },
+  "counts": {
+    "no-mapped-overlap": 36,
+    "substantial-legacy-overlap": 66,
+    "partial-legacy-overlap": 27,
+    "unavailable": 1
+  },
+  "records": [
+    {
+      "geoid": "34033022100",
+      "county": "Salem",
+      "municipality": "Salem city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.2784060635431,
+      "legacyTractIds": [
+        "34033022100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023004800",
+      "county": "Middlesex",
+      "municipality": "Perth Amboy city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.29512320640094,
+      "legacyTractIds": [
+        "34023004800",
+        "34023004900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023005300",
+      "county": "Middlesex",
+      "municipality": "New Brunswick city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99973948161667,
+      "legacyTractIds": [
+        "34023005300",
+        "34023005500",
+        "34023005602",
+        "34023009300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003018200",
+      "county": "Bergen",
+      "municipality": "Fairview borough",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 98.58073115703282,
+      "legacyTractIds": [
+        "34003018200",
+        "34017014600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007601800",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "unavailable",
+      "legacyOverlapPercent": null,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": [],
+      "message": "Unable to complete output ring starting at [-75.13489775974539, 39.927359061515304]. Last matching segment found ends at [-75.13489775956997, 39.927359061011735]."
+    },
+    {
+      "geoid": "34023005500",
+      "county": "Middlesex",
+      "municipality": "New Brunswick city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99972946967894,
+      "legacyTractIds": [
+        "34023005300",
+        "34023005500"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34027043500",
+      "county": "Morris",
+      "municipality": "Morristown town",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007610300",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99996745988,
+      "legacyTractIds": [
+        "34007601800",
+        "34007610300",
+        "34007610400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023007103",
+      "county": "Middlesex",
+      "municipality": "Sayreville borough",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007608210",
+      "county": "Camden",
+      "municipality": "Gloucester township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031264200",
+      "county": "Passaic",
+      "municipality": "Paterson city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99998420758703,
+      "legacyTractIds": [
+        "34031181800",
+        "34031183200",
+        "34031264200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023000300",
+      "county": "Middlesex",
+      "municipality": "Dunellen borough",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021003400",
+      "county": "Mercer",
+      "municipality": "Ewing township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021003707",
+      "county": "Mercer",
+      "municipality": "Ewing township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017017700",
+      "county": "Hudson",
+      "municipality": "Union City city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000005596852280126683,
+      "legacyTractIds": [
+        "34017017800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017017800",
+      "county": "Hudson",
+      "municipality": "Union City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 98.5712173143585,
+      "legacyTractIds": [
+        "34017017800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013018300",
+      "county": "Essex",
+      "municipality": "City of Orange township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.7005255019083,
+      "legacyTractIds": [
+        "34013018300",
+        "34013018600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013018400",
+      "county": "Essex",
+      "municipality": "City of Orange township",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 5.292293484942475,
+      "legacyTractIds": [
+        "34013011300",
+        "34013018300",
+        "34013018600",
+        "34013018700"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013018600",
+      "county": "Essex",
+      "municipality": "City of Orange township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.50663664894822,
+      "legacyTractIds": [
+        "34013018300",
+        "34013018600",
+        "34013018700",
+        "34013018900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013015900",
+      "county": "Essex",
+      "municipality": "Bloomfield township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013001000",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.015369097797921127,
+      "legacyTractIds": [
+        "34013022900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001012702",
+      "county": "Atlantic",
+      "municipality": "Somers Point city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.96197036431676,
+      "legacyTractIds": [
+        "34001012702"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001001400",
+      "county": "Atlantic",
+      "municipality": "Atlantic City city",
+      "ruralSourceFlag": "Yes",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001000400",
+      "county": "Atlantic",
+      "municipality": "Atlantic City city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999309881852,
+      "legacyTractIds": [
+        "34001000400",
+        "34001002300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001002300",
+      "county": "Atlantic",
+      "municipality": "Atlantic City city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 97.667801285095,
+      "legacyTractIds": [
+        "34001000400",
+        "34001002300",
+        "34001002400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001002400",
+      "county": "Atlantic",
+      "municipality": "Atlantic City city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99887963680561,
+      "legacyTractIds": [
+        "34001001900",
+        "34001002300",
+        "34001002400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001011702",
+      "county": "Atlantic",
+      "municipality": "Egg Harbor township",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 98.23715999666311,
+      "legacyTractIds": [
+        "34001011702"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001001900",
+      "county": "Atlantic",
+      "municipality": "Atlantic City city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99983168934226,
+      "legacyTractIds": [
+        "34001001900",
+        "34001002400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34001012100",
+      "county": "Atlantic",
+      "municipality": "Pleasantville city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.93520514989773,
+      "legacyTractIds": [
+        "34001012100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029717002",
+      "county": "Ocean",
+      "municipality": "Jackson township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007610800",
+      "county": "Camden",
+      "municipality": "Pennsauken township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.25292190885594,
+      "legacyTractIds": [
+        "34005700104",
+        "34007610800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34025801700",
+      "county": "Monmouth",
+      "municipality": "Keansburg borough",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34025805700",
+      "county": "Monmouth",
+      "municipality": "Long Branch city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 3.7667338520342343e-7,
+      "legacyTractIds": [
+        "34025805800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039039200",
+      "county": "Union",
+      "municipality": "Plainfield city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000006138940216124107,
+      "legacyTractIds": [
+        "34039039000",
+        "34039039300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021002100",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9999911779303,
+      "legacyTractIds": [
+        "34021000800",
+        "34021000900",
+        "34021002000",
+        "34021002100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021002701",
+      "county": "Mercer",
+      "municipality": "Hamilton township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34011040901",
+      "county": "Cumberland",
+      "municipality": "Vineland city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 1.7068225890929805e-7,
+      "legacyTractIds": [
+        "34011040500",
+        "34011041100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021001101",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000015625954062399057,
+      "legacyTractIds": [
+        "34021000900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34015500400",
+      "county": "Gloucester",
+      "municipality": "Paulsboro borough",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34005700703",
+      "county": "Burlington",
+      "municipality": "Riverside township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.24835769272123,
+      "legacyTractIds": [
+        "34005700703"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34005701002",
+      "county": "Burlington",
+      "municipality": "Edgewater Park township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 1.5528199066106188e-7,
+      "legacyTractIds": [
+        "34005702807"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013005400",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.0000012875627672450239,
+      "legacyTractIds": [
+        "34013004100",
+        "34013005000"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013006400",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 8.15651471509646e-9,
+      "legacyTractIds": [
+        "34013008100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013007900",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.23702857531650254,
+      "legacyTractIds": [
+        "34013007501",
+        "34013008000"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013008000",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999824935172,
+      "legacyTractIds": [
+        "34013008000",
+        "34013008100",
+        "34013022900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023005602",
+      "county": "Middlesex",
+      "municipality": "New Brunswick city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99985344999989,
+      "legacyTractIds": [
+        "34023005300",
+        "34023005602",
+        "34023005800",
+        "34023009300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029715600",
+      "county": "Ocean",
+      "municipality": "Lakewood township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999777159205,
+      "legacyTractIds": [
+        "34029715000",
+        "34029715200",
+        "34029715500",
+        "34029715600",
+        "34029715800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013001400",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999673954308,
+      "legacyTractIds": [
+        "34013001400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021000100",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 97.9934176761875,
+      "legacyTractIds": [
+        "34021000100",
+        "34021000200",
+        "34021000800",
+        "34021001000"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013011900",
+      "county": "Essex",
+      "municipality": "Irvington township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017012800",
+      "county": "Hudson",
+      "municipality": "Kearny town",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.33461749152189196,
+      "legacyTractIds": [
+        "34017012700"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031125100",
+      "county": "Passaic",
+      "municipality": "Clifton city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.98868189784092,
+      "legacyTractIds": [
+        "34031125100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031175200",
+      "county": "Passaic",
+      "municipality": "Passaic city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999618512096,
+      "legacyTractIds": [
+        "34003021200",
+        "34003021600",
+        "34031125100",
+        "34031175200",
+        "34031175301",
+        "34031175402",
+        "34031175900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031175900",
+      "county": "Passaic",
+      "municipality": "Passaic city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 97.87037957063546,
+      "legacyTractIds": [
+        "34003021500",
+        "34003021600",
+        "34031175200",
+        "34031175402",
+        "34031175900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031180900",
+      "county": "Passaic",
+      "municipality": "Paterson city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031181800",
+      "county": "Passaic",
+      "municipality": "Paterson city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999867629634,
+      "legacyTractIds": [
+        "34031181800",
+        "34031183200",
+        "34031264200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031182900",
+      "county": "Passaic",
+      "municipality": "Paterson city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 93.84032079884472,
+      "legacyTractIds": [
+        "34031182800",
+        "34031182900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031183200",
+      "county": "Passaic",
+      "municipality": "Paterson city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999434939807,
+      "legacyTractIds": [
+        "34031181500",
+        "34031181800",
+        "34031183200",
+        "34031264200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039039302",
+      "county": "Union",
+      "municipality": "Plainfield city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9999974828194,
+      "legacyTractIds": [
+        "34035051700",
+        "34039039000",
+        "34039039300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34041030700",
+      "county": "Warren",
+      "municipality": "Phillipsburg town",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99126668995204,
+      "legacyTractIds": [
+        "34041030700"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34011020503",
+      "county": "Cumberland",
+      "municipality": "Bridgeton city",
+      "ruralSourceFlag": "Yes",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.07563696248978,
+      "legacyTractIds": [
+        "34011020100",
+        "34011020503"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013000300",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013015300",
+      "county": "Essex",
+      "municipality": "Bloomfield township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013001500",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013010600",
+      "county": "Essex",
+      "municipality": "East Orange city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99777268345173,
+      "legacyTractIds": [
+        "34013010600",
+        "34013011300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017016200",
+      "county": "Hudson",
+      "municipality": "Union City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.7973072302828,
+      "legacyTractIds": [
+        "34017014600",
+        "34017016200",
+        "34017016400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017001202",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017001900",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99998756957288,
+      "legacyTractIds": [
+        "34017001900",
+        "34017002000"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013002800",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.0011368539575231898,
+      "legacyTractIds": [
+        "34013001400",
+        "34013023100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013008100",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99952618644771,
+      "legacyTractIds": [
+        "34013008000",
+        "34013008100",
+        "34013022900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34027046107",
+      "county": "Morris",
+      "municipality": "Mount Olive township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029715800",
+      "county": "Ocean",
+      "municipality": "Lakewood township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.94733626489027,
+      "legacyTractIds": [
+        "34029715000",
+        "34029715600",
+        "34029715800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039030400",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.053185234931074014,
+      "legacyTractIds": [
+        "34039039800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039030600",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039031100",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99922148646422,
+      "legacyTractIds": [
+        "34039031100",
+        "34039031200",
+        "34039039900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023004600",
+      "county": "Middlesex",
+      "municipality": "Perth Amboy city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 100,
+      "legacyTractIds": [
+        "34023004500",
+        "34023004600",
+        "34023004900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039032300",
+      "county": "Union",
+      "municipality": "Hillside township",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.14082633868253153,
+      "legacyTractIds": [
+        "34013004802",
+        "34039032400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021000800",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999515734879,
+      "legacyTractIds": [
+        "34021000100",
+        "34021000800",
+        "34021000900",
+        "34021001000",
+        "34021002100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021000900",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99997607465522,
+      "legacyTractIds": [
+        "34021000800",
+        "34021000900",
+        "34021001000",
+        "34021002000",
+        "34021002100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021001000",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 94.78164116221569,
+      "legacyTractIds": [
+        "34021000100",
+        "34021000800",
+        "34021000900",
+        "34021001000"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039039801",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.98669617824464,
+      "legacyTractIds": [
+        "34039039800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017002002",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999060482548,
+      "legacyTractIds": [
+        "34017001900",
+        "34017002000",
+        "34017002900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017015003",
+      "county": "Hudson",
+      "municipality": "Guttenberg town",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017002001",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99998206702388,
+      "legacyTractIds": [
+        "34017001900",
+        "34017002000",
+        "34017002900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017003102",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000003059030570242126,
+      "legacyTractIds": [
+        "34017004102"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017015004",
+      "county": "Hudson",
+      "municipality": "Guttenberg town",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34021001700",
+      "county": "Mercer",
+      "municipality": "Trenton city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34005701203",
+      "county": "Burlington",
+      "municipality": "Burlington city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 5.222907739311181e-7,
+      "legacyTractIds": [
+        "34005701204"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34025807600",
+      "county": "Monmouth",
+      "municipality": "Neptune township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99998116294637,
+      "legacyTractIds": [
+        "34025807003",
+        "34025807300",
+        "34025807600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34025807700",
+      "county": "Monmouth",
+      "municipality": "Neptune township",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.03421728607838446,
+      "legacyTractIds": [
+        "34025807600",
+        "34025808100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34005701204",
+      "county": "Burlington",
+      "municipality": "Burlington city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.98350051589846,
+      "legacyTractIds": [
+        "34005701204"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007601500",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99993198949406,
+      "legacyTractIds": [
+        "34007600200",
+        "34007601500"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003023502",
+      "county": "Bergen",
+      "municipality": "Hackensack city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.0000026464713735423046,
+      "legacyTractIds": [
+        "34003023100",
+        "34003023402"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013000500",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013018900",
+      "county": "Essex",
+      "municipality": "City of Orange township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.71598164961006,
+      "legacyTractIds": [
+        "34013018600",
+        "34013018700",
+        "34013018900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007604100",
+      "county": "Camden",
+      "municipality": "Woodlynne borough",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000007268358164297545,
+      "legacyTractIds": [
+        "34007601500"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003036100",
+      "county": "Bergen",
+      "municipality": "South Hackensack twp./Teterboro borough",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.53847450489799,
+      "legacyTractIds": [
+        "34003023402",
+        "34003036100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34033020300",
+      "county": "Salem",
+      "municipality": "Penns Grove borough",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.23647152967991078,
+      "legacyTractIds": [
+        "34033020600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003021600",
+      "county": "Bergen",
+      "municipality": "Garfield city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99999697331955,
+      "legacyTractIds": [
+        "34003021200",
+        "34003021500",
+        "34003021600",
+        "34031175200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007600700",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9975408700868,
+      "legacyTractIds": [
+        "34007600700",
+        "34007610300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017003000",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.8334714336915618,
+      "legacyTractIds": [
+        "34017002000",
+        "34017002900",
+        "34017004102"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34009020500",
+      "county": "Cape May",
+      "municipality": "Woodbine borough",
+      "ruralSourceFlag": "Yes",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013011300",
+      "county": "Essex",
+      "municipality": "East Orange city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99964232860088,
+      "legacyTractIds": [
+        "34013010600",
+        "34013011300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017006300",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9391422351723,
+      "legacyTractIds": [
+        "34017006000",
+        "34017006300",
+        "34017010300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017010900",
+      "county": "Hudson",
+      "municipality": "Bayonne city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000008439364309391629,
+      "legacyTractIds": [
+        "34017010800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017011000",
+      "county": "Hudson",
+      "municipality": "Bayonne city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029720105",
+      "county": "Ocean",
+      "municipality": "Manchester township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9031230302619,
+      "legacyTractIds": [
+        "34029720101",
+        "34029720102",
+        "34029720202"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029728003",
+      "county": "Ocean",
+      "municipality": "Seaside Heights borough",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029715001",
+      "county": "Ocean",
+      "municipality": "Lakewood township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.65199582090376,
+      "legacyTractIds": [
+        "34029715000",
+        "34029715200",
+        "34029715800"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34029715404",
+      "county": "Ocean",
+      "municipality": "Lakewood township",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99997677178712,
+      "legacyTractIds": [
+        "34029715402",
+        "34029715500"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031175804",
+      "county": "Passaic",
+      "municipality": "Passaic city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023004502",
+      "county": "Middlesex",
+      "municipality": "Perth Amboy city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.48280119322729,
+      "legacyTractIds": [
+        "34023004500",
+        "34023004600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023980000",
+      "county": "Middlesex",
+      "municipality": "Carteret borough",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 62.142190762064374,
+      "legacyTractIds": [
+        "34023003600",
+        "34039035400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003023501",
+      "county": "Bergen",
+      "municipality": "Hackensack city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000005192538269180218,
+      "legacyTractIds": [
+        "34003023100",
+        "34003023200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34013000900",
+      "county": "Essex",
+      "municipality": "Newark city",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34003023602",
+      "county": "Bergen",
+      "municipality": "Hackensack city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.05022865716694686,
+      "legacyTractIds": [
+        "34003023100",
+        "34003023402",
+        "34003036100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039039900",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.88984684606854,
+      "legacyTractIds": [
+        "34039031100",
+        "34039031200",
+        "34039039900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017004600",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99927602285011,
+      "legacyTractIds": [
+        "34017004600",
+        "34017004700"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017013400",
+      "county": "Hudson",
+      "municipality": "East Newark borough",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000021924481817621335,
+      "legacyTractIds": [
+        "34013022900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34039031602",
+      "county": "Union",
+      "municipality": "Elizabeth city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 97.65088532301795,
+      "legacyTractIds": [
+        "34013004802",
+        "34039031602"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007601400",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.8122431970127802,
+      "legacyTractIds": [
+        "34007600200",
+        "34007601300",
+        "34007601500",
+        "34007610600"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34007610400",
+      "county": "Camden",
+      "municipality": "Camden city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.9920539606352,
+      "legacyTractIds": [
+        "34007600200",
+        "34007610300",
+        "34007610400"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34035051100",
+      "county": "Somerset",
+      "municipality": "Bound Brook borough",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 98.76199042508087,
+      "legacyTractIds": [
+        "34035051100",
+        "34035051200"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34033022000",
+      "county": "Salem",
+      "municipality": "Salem city",
+      "ruralSourceFlag": "Yes",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.000002957517675428972,
+      "legacyTractIds": [
+        "34033022100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34023009300",
+      "county": "Middlesex",
+      "municipality": "New Brunswick city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 98.59465539448051,
+      "legacyTractIds": [
+        "34023005300",
+        "34023005602",
+        "34023005800",
+        "34023009300"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34027041705",
+      "county": "Morris",
+      "municipality": "Parsippany-Troy Hills township",
+      "ruralSourceFlag": "No",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34031175402",
+      "county": "Passaic",
+      "municipality": "Passaic city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.69181561704569,
+      "legacyTractIds": [
+        "34031175200",
+        "34031175301",
+        "34031175402",
+        "34031175900"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34017006700",
+      "county": "Hudson",
+      "municipality": "Jersey City city",
+      "ruralSourceFlag": "No",
+      "status": "partial-legacy-overlap",
+      "legacyOverlapPercent": 0.0004093496844077654,
+      "legacyTractIds": [
+        "34017004600",
+        "34017004700"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34011030100",
+      "county": "Cumberland",
+      "municipality": "Millville city",
+      "ruralSourceFlag": "No",
+      "status": "substantial-legacy-overlap",
+      "legacyOverlapPercent": 99.99976131242786,
+      "legacyTractIds": [
+        "34011030100"
+      ],
+      "boundaryContactTractIds": []
+    },
+    {
+      "geoid": "34037373700",
+      "county": "Sussex",
+      "municipality": "Newton town",
+      "ruralSourceFlag": "Yes",
+      "status": "no-mapped-overlap",
+      "legacyOverlapPercent": 0,
+      "legacyTractIds": [],
+      "boundaryContactTractIds": []
+    }
+  ],
+  "caveat": "Tract reference comparison only. No-mapped-overlap means no material intersection in the checked legacy map, not newly certified designation, parcel eligibility, tax qualification, seller knowledge, pricing advantage or industrial suitability. Partial overlap requires boundary review; missing, stale or failed evidence stays unavailable."
+}

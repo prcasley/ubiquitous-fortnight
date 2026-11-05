@@ -47,6 +47,13 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Refresh geometry-based NJ legacy comparison
+        id: round_comparison
+        continue-on-error: true
+        run: node scripts/build-nj-oz-round-comparison.mjs
+      - name: Report unavailable legacy comparison
+        if: steps.round_comparison.outcome == 'failure'
+        run: echo '::warning::Legacy reference comparison was not renewed. Prior dated files retained; expired comparisons stay unavailable. Official nominations may still refresh.'
       - name: Validate refreshed evidence and public build
         # Build first: the private-API test serves files from dist/ and fails
         # with 404 on a fresh checkout if tests run before the build.
@@ -57,13 +64,13 @@ jobs:
         id: commit
         run: |
           file=assets/data/oz-designation-evidence.json
-          if git diff --quiet -- "$file"; then
+          if git diff --quiet -- "$file" assets/data/nj-oz-round-comparison.json assets/data/nj-oz-round-comparison.csv; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- "$file"
+          git add -- "$file" assets/data/nj-oz-round-comparison.json assets/data/nj-oz-round-comparison.csv
           git commit -m 'Refresh verified NJ state-nomination evidence'
           git push origin HEAD:main
           echo 'changed=true' >> "$GITHUB_OUTPUT"
