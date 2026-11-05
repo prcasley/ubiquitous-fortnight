@@ -1,22 +1,41 @@
 """Geometry-based tract filters, expiry and missing comparison fail closed."""
 from browser_fixture import *
-checks=[];failure=None
+import csv
+checks=[];failure=None;boundary_failure=False
 def check(name,value):assert value,name;checks.append(name)
 def routes(route):
+ if boundary_failure and 'NJ_OZ2_2026_Nominations.geojson' in route.request.url:respond(route,{'error':'Synthetic boundary outage'},503);return
  if 'nj-oz-round-comparison.json' in route.request.url and failure:
   if failure=='outage':respond(route,{'error':'Synthetic outage'},503);return
   data=json.loads((ROOT/'assets/data/nj-oz-round-comparison.json').read_text());data['validUntil']='2020-01-01T00:00:00Z';respond(route,data);return
  network(route)
 try:
- mode['ceo']=True;mode['persona']=True
+ mode['ceo']=True;mode['persona']=True;mode['njNomination']=True
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',routes);errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('RadarOZInventory.getState().tracts===130&&RadarOZRoundComparison.isAvailable()');page.click('#workspace-tab-scan')
+  check('optional comparison legend does not occupy map space initially',page.locator('#ozComparisonLegend').is_hidden() and page.locator('#ozLegend').is_hidden())
   check('all tracts remain the default',page.evaluate('RadarOZInventory.getState().filteredTracts')==130)
   data=json.loads((ROOT/'assets/data/nj-oz-round-comparison.json').read_text())
   for key in ['no-mapped-overlap','substantial-legacy-overlap','partial-legacy-overlap','unavailable','under-five']:
    page.select_option('#ozInventoryLegacy',key);expected=sum((r['legacyOverlapPercent'] is not None and r['legacyOverlapPercent']<5) if key=='under-five' else r['status']==key for r in data['records']);check('honest filter '+key,page.evaluate('RadarOZInventory.getState().filteredTracts')==expected)
   page.select_option('#ozInventoryLegacy','partial-legacy-overlap');check('Carteret is partial, not default-new',any('34023980000' in v for v in page.locator('#ozInventoryTract option').all_text_contents()))
   check('tract wording does not assert tax certification','not new certification' in page.locator('#ozRoundComparisonStatus').inner_text())
+  check('county breakdown reconciles all 130 references across 20 counties',page.locator('#ozComparisonCounties tbody tr').count()==20 and sum(int(v) for v in page.locator('#ozComparisonCounties tbody td').all_text_contents())==130)
+  page.select_option('#ozInventoryLegacy','');page.evaluate('()=>{PublicRadarBridge.getMap().setView([40.15,-74.6],8,{animate:false});return true}');page.check('#ozNJToggle');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===130')
+  page.check('#ozComparisonMap');check('comparison legend remains with the map',page.locator('#ozComparisonLegend').is_visible());page.select_option('#ozInventoryLegacy','no-mapped-overlap');check('comparison filter restricts actual map layers, not just opacity',page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count')==sum(r['status']=='no-mapped-overlap' for r in data['records']))
+  check('map reference colors and unknown style are explicit',page.evaluate('RadarOZRoundComparison.mapStyle("34027046107").color==="#00e5ff"&&RadarOZRoundComparison.mapStyle("34023980000").color==="#f59e0b"&&RadarOZRoundComparison.mapStyle("34999999999").dashArray==="5,5"'))
+  page.select_option('#ozInventoryLegacy','under-five');page.check('#ozInventoryRural');check('rural map filter uses source flags without tax labels',page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count===RadarOZInventory.getState().filteredTracts') and '50%' not in page.locator('#ozComparisonMapLegend').inner_text())
+  page.uncheck('#ozComparisonMap');check('turning comparison off restores all loaded boundaries',page.evaluate('PublicRadarGeo.getOverlayState("ozNJ").count')==130);page.uncheck('#ozNJToggle')
+  original_search=page.evaluate('PublicRadarBridge.getSearch()')
+  mode['inventory']=True;mode['inventoryUploaded']=True;mode['inventoryAssessments']=True;page.select_option('#ozTractJump','34023980000');page.fill('#ozInventoryAcres','6');page.click('#ozTractJumpGo');page.wait_for_function('!RadarOZInventory.getState().busy&&RadarOZInventory.getState().reports.length>0');report=page.evaluate('RadarOZInventory.getState().reports[0]');check('tract shortcut preserves acreage and pushes business classes upstream',report['tract']=='34023980000' and report['criteria']['minAcres']==6 and report['criteria']['classes']==['1','4A','4B'] and report['boundarySource'].startswith('uploaded'));check('shortcut clears conflicting tract filters explicitly',page.evaluate('RadarOZInventory.getState().filteredTracts')==130 and 'Other tract filters were cleared' in page.locator('#ozTractJumpStatus').inner_text());check('shortcut focuses the same persistent map on the actual tract',page.evaluate('()=>{const p=PublicRadarBridge.getMap().getCenter();return p.lat>40.5&&p.lat<40.65&&p.lng>-74.3&&p.lng<-74.15}'));mode['inventory']=False;check('tract map navigation does not replace the main search criteria',page.evaluate('PublicRadarBridge.getSearch()')==original_search)
+  check('tract geometry reports acres and square feet without supply claims','mapped tract acres /' in page.locator('#ozTractJumpStatus').inner_text() and 'not industrial supply or developable acreage' in page.locator('#ozTractJumpStatus').inner_text())
+  page.select_option('#ozInventoryLandShare','60');check('assessed land share excludes low and unpublished allocations',page.locator('#ozInventoryResults article').count()==1 and '80.0%' in page.locator('#ozInventoryResults').inner_text() and '1 retrieved parcels lack complete' in page.locator('#ozInventorySummary').inner_text());page.select_option('#ozInventoryLandShare','');page.select_option('#ozInventorySort','landShare');check('land-share ranking uses published values and keeps unknowns last',page.locator('#ozInventoryResults article').first.get_attribute('data-parcel')=='INV-0' and page.locator('#ozInventoryResults article').last.get_attribute('data-parcel')=='INV-1')
+  with page.expect_download() as download:page.click('#ozInventoryCSV')
+  exported=list(csv.DictReader(Path(download.value.path()).read_text().splitlines()));check('local research CSV preserves unknown owners and source coverage',len(exported)==3 and exported[0]['ASSESSED_ALLOCATION_LAND_SHARE_PCT']=='80.00' and all(r['PUBLISHED_ASSESSMENT_NAME']=='not checked or not published' for r in exported) and all('not tax basis' in r['CAVEAT'] for r in exported))
+  with page.expect_download() as download:page.click('#ozTractAreasCSV')
+  areas=list(csv.DictReader(Path(download.value.path()).read_text().splitlines()));check('all tract geometry exports use full polygons and remain distinct from industrial supply',len(areas)==130 and len({r['GEOID'] for r in areas})==130 and float(areas[0]['MAPPED_TRACT_ACRES'])>=float(areas[-1]['MAPPED_TRACT_ACRES']) and all('Not industrial land supply' in r['CAVEAT'] for r in areas))
+  page.set_viewport_size({'width':390,'height':844});page.wait_for_timeout(100);check('new tract controls fit the phone viewport',page.evaluate('document.documentElement.scrollWidth<=innerWidth'));page.set_viewport_size({'width':1280,'height':900})
+  boundary_failure=True;page.reload();unlock(page);page.wait_for_function('!!document.getElementById("ozTractJumpGo")');page.click('#ozTractJumpGo');page.wait_for_function('document.getElementById("ozTractJumpStatus").textContent.includes("unavailable:")');check('missing boundary cannot launch a centroid scan',page.evaluate('RadarOZInventory.getState().reports.length===0') and 'Previous parcel records retained' in page.locator('#ozTractJumpStatus').inner_text());boundary_failure=False
   for failure in ['expired','outage']:
    page.reload();unlock(page);page.wait_for_function('document.getElementById("ozRoundComparisonStatus")?.textContent.includes("unavailable:")&&RadarOZInventory.getState().tracts===130');check('bad comparison retains all nomination tracts '+failure,page.evaluate('!RadarOZRoundComparison.isAvailable()&&RadarOZInventory.getState().filteredTracts===130') and page.locator('#ozInventoryLegacy').is_disabled());check('missing comparison never implies retained '+failure,page.evaluate('RadarOZRoundComparison.get("34023980000")===null'))
   check('no uncaught errors',not errors);browser.close()

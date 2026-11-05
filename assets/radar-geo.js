@@ -20,7 +20,7 @@
  };
  const ids=f=>f.properties?.GEOID||f.properties?.geoid10||f.properties?.GEOID10||f.properties?.GEOID20||f.properties?.Geography;
  const source=()=>window.PublicRadarBridge;
- let layers={},activeIdentify=false,requests={},retryTimers={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();
+ let layers={},activeIdentify=false,requests={},retryTimers={},moveTimer=null,identifyTimer=null,identifyRequest=null;const overviewCache=new Map();let njComparisonLayers=[];
  const map=()=>source()?.getMap();
  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const note=(message,type="info")=>{
@@ -35,6 +35,7 @@
    for(const [kind,d] of Object.entries(OZ)){const row=document.createElement('p'),swatch=document.createElement('span'),text=document.createElement('span'),status=document.createElement('small');swatch.className='oz-swatch';swatch.style.backgroundColor=d.color;text.textContent=d.label;status.id=kind+'LegendStatus';status.textContent='Hidden';row.setAttribute('data-off','');row.append(swatch,text,status);host.append(row);}
    const foot=document.createElement('p');foot.textContent='OZ 2 eligibility estimates do not establish final designation, tax eligibility or a publication/closing deadline.';host.append(foot);document.getElementById('mapPanel').insertBefore(host,document.querySelector('#mapPanel .map-wrap'));
  }
+ function applyNJComparison(force=false){const group=layers.ozNJ,c=window.RadarOZRoundComparison;if(!group||!$('ozNJToggle')?.checked||!c)return;const enabled=c.mapEnabled(),shown=njComparisonLayers.filter(layer=>!enabled||c.mapMatches(layer.radarTractId));group.clearLayers();for(const layer of njComparisonLayers){layer.setStyle(enabled?c.mapStyle(layer.radarTractId):{color:OZ.ozNJ.color,fillColor:OZ.ozNJ.color,weight:1.7,opacity:.9,fillOpacity:.13,dashArray:null});if(layer.radarComparisonNote)layer.radarComparisonNote.textContent=enabled?'Tract reference comparison: '+c.describe(layer.radarTractId)+'. Not a parcel or tax classification.':'';}for(const layer of shown)group.addLayer(layer);if(enabled&&(force||!requests.ozNJ))layerStatus('ozNJ','On · '+shown.length+' of '+njComparisonLayers.length+' loaded nomination tracts match the comparison filters; not federal certification');else if(!enabled&&!force&&!requests.ozNJ&&njComparisonLayers.length)layerStatus('ozNJ','On · '+njComparisonLayers.length+' loaded nomination tracts; comparison filter off');}
  function queryParams(m){
    const b=m.getBounds();
    const env={xmin:b.getWest(),ymin:b.getSouth(),xmax:b.getEast(),ymax:b.getNorth(),spatialReference:{wkid:4326}};
@@ -56,11 +57,11 @@
    const group=layers[kind]||window.L.layerGroup().addTo(m);layers[kind]=group;
    const overview=m.getZoom()<10,center=m.getCenter(),state=center.lat>=24&&center.lat<=31.2&&center.lng>=-88&&center.lng<=-79?'FL':center.lat>=39.7&&center.lat<=42.3&&center.lng>=-80.6&&center.lng< -75.6?'PA':center.lat>=38.9&&center.lat<=41.4&&center.lng>=-75.6&&center.lng<=-73.88?'NJ':$('stateSelect')?.value||'NJ';
    const cacheKey=kind+':'+state,cached=overviewCache.get(cacheKey);
-   if(overview&&cached&&Date.now()-cached.time<600000){group.clearLayers();for(const layer of cached.layers)group.addLayer(layer);layerStatus(kind,'On · '+state+' state overview (approximate)');note('OZ boundaries remain on. State overview is simplified; zoom in for boundary detail.');return;}
+   if(overview&&cached&&Date.now()-cached.time<600000){group.clearLayers();for(const layer of cached.layers)group.addLayer(layer);if(kind==='ozNJ')njComparisonLayers=cached.layers;layerStatus(kind,'On · '+state+' state overview (approximate)');note('OZ boundaries remain on. State overview is simplified; zoom in for boundary detail.');if(kind==='ozNJ')applyNJComparison(true);return;}
    let timedOut=false;const ctrl=new AbortController(),timer=setTimeout(()=>{timedOut=true;ctrl.abort();},20000);
    requests[kind]=ctrl;layerStatus(kind,"Loading reference polygons…");note("Loading "+d.label+" from its public reference GIS layer…");
    try {
-     if(d.states&&!d.states.includes(state)){group.clearLayers();layerStatus(kind,'On · covers '+d.states.join(', ')+' only');note(d.label+' covers '+d.states.join(', ')+' only; nothing to show for '+state+'.');return;}
+     if(d.states&&!d.states.includes(state)){group.clearLayers();if(kind==='ozNJ')njComparisonLayers=[];layerStatus(kind,'On · covers '+d.states.join(', ')+' only');note(d.label+' covers '+d.states.join(', ')+' only; nothing to show for '+state+'.');return;}
      const base=overview?{where:d.states?'1=1':(kind==='oz2'?'STUSPS':'stusps')+" = '"+state+"'",outSR:'4326'}:queryParams(m);const limit=overview?6000:d.limit;
      const c=await queryLayer(d.url,{...base,returnCountOnly:"true",returnGeometry:"false"},ctrl.signal);
      const count=Number(c.count);
@@ -94,13 +95,14 @@
        const label=document.createElement("strong");label.textContent=d.label;
        const detail=document.createElement("p");detail.textContent="Tract "+geoid+" · "+info;
        const anchor=document.createElement("a");anchor.href=d.source;anchor.textContent=kind==="ozFL"?"FloridaCommerce OZ program ↗":kind==="ozNJ"?"NJ DCA announcement ↗":"Verify against official IRS guidance ↗";anchor.target="_blank";anchor.rel="noopener noreferrer";
-       popup.append(label,detail,anchor);
+       popup.append(label,detail,anchor);if(kind==='ozNJ'){layer.radarTractId=String(geoid);const comparison=document.createElement('p');popup.append(comparison);layer.radarComparisonNote=comparison;}
        if(overview)popup.append(document.createTextNode(' State overview uses simplified boundaries; zoom in for detail.'));layer.bindPopup(popup);staged.push(layer);
      }
-     group.clearLayers();for(const layer of staged)layer.addTo(group);if(overview)overviewCache.set(cacheKey,{time:Date.now(),layers:staged});
+     group.clearLayers();for(const layer of staged)layer.addTo(group);if(kind==='ozNJ')njComparisonLayers=staged;if(overview)overviewCache.set(cacheKey,{time:Date.now(),layers:staged});
      note(kind==="ozFL"?polygon.length+" Florida tracts meeting OZ 2.0 eligibility per FloridaCommerce displayed. Eligibility is not nomination or certification.":kind==="ozNJ"?polygon.length+" New Jersey state-nominated OZ 2.0 tracts displayed (official NJ DCA layer). Nomination does not establish federal certification.":kind==="oz2"?polygon.length+" third-party eligibility-reference tracts displayed. This is NOT Treasury certification or a designated OZ 2 list.":
         polygon.length+" OZ 1 reference tracts displayed. Verify effective status using the official IRS tract list.","success");
      layerStatus(kind,'On · '+polygon.length+(overview?' '+state+' overview tracts (approximate)':' detailed reference tracts displayed in this view'));
+     if(kind==='ozNJ')applyNJComparison(true);
      // No absence inference: the checked source/viewport, not a parcel-level tract membership determination.
    }catch(e){
      if(requests[kind]!==ctrl||ctrl.signal.aborted&&!timedOut)return;
@@ -170,11 +172,11 @@
    }finally{if(identifyRequest===ctrl)identifyRequest=null;clearTimeout(timer);}
  }
  function init(){
-   const m=map();if(!m||!window.L)return;legend();
+   const m=map();if(!m||!window.L)return;legend();document.addEventListener('radar:inventory-scope',()=>applyNJComparison());
    for(const kind of Object.keys(OZ)){
      $(kind+"Toggle")?.addEventListener("change",e=>{
        if(e.target.checked)loadOpportunityZone(kind);
-       else{clearTimeout(retryTimers[kind]);delete retryTimers[kind];requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
+       else{clearTimeout(retryTimers[kind]);delete retryTimers[kind];requests[kind]?.abort();delete requests[kind];layers[kind]?.clearLayers();if(kind==='ozNJ')njComparisonLayers=[];layerStatus(kind,"Hidden");note(kind.toUpperCase()+" reference layer hidden.");}
      });
    }
    $("identifyParcel")?.addEventListener("click",()=>{
@@ -186,7 +188,7 @@
    m.on("dblclick",()=>{clearTimeout(identifyTimer);identifyRequest?.abort();});
    m.on("click",e=>{if(!activeIdentify||e.originalEvent?.detail>1)return;clearTimeout(identifyTimer);identifyTimer=setTimeout(()=>{if(activeIdentify)identifyAt(e.latlng.lat,e.latlng.lng);},450);});
    document.addEventListener("radar:scan-state",e=>{if(e.detail.state==='idle'){clearTimeout(identifyTimer);identifyRequest?.abort();}});
-   m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){clearTimeout(retryTimers[k]);delete retryTimers[k];requests[k]?.abort();layers[k]?.clearLayers();layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
+   m.on("moveend",()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked){clearTimeout(retryTimers[k]);delete retryTimers[k];requests[k]?.abort();layers[k]?.clearLayers();if(k==='ozNJ')njComparisonLayers=[];layerStatus(k,"Viewport changed — refreshing…");}clearTimeout(moveTimer);moveTimer=setTimeout(()=>{for(const k of Object.keys(OZ))if($(k+"Toggle")?.checked)loadOpportunityZone(k);},300);});
    window.PublicRadarGeo={sources:OZ,loadOpportunityZone,identifyAt,getOverlayState:kind=>({requested:!!$(kind+'Toggle')?.checked,count:layers[kind]?.getLayers().length||0})};
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
