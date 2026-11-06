@@ -177,5 +177,16 @@ class SourceBackoff(unittest.TestCase):
             self.assertEqual(L.Client(request_interval=0).query('https://example.gov/query',{}),{'count':3})
             sleep.assert_called_once_with(5)
 
+
+class TransferReview(unittest.TestCase):
+    def test_nominal_consideration_is_not_a_comparable_price(self):
+        import datetime
+        r=L.recorded_transfer(1,'210818',today=datetime.date(2026,11,6))
+        self.assertEqual(r['DEED_DATE'],'2021-08-18');self.assertEqual(r['LAST_SALE_PRICE'],'');self.assertEqual(r['SOURCE_RECORDED_CONSIDERATION'],1)
+    def test_future_and_placeholder_dates_remain_unknown(self):
+        import datetime
+        for date in ['300101','1979-01-01','2026-02-30']:
+            self.assertEqual(L.recorded_transfer(100000,date,today=datetime.date(2026,11,6))['LAST_SALE_PRICE'],'')
+
 if __name__ == "__main__":
     unittest.main()

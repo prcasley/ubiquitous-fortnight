@@ -14,7 +14,7 @@ test('public owner lookup uses exact official IDs, omits credentials and escapes
   }});
   assert.equal(request.url.hostname,'services1.arcgis.com');
   assert.equal(request.url.searchParams.get('where'),"PARID = 'A''1'");
-  assert.equal(request.url.searchParams.get('outFields'),'PARID,OWNER_NAME1');
+  assert.equal(request.url.searchParams.get('outFields'),'PARID,OWNER_NAME1,CONFID_FLG');
   assert.equal(request.options.credentials,'omit');assert.equal(request.options.headers,undefined);
   assert.equal(result.entityName,'SYNTHETIC HOLDINGS LLC');assert.ok(result.retrievedAt);
   assert.match(result.caveat,/not independently verified/);
@@ -31,7 +31,7 @@ test('statewide Florida IDs require county identity',async()=>{
 });
 test('ambiguous or failed ownership sources never select an owner',async()=>{
   const record={provider:'pbc',id:'A'};
-  for(const features of [[],[1,2].map(()=>({attributes:{PARID:'A',OWNER_NAME1:'TEST LLC'}}))])
+  for(const features of [[],[1,2].map(i=>({attributes:{PARID:'A',OWNER_NAME1:i===1?'TEST LLC':'DIFFERENT LLC'}}))])
     await assert.rejects(D.lookupOwner(record,{fetcher:async()=>({ok:true,json:async()=>({features})})}),/match|conflicting/);
   await assert.rejects(D.lookupOwner(record,{fetcher:async()=>({ok:true,json:async()=>({error:{message:'outage'}})})}),/could not complete/);
   await assert.rejects(D.lookupOwner(record,{fetcher:async()=>({ok:true,json:async()=>({exceededTransferLimit:true,features:[{attributes:{PARID:'A',OWNER_NAME1:'TEST LLC'}}]})})}),/truncated/);

@@ -45,3 +45,5 @@ November 6, 2026 live checks before the final metadata-label additions:
 | Entire Carteret + Sayreville, business classes, 1.5+ acres | 296 | 461 | 113 |
 
 These are regulatory research leads, not verified owners. Original supplied test coverage was retained, with its suite-merging expectation corrected and additional ambiguity, recency, source-pagination and privacy tests added.
+
+Recorded transfers now format valid dates and separate low-consideration amounts (at most $100) from price references. Placeholder/future dates remain unknown; no inheritance, debt maturity or seller intent is inferred. The original recorded consideration stays in its own source field for deed review.

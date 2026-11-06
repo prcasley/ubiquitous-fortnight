@@ -306,6 +306,25 @@ def parse_date(s):
     return None
 
 
+def recorded_transfer(price, date, today=None):
+    today = today or dt.date.today()
+    raw = str(date or "").strip()
+    if re.fullmatch(r"\d{6}", raw):
+        year = int(raw[:2]); year += 1900 if year >= 50 else 2000
+        try: parsed = dt.date(year, int(raw[2:4]), int(raw[4:6]))
+        except ValueError: parsed = None
+    else:
+        parsed = parse_date(raw)
+    if parsed and (parsed > today or parsed < dt.date(1800, 1, 1) or parsed == dt.date(1979, 1, 1)):
+        parsed = None
+    try:
+        amount = float(str(price).replace(",", ""))
+        if not math.isfinite(amount) or amount <= 0: amount = None
+    except (ValueError, TypeError): amount = None
+    low = amount is not None and amount <= 100
+    return {"LAST_SALE_PRICE": amount if amount and not low and parsed else "", "SOURCE_RECORDED_CONSIDERATION": amount if amount else "", "DEED_DATE": parsed.isoformat() if parsed else "", "TRANSFER_REVIEW": "low-consideration; verify deed, not a market-price comparable" if low else "recorded reference only; transaction validity not verified"}
+
+
 def summarize_site(site, programs, today=None):
     today = today or dt.date.today()
     rows = programs.get(site["SITE_ID"], [])
@@ -418,7 +437,7 @@ def build(args):
             **base,
             "PAMS_PIN": pin, "MUNICIPALITY": p.get("MUN_NAME"), "BLOCK": p.get("PCLBLOCK"), "LOT": p.get("PCLLOT"), "QUAL": p.get("PCLQCODE") or "",
             "PROPERTY_ADDRESS": p.get("PROP_LOC"), "CLASS": p.get("PROP_CLASS"), "ACRES": p.get("CALC_ACRE"),
-            "LAST_SALE_PRICE": p.get("SALE_PRICE") or "", "DEED_DATE": p.get("DEED_DATE") or "", "DEED_BOOK_PAGE": f"{p.get('DEED_BOOK') or ''}/{p.get('DEED_PAGE') or ''}".strip("/"),
+            **recorded_transfer(p.get("SALE_PRICE"), p.get("DEED_DATE")), "DEED_BOOK_PAGE": f"{p.get('DEED_BOOK') or ''}/{p.get('DEED_PAGE') or ''}".strip("/"),
             "OWNER_NAME_STATE_LAYER": "Not collected as a verified owner; consult source tax/deed records",
             "PUBLISHED_ASSESSMENT_ENTITY": p.get("PUBLISHED_ASSESSMENT_ENTITY", ""),
             "ASSESSMENT_NAME_STATUS": "published-assessment-observation" if p.get("PUBLISHED_ASSESSMENT_ENTITY") else "protected" if p.get("PROTECTED") else "no-published-organization-name",
