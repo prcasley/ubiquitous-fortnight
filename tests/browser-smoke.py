@@ -27,8 +27,8 @@ try:
         page.wait_for_function('document.getElementById("ownerCompanies").textContent.includes("SYNTHETIC HOLDINGS LLC")')
         page.wait_for_function('document.getElementById("details").textContent.includes("Published assessment name:")')
         assert 'SYNTHETIC HOLDINGS LLC' in page.locator('#details').inner_text()
-        page.locator('#ownerDossier textarea').fill('Synthetic organization research note')
-        page.locator('#ownerDossier textarea').blur()
+        page.get_by_label('Organization research notes',exact=True).fill('Synthetic organization research note')
+        page.get_by_label('Organization research notes',exact=True).blur()
         evidence=page.locator('#ownerDossier form').first
         evidence.locator('input[type=url]').fill('https://example.org/registry/synthetic')
         evidence.locator('input[type=date]').fill('2026-10-26')

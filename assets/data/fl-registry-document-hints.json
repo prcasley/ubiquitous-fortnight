@@ -1,0 +1,100 @@
+{
+  "format": "RadarFLRegistryHints",
+  "version": 1,
+  "recordedOn": "2026-11-06",
+  "caveat": "Corporate document-number suggestions from the supplied report, not agency-verified filings or person/ownership data. Related-entity numbers can differ. Verify entity and document on the official page.",
+  "records": [
+    {
+      "entityName": "PRAETORIAN OF WEST PALM BEACH LLC",
+      "documentNumbers": [
+        "L10000068875"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "BENOIST LAND CORPORATION",
+      "documentNumbers": [
+        "P96000030766"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "EVERGLADES BOTANICAL LLC",
+      "documentNumbers": [
+        "L11000083121",
+        "L21000405490"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "551 BENOIST FARMS LLC",
+      "documentNumbers": [
+        "L26000141866"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "BENOIST LAND LLC",
+      "documentNumbers": [
+        "L18000059225"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "412 TALL PINES LLC",
+      "documentNumbers": [
+        "L08000016308"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "150 NORTH CLEARY ROAD LLC",
+      "documentNumbers": [
+        "L22000125038"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "LEGACY AT 45TH STREET LLC",
+      "documentNumbers": [
+        "L23000207489"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "JESAJ WEST PALM BEACH LLC",
+      "documentNumbers": [
+        "L12000036745"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "INVESTMENT CORPORATION OF PALM BEACH",
+      "documentNumbers": [
+        "368782"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "WESTGATE GARDENS LLC",
+      "documentNumbers": [
+        "M24000004391"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "CORNERSTONE PBG LLC",
+      "documentNumbers": [
+        "L22000204510"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    },
+    {
+      "entityName": "BAMA LANE LLC",
+      "documentNumbers": [
+        "L18000065836"
+      ],
+      "sourceKind": "user-supplied-unverified"
+    }
+  ]
+}

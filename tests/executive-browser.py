@@ -40,7 +40,7 @@ try:
         # A closing target is never an automatic tax qualification or recorded availability claim.
         for text,fragment in [('Can we close before January 1 and qualify for OZ2?','planning target'),('Who owns these parcels?','assessment'),('Which leases are up for renewal?','not connected'),('Show recent sale comps around $200/SF','not connected')]:
             ask(text)
-            page.wait_for_function('(fragment)=>document.getElementById("agentLog").lastChild.textContent.toLowerCase().includes(fragment)',arg=fragment.lower())
+            page.wait_for_function('(fragment)=>[...document.querySelectorAll("#agentLog > .agent-message.bot:not(.chat-properties)")].at(-1).textContent.toLowerCase().includes(fragment)',arg=fragment.lower())
             check('missing acquisition evidence leaves shortlist intact: '+text,page.evaluate('PublicRadarBridge.getMeta().scanId')==snapshot['meta']['scanId'])
         # Browsing is separate from deliberately choosing a new search center.
         page.evaluate('PublicRadarBridge.getMap().setView([26.73,-80.14],16,{animate:false})')
