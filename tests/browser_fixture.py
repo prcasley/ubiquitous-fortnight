@@ -207,6 +207,8 @@ def network(route):
             if mode.get('inventoryUploaded'):
                 first=json.loads(params.get('geometry',['{}'])[0]).get('rings',[[[-74.363,40.527]]])[0][0];mode['inventoryFixturePoint']=first
             features.append({'type':'Feature','geometry':parcel_polygon((mode.get('inventoryFixturePoint') or [-74.363,40.527])[0]+i*.00001,(mode.get('inventoryFixturePoint') or [-74.363,40.527])[1],6+i),'properties':{'OBJECTID':i,'PAMS_PIN':'INV-'+str(i),'PROP_LOC':'Synthetic inventory '+str(i),'MUN_NAME':'Synthetic Edison','PROP_CLASS':(mode.get('inventoryClass','4B') if i==2 else '4B') if i!=1 else '1','CALC_ACRE':6+i,'COUNTY':'Middlesex','YR_CONSTR':1980,'PCLBLOCK':'12','PCLLOT':str(i+1),'PCL_MUN':'1205','DEED_BOOK':'123','DEED_PAGE':'456','LAND_VAL':100000,'IMPRVT_VAL':200000,'NET_VALUE':300000}})
+        if mode.get('inventoryQualified'):
+            for i,f in enumerate(features):f['properties']['PAMS_PIN']='1201_100_'+str(i+1)
         if mode.get('inventoryAssessments'):
             allocations=[(800000,200000),(None,200000),(200000,800000)]
             for f,(land,improvements) in zip(features,allocations):f['properties'].update({'LAND_VAL':land,'IMPRVT_VAL':improvements})
