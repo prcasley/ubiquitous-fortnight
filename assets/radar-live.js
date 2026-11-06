@@ -459,6 +459,7 @@
     if(p.municipalityObservation){const m=p.municipalityObservation,notice=document.createElement('p'),link=document.createElement('a');notice.textContent=m.caveat+' Checked '+m.checkedAt+' · ';link.textContent='Official municipality boundary source';link.href=m.sourceURL;link.target='_blank';link.rel='noopener noreferrer';notice.append(link);$('details').append(notice);}
     $('details').append(window.RadarOZObservations.decorate(document.createElement('p'),p));
     $("closeDetail").addEventListener("click",()=>{$("details").hidden=true; selectedId=null;renderResults();});
+    window.RadarExecutiveCards?.enhance($('details'),p,{selected:true});
     let waitingForZoom=false;
     const fitSelected=()=>{if(selectedId!==id)return;
       if(mapZooming){if(!waitingForZoom){waitingForZoom=true;map.once('zoomend',()=>{waitingForZoom=false;fitSelected();});}return;}

@@ -249,8 +249,8 @@ try:
         field.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')
         field.locator('#agentForm button[type=submit]').click()
         field.wait_for_function('window.PublicRadarBridge.getMeta().complete && document.querySelectorAll(".chat-property-card").length===6')
-        assert 'Built 1974' in field.locator('.chat-property-card').first.inner_text()
-        assert 'Year built not published in source' in field.locator('.chat-property-card').nth(1).inner_text()
+        assert 'Built 1974' in field.locator('.chat-property-card').first.text_content()
+        assert 'Year built not published in source' in field.locator('.chat-property-card').nth(1).text_content()
         assert 'Parcels touching the search circle qualify' in field.locator('.chat-properties').inner_text()
         assert field.locator('.chat-properties').get_by_text('49 properties',exact=False).count()>=1
         field.locator('.chat-properties').get_by_text('Show more properties',exact=False).click()
@@ -258,7 +258,7 @@ try:
         card=field.locator('.chat-property-card').first
         assert card.get_by_text('Google Maps / images',exact=True).get_attribute('href').startswith('https://www.google.com/maps/search/')
         assert 'basemap=satellite' in card.get_by_text('Google satellite',exact=True).get_attribute('href')
-        assert card.locator('details').get_attribute('open') is None
+        assert card.locator(':scope > .executive-technical').get_attribute('open') is None
         card.get_by_text('View parcel on satellite',exact=True).click()
         assert field.locator('#basemap').input_value()=='satellite'
         assert focused_parcel_fits(field)

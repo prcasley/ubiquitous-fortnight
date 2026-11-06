@@ -22,7 +22,7 @@ try:
   pages=[parse_qs(urlparse(u).query) for u in requests if 'northamptoncounty.org' in u and 'orderByFields=' in u]
   check('compound ordering preserves ties across all 26 pages',len(pages)==26 and all(q['orderByFields']==['CAMA_ID ASC,OBJECTID ASC'] and int(q['resultOffset'][0])==i*50 for i,q in enumerate(pages)))
   page.get_by_role('button',name='Look up published owner & mailing address').click();page.wait_for_function('document.getElementById("dealNavSelected").textContent.includes("SYNTHETIC COUNTY OWNER LLC")')
-  check('consistent repeated owner rows resolve to a dated public observation','not title verification' in page.locator('#dealNavSelected').inner_text())
+  check('consistent repeated owner rows resolve to a dated public observation','not title verification' in page.locator('#dealNavSelected').text_content())
   mode['paPartConflict']=True;page.click('#dealNavNearby');page.wait_for_function('!RadarDealNav.busy()')
   check('conflicting acreage is not silently combined or marked complete',not page.evaluate('PublicRadarBridge.getMeta().complete') and 'Conflicting county attributes' in page.locator('#dealNavStatus').inner_text())
   check('NJ results survive the county conflict',page.evaluate('PublicRadarBridge.getResults().some(r=>r.state==="NJ")'))

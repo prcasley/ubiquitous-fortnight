@@ -2,7 +2,7 @@
 from browser_fixture import *
 checks=[]
 def check(name,value):
- if not value:print('BRIEF_DIAGNOSTIC',page.locator('#executiveScanSummary').inner_text()[:6000],page.evaluate('Object.values(RadarAcquisition.getResults()||{}).map(l=>l.rows.map(r=>({key:r.key,environmental:r.environmentalPriority,signals:Object.values(r.signals).map(s=>({kind:s.kind,status:s.status,reason:s.reason}))})))'),flush=True)
+ if not value:print('BRIEF_DIAGNOSTIC',page.locator('#executiveScanSummary').text_content()[:6000],page.evaluate('Object.values(RadarAcquisition.getResults()||{}).map(l=>l.rows.map(r=>({key:r.key,environmental:r.environmentalPriority,signals:Object.values(r.signals).map(s=>({kind:s.kind,status:s.status,reason:s.reason}))})))'),flush=True)
  assert value,name;checks.append(name)
 try:
  with sync_playwright() as p:
@@ -22,18 +22,18 @@ try:
   check('building converter is actually served and executable',page.evaluate('typeof osmtogeojson==="function"') and page.request.get(f'http://127.0.0.1:{server.server_port}/assets/osmtogeojson.js').status==200)
   page.select_option('#executiveMarket','secaucus');page.fill('#executiveAcres','5');page.select_option('#executiveRadius','2');mode['secaucus']=True;page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
   check('executive scan applies selected market, industrial type, size and radius',page.evaluate('PublicRadarBridge.getSearch().state==="NJ" && PublicRadarBridge.getSearch().type==="industrial" && PublicRadarBridge.getSearch().acreage.value===5 && PublicRadarBridge.getSearch().radius===2'))
-  check('two brief profiles explain reasons and diligence gaps',page.locator('#executiveScanSummary h3').count()==2 and 'Why it fits the industrial brief' in page.locator('#executiveScanSummary').inner_text() and 'sale availability' in page.locator('#executiveScanSummary').inner_text())
+  check('two brief profiles explain reasons and diligence gaps',page.locator('#executiveScanSummary > .acquisition-grid > section > h3').count()==2 and 'Why it fits the industrial brief' in page.locator('#executiveScanSummary').text_content() and 'sale availability' in page.locator('#executiveScanSummary').text_content())
   mode['secaucus']=False;mode['persona']=True
   for market,state in [('palm','FL'),('palmarea','FL'),('delray','FL'),('northbergen','NJ'),('edison','NJ')]:
    page.select_option('#executiveMarket',market);page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
    check('top preset scans the actual industrial market '+market,page.evaluate('PublicRadarBridge.getSearch().state')==state and page.evaluate('PublicRadarBridge.getSearch().type==="industrial" && PublicRadarBridge.getResults().length>0'))
    if market=='palmarea':check('WPB-area preset preserves the airport center and 8-mile radius',page.evaluate('PublicRadarBridge.getSearch().radius===8 && Math.abs(PublicRadarBridge.getSearch().center.lon+80.0956)<.001'))
    if market=='palm':
-    check('West Palm Beach brief explains neighboring municipalities','Riviera Beach' in page.locator('#executiveScanSummary').inner_text() and 'not restricted to city limits' in page.locator('#executiveScanSummary').inner_text())
+    check('West Palm Beach brief explains neighboring municipalities','Riviera Beach' in page.locator('#executiveScanSummary').text_content() and 'not restricted to city limits' in page.locator('#executiveScanSummary').text_content())
     mode['screeningClear']=True;page.click('#executiveCheck');page.wait_for_function('document.getElementById("acquisitionStatus").textContent.includes("Public checks finished")')
-    check('finished checks refresh the brief with measured building facts','reference checks completed without a mapped constraint' in page.locator('#executiveScanSummary').inner_text() and 'sq ft' in page.locator('#executiveScanSummary').inner_text() and 'Site checks not run yet' not in page.locator('#executiveScanSummary').inner_text())
+    check('finished checks refresh the brief with measured building facts','reference checks completed without a mapped constraint' in page.locator('#executiveScanSummary').text_content() and 'sq ft' in page.locator('#executiveScanSummary').text_content() and 'Site checks not run yet' not in page.locator('#executiveScanSummary').text_content())
     mode['screeningClear']=False;mode['screeningFail']=True;page.click('#executiveCheck');page.wait_for_function('document.getElementById("acquisitionStatus").textContent.includes("Public checks finished")')
-    check('failed checks update brief without claiming a clean site','Site checks attempted; some environmental results remain unavailable' in page.locator('#executiveScanSummary').inner_text() and 'checks completed without a mapped constraint' not in page.locator('#executiveScanSummary').inner_text())
+    check('failed checks update brief without claiming a clean site','Site checks attempted; some environmental results remain unavailable' in page.locator('#executiveScanSummary').text_content() and 'checks completed without a mapped constraint' not in page.locator('#executiveScanSummary').text_content())
     mode['screeningFail']=False
 
   mode['flVacantIndustrial']=True;page.select_option('#executiveMarket','delray');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
@@ -42,18 +42,18 @@ try:
   mode['flVacantIndustrial']=False;page.select_option('#executiveMarket','edison');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
   check('Palm Beach scan requests allow 35 seconds; NJGIN counts allow 30 seconds; other requests retain 12 seconds',page.evaluate('gisBudgets.some(r=>r.url.includes("Parcels_and_Property_Details")&&r.timeout===35000)&&gisBudgets.filter(r=>!r.url.includes("Parcels_and_Property_Details")).every(r=>r.timeout===12000||(r.url.includes("Parcels_Composite_NJ")&&r.url.includes("returnCountOnly=true")&&r.timeout===30000))&&gisBudgets.some(r=>r.url.includes("Parcels_Composite_NJ")&&r.url.includes("returnCountOnly=true")&&r.timeout===30000)'))
   mode['pbcCondoMixed']=True;page.select_option('#executiveMarket','palmarea');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
-  check('executive whole-site option uses county non-condo flags, excluding units and unknown flags',page.evaluate('PublicRadarBridge.getSearch().wholeSitesOnly&&PublicRadarBridge.getResults().length===2') and 'Individual condo units' in page.locator('#executiveScanSummary').inner_text())
+  check('executive whole-site option uses county non-condo flags, excluding units and unknown flags',page.evaluate('PublicRadarBridge.getSearch().wholeSitesOnly&&PublicRadarBridge.getResults().length===2') and 'Individual condo units' in page.locator('#executiveScanSummary').text_content())
   page.uncheck('#executiveWholeSites');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
   check('condo exclusion is reversible',page.evaluate('!PublicRadarBridge.getSearch().wholeSitesOnly&&PublicRadarBridge.getResults().length===5'))
   mode['pbcCondoMixed']=False;page.check('#executiveWholeSites');page.select_option('#executiveMarket','edison');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled')
   page.evaluate('const r={...PublicRadarBridge.getResults()[0],acres:17.308}; RadarChatProperties.render([r],PublicRadarBridge.getMeta())')
-  check('Ask Radar acreage rounds to two decimals','17.31 acres' in page.locator('.chat-properties').last.inner_text() and '17.308' not in page.locator('.chat-properties').last.inner_text())
+  check('Ask Radar acreage rounds to two decimals','17.31 acres' in page.locator('.chat-properties').last.text_content() and '17.308' not in page.locator('.chat-properties').last.text_content())
   check('NJ nominal sales are excluded by the actual parcel normalizer',page.evaluate("""()=>{const r=PublicRadarBridge.getResults()[0],f=structuredClone(r.geometry);f.properties.SALE_PRICE=1;f.properties.DEED_DATE='210818';const n=PublicRadarBridge.normalizeRecord(f,'NJ',{lat:r.lat,lon:r.lon},r.source);return n.recordedSalePrice===null&&n.saleSuppressed;}"""))
   for raw,expected in [('210818','Aug 18, 2021'),('030806','Aug 6, 2003')]:
    page.evaluate("""raw=>{const r=PublicRadarBridge.getResults()[0],f=structuredClone(r.geometry);f.properties.SALE_PRICE=1000000;f.properties.DEED_DATE=raw;PublicRadarBridge.ingestOne(f,'NJ',{lat:r.lat,lon:r.lon},r.source);}""",raw)
-   check('NJ recorded date renders as a calendar date '+raw,expected in page.locator('#dealNavSelected').inner_text())
-  mode['njOwnerName']='SYNTHETIC NJ INDUSTRIAL LLC';page.locator('#executiveScanSummary button').first.click();page.locator('#details .public-owner-section button').click();page.wait_for_function('document.querySelector("#details").textContent.includes("SYNTHETIC NJ INDUSTRIAL LLC")')
-  check('NJ official source name is displayed with provenance', 'Published assessment name' in page.locator('#details').inner_text() and 'Retrieved' in page.locator('#details').inner_text())
+   check('NJ recorded date renders as a calendar date '+raw,expected in page.locator('#dealNavSelected').text_content())
+  mode['njOwnerName']='SYNTHETIC NJ INDUSTRIAL LLC';page.locator('#executiveScanSummary').get_by_role('button',name='Review parcel & owner records',exact=True).first.click();page.locator('#details .public-owner-section button').click();page.wait_for_function('document.querySelector("#details").textContent.includes("SYNTHETIC NJ INDUSTRIAL LLC")')
+  check('NJ official source name is displayed with provenance', 'Published assessment name' in page.locator('#details').text_content() and 'Retrieved' in page.locator('#details').text_content())
   for width in [390,1280]:
    page.set_viewport_size({'width':width,'height':844});check('brief has no horizontal overflow '+str(width),page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
   page.click('#lockRadar');check('lock returns to black entry screen without deleting research',not page.locator('.shell').is_visible() and page.locator('#accessGate').is_visible());unlock(page)

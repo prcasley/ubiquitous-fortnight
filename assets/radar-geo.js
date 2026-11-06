@@ -26,7 +26,7 @@
  const note=(message,type="info")=>{
    let n=$("mapResearchNote");
    if(!n){n=document.createElement("div");n.id="mapResearchNote";n.className="map-research-note";
-     $("mapPanel")?.append(n);}
+     (document.getElementById("workspace-mode-scan")||$("mapPanel"))?.append(n);}
    n.dataset.type=type;n.textContent=message;
  };
  function layerStatus(kind,value){const node=document.getElementById(kind+'LegendStatus');if(node){node.textContent=value;node.parentElement?.toggleAttribute('data-off',value==='Hidden');}}

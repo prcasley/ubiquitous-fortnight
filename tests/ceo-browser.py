@@ -64,7 +64,7 @@ try:
     mode['ownerIndividual']=False
     submit(page,'Which of these qualify for OZ 2?')
     check('OZ answer attaches dated parcel-specific evidence',page.evaluate('PublicRadarBridge.getResults().every(r=>r.ozObservation?.checkedAt&&r.ozObservation.tracts.length>0)'))
-    ozCards=page.locator('.chat-properties').last.inner_text()
+    ozCards=page.locator('.chat-properties').last.text_content()
     check('OZ answer identifies candidate parcels without granting qualification',('Final designation and tax qualification unverified' in ozCards) or ('Eligibility is not nomination' in ozCards and 'does not establish whole-parcel inclusion or tax qualification' in ozCards))
     before_reference=page.evaluate('PublicRadarBridge.getMeta().scanId')
     submit(page,'Show only parcels in OZ 2')

@@ -22,14 +22,14 @@ try:
    page.evaluate('(key)=>RadarChatProperties.render([PublicRadarBridge.getRecord(key)],PublicRadarBridge.getMeta())',key);ask(page,'Is the first one in an OZ?')
    o=page.evaluate('(key)=>PublicRadarBridge.getRecord(key).ozObservations.ozNJ',key)
    check(name+' never becomes a positive nomination match',o['status']==status and not o['nominationVerified'] and '0 of 1 checked parcels' in page.locator('#agentLog').inner_text())
-   check(name+' is visibly flagged for boundary review','Not counted as a positive parcel match' in page.locator('.chat-properties').last.inner_text())
-   if name=='sliver':check('tiny overlap reports the actual share',abs(o['overlapPercent']-.08)<.001 and '0.080%' in page.locator('.chat-properties').last.inner_text())
+   check(name+' is visibly flagged for boundary review','Not counted as a positive parcel match' in page.locator('.chat-properties').last.text_content())
+   if name=='sliver':check('tiny overlap reports the actual share',abs(o['overlapPercent']-.08)<.001 and '0.080%' in page.locator('.chat-properties').last.text_content())
   page.evaluate('()=>{window.PublicRadarAssistant={isAvailable:()=>true,explain:async()=>{}};return true}')
   before=page.locator('#agentLog').inner_text();ask(page,'Can you help with due diligence?');check('hosted assistant silence still produces a visible reply',page.locator('#agentLog').inner_text()!=before and 'no match count was inferred' in page.locator('#agentLog').inner_text())
   page.clock.set_fixed_time(datetime.datetime(2027,2,3,tzinfo=datetime.timezone.utc));ask(page,'QOZ?')
   check('expired evidence explicitly asks for refresh',page.evaluate('PublicRadarBridge.getResults().every(r=>r.ozObservations.ozNJ.status==="expired"&&!r.ozObservations.ozNJ.nominationVerified)') and 'NJ nomination data expired; refresh needed' in page.locator('#agentLog').inner_text())
   page.evaluate('(key)=>PublicRadarBridge.choose(key)',key);page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled');check('selected-parcel OZ workspace preserves the expiry reason','expired; refresh needed' in page.locator('#ozStatusResults').inner_text())
-  check('expired cards do not imply either nomination or absence','NJ nomination data expired; refresh needed' in page.locator('.oz-observation').first.inner_text());ctx.close();mode.pop('nominationGeometry');mode['njNomCase']=False;mode['njNomination']=True
+  check('expired cards do not imply either nomination or absence','NJ nomination data expired; refresh needed' in page.locator('.oz-observation').first.text_content());ctx.close();mode.pop('nominationGeometry');mode['njNomCase']=False;mode['njNomination']=True
   ctx,page=context(browser);ask(page,'industrial over 2 acres in Camden NJ');n=page.evaluate('PublicRadarBridge.getResults().length');check('Camden fixture has results',n>0)
   requests_before=len(external_requests);ask(page,'QOZ?');check('Camden QOZ repro triggers an official source request',any('2026_Opportunity_Zone_2_0_Nominations' in u for u in external_requests[requests_before:]) and 'records in the retrieved source results match this question' not in page.locator('#agentLog').inner_text());ctx.close()
   mode['crossBorder']=True;ctx,page=context(browser);ask(page,'industrial over 5 acres near Easton PA')

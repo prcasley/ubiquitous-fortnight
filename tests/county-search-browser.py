@@ -18,12 +18,12 @@ try:
    check(county+' map has no search-radius circle',page.evaluate('!Object.values(PublicRadarBridge.getMap()._layers).some(l=>l instanceof L.Circle)'))
    parcel_requests=[parse_qs(urlparse(u).query) for u in external_requests if any(x in u for x in ['Parcels_Composite','Parcels_and_Property','BCPA_TAXROLL','PaParcelView','ParcelSDE']) and '/query?' in u]
    check(county+' parcel requests contain no radius geometry',bool(parcel_requests) and all('geometry' not in q and 'geometryType' not in q for q in parcel_requests))
-   check(county+' explains no radius limit','No radius limit' in page.locator('#agentLog').inner_text() and 'Countywide search' in page.locator('.chat-properties').last.inner_text())
+   check(county+' explains no radius limit','No radius limit' in page.locator('#agentLog').inner_text() and 'Countywide search' in page.locator('.chat-properties').last.text_content())
    if state!='PA':check(county+' includes distant county parcel',any(abs(r['lon']-search['center']['lon'])>.3 for r in rows))
    if state=='NJ':check('NJ uses explicit county field',all("UPPER(COUNTY) = 'MONMOUTH'" in q['where'][0] for q in parcel_requests))
    if county=='Broward':
     check('Broward computes acres without claiming published acreage',all(r['acreageQuality']=='computed-polygon' and r['reportedAcres'] is None and abs(r['acres']-(15+i%3*10))<.2 for i,r in enumerate(sorted(rows,key=lambda r:r['id']))))
-    check('Broward card clearly labels computation','Acreage computed from GIS polygon' in page.locator('.chat-properties').last.inner_text())
+    check('Broward card clearly labels computation','Acreage computed from GIS polygon' in page.locator('.chat-properties').last.text_content())
     check('Broward string use-code filter applies industrial codes',any("USE_CODE LIKE '4___'" in q['where'][0] for q in parcel_requests))
     page.evaluate('()=>{const r=PublicRadarBridge.getResults()[0];PublicRadarBridge.choose(r.key);RadarFieldPack.add(r);return true}')
     with page.expect_download() as download:page.click('#generateFieldPack')
