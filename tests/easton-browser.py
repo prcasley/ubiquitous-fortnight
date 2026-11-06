@@ -39,7 +39,7 @@ try:
   check('mobile navigation scrolls to map and retains acquisition shortlists',page.evaluate('scrollTargets.at(-1)==="mapPanel" && RadarAcquisition.getResults()===openedShortlists'))
   check('single-card header describes selection, not partial search', 'Selected parcel' in page.locator('.chat-properties').last.inner_text())
   page.evaluate('document.getElementById("dealNavAutoNearby").checked=false')
-  page.locator('.chat-properties').last.get_by_role('button',name='Look up published owner',exact=True).click()
+  page.locator('.chat-properties').last.get_by_role('button',name='Show owner',exact=True).click()
   page.wait_for_function('document.querySelectorAll(".chat-owner-observation")[document.querySelectorAll(".chat-owner-observation").length-1].textContent.includes("SYNTHETIC COUNTY OWNER LLC")')
   check('chat card uses the same exact-match Northampton ownership adapter','SYNTHETIC COUNTY OWNER LLC' in page.locator('.chat-properties').last.inner_text())
   mode['paRepeatParcel']=True;page.click('#dealNavNearby');page.wait_for_function('!RadarDealNav.busy()')

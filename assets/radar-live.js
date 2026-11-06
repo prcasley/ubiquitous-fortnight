@@ -438,14 +438,12 @@
     const p=inspection&&inspected?.key===id?inspected:records.find(x=>x.key===id)||(subjectParcel?.key===id?subjectParcel:null)||yearUnknown.get(id)||(inspected?.key===id?inspected:null);if(!p)return;
     if(!inspection&&records.includes(p))inspected=null;
     selectedId=id;renderResults();renderMap();$("details").hidden=false;$("details").dataset.parcelKey=id;
-    const owner=p.owner||"Use the public-source lookup below";
+    const ownerHTML='<div class="detail-owner owner-line"><span class="owner-tag">OWNER</span><strong class="owner-name'+(p.owner?'':' owner-pending')+'">'+safe(p.owner||"Checking county record…")+'</strong>'+(p.owner?'<span class="owner-note">County tax record</span>':'')+'</div>';
     $("details").innerHTML='<div class="detail-heading"><span class="eyebrow">SOURCE-OBSERVED PARCEL</span><button type="button" id="closeDetail" class="round" aria-label="Close">×</button></div>'+
       (p.acreageWarning?'<p class="acreage-warning">'+safe(p.acreageWarning)+(p.acreageQuality==='computed-polygon'?'':' Source reports '+safe(fmt(p.reportedAcres))+' ac; mapped polygon approximately '+safe(fmt(p.geometryAcres))+' ac.')+'</p>':'')+
-      '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2><p class="soft">Parcel ID '+safe(p.parcelNumber||p.id)+'</p>'+
+      '<h2>'+safe(p.address||"Parcel "+p.id)+'</h2>'+ownerHTML+'<p class="soft">Parcel ID '+safe(p.parcelNumber||p.id)+'</p>'+
       '<div class="detail-grid"><div><span>'+(p.acreageQuality==='computed-polygon'?'Computed GIS polygon acreage':'Reported site acreage')+'</span><strong>'+(p.acres!=null?fmt(p.acres)+" ac":"Not published")+'</strong></div>'+
       '<div><span>Assessment use</span><strong>'+safe(p.use)+'</strong></div></div>'+
-      '<div class="detail-label">Assessment owner name</div><div class="detail-value">'+safe(owner)+'</div>'+
-      '<p class="muted">Public assessment observation; a matching owner name does not prove legal title, LLC control, or a development affiliation.</p>'+
       '<div class="detail-label">Year built</div><div class="detail-value">'+(p.yearBuilt??"Not published")+'</div>'+
       '<div class="detail-label">Effective year built (not a confirmed renovation date)</div><div class="detail-value">'+(p.effectiveYear??"Not published")+'</div>'+
       '<div class="detail-label">Year remodeled</div><div class="detail-value">Not published by connected parcel source</div>'+

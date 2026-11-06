@@ -34,3 +34,10 @@ body button{white-space:normal}
 .agent-welcome{display:none}.agent-log:has(>.agent-welcome:only-child){display:none}.radar-agent .eyebrow{display:none}
 @media(min-width:1151px){.shell{grid-template-columns:205px minmax(0,1fr)}}
 .brand small{letter-spacing:.04em}.rail{overflow-wrap:anywhere}
+
+/* Owner: one bold, plain line for every result (readability for executives) */
+.owner-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:10px 0;padding:10px 12px;background:#f3faf8;border-left:4px solid #0a8a7b;border-radius:8px}
+.owner-tag{font-size:12px;font-weight:800;letter-spacing:.1em;color:#355a60}
+.owner-name{font:800 19px/1.25 Manrope,sans-serif;color:#0d1f24;overflow-wrap:anywhere}
+.owner-name.owner-pending{font-weight:600;font-size:15px;color:#5d7379}
+.owner-note{flex-basis:100%;font-size:11px;color:#6a8086}
