@@ -47,6 +47,7 @@ def review(row,today=None):
     if year is not None and 1800<=year<=today.year and year<1990:flags.append('Published older building year: inspect physical condition and capacity')
     history=str(r.get('FDEP_RECORDS') or '')
     if re.search(r'older|closed|expired|tanks closed',history,re.I):flags.append('Imported regulatory history mentions older/closed records: verify source, permits and environmental condition; vacancy is unknown')
+    if str(r.get('USE') or '').upper()=='VACANT COMMERCIAL LAND':flags.append('Vacant commercial assessment use: confirm industrial zoning and permitted outdoor storage before shortlisting')
     organization=bool(ORG.search(owner.upper())) and not re.search(r'\b(?:FAMILY|LIVING|REVOCABLE|PERSONAL)\s+TRUST\b',owner,re.I)
     route='Review cited tax/deed records; use public business contact evidence only'
     if organization:route='Search the exact published assessment entity in Sunbiz; verify filing status and disclosed roles before identifying a business contact'
@@ -78,16 +79,27 @@ def reconcile(features):
         entry['attributes']['PARID']=id
     return by_id
 
-def live_rows(min_acres=1):
+def live_rows(min_acres=1,include_vacant_commercial=False,pins=None):
     c=Client();where="MUNICIPALITY IN ('WEST PALM BEACH','MANGONIA PARK') AND CONDO = 'NO' AND ACRES >= "+str(min_acres)+" AND (PROPERTY_USE LIKE '%WAREH%' OR PROPERTY_USE LIKE '%MFG%' OR PROPERTY_USE LIKE '%INDUST%' OR PROPERTY_USE LIKE '%STORAGE%')"
-    features=c.query_all(PBC,{'where':where,'outFields':FIELDS,'returnGeometry':'false'},cap=5000);rows=[];entries=reconcile(features)
+    if pins:
+        if len(pins)>1000:raise ValueError('Use at most 1000 exact parcel IDs')
+        features=[]
+        for start in range(0,len(pins),100):
+            batch=[parcel_id(p) for p in pins[start:start+100]]
+            selected=c.query_all(PBC,{'where':"PARID IN ("+','.join("'"+p+"'" for p in batch)+")",'outFields':FIELDS,'returnGeometry':'false'},cap=5000)
+            if any(parcel_id(f['attributes']['PARID']) not in batch for f in selected):raise RuntimeError('Exact-ID query returned an unrelated parcel')
+            features+=selected
+    else:
+        if include_vacant_commercial:where=where[:-1]+" OR PROPERTY_USE = 'VACANT COMMERCIAL LAND')"
+        features=c.query_all(PBC,{'where':where,'outFields':FIELDS,'returnGeometry':'false'},cap=5000)
+    rows=[];entries=reconcile(features)
     for id,entry in entries.items():
         a=entry['attributes']
         rows.append({'PARID':id,'SOURCE_ROW_PIECES':entry['pieces'],'SOURCE_CONFLICT_FIELDS':'; '.join(sorted(entry['conflicts'])),'PROPERTY_ADDRESS':a.get('SITE_ADDR_STR'),'MUNICIPALITY':a.get('MUNICIPALITY'),'USE':a.get('PROPERTY_USE'),'ACRES':a.get('ACRES'),'YEAR_BUILT':a.get('YRBLT'),'OWNER_OF_RECORD':a.get('OWNER_NAME1'),'OWNER_LINE_2':a.get('OWNER_NAME2'),'CONFID_FLG':a.get('CONFID_FLG'),'TAX_BILL_MAILING':', '.join(str(a[k]) for k in ['PADDR1','PADDR2','PADDR3','CITYNAME','STATE','ZIP1'] if a.get(k)),'SALE_DATE':a.get('SALE_DATE'),'SALE_PRICE':a.get('PRICE'),'DEED_BOOK':a.get('BOOK'),'DEED_PAGE':a.get('PAGE'),'COUNTY_MARKET_ASSESSMENT':a.get('TOTAL_MARKET'),'FDEP_RECORDS':'','REGULATORY_SOURCE_STATUS':'Not connected in this fresh parcel-only scan','SOURCE_URL':PBC,'SOURCE_CHECKED_AT':dt.datetime.now(dt.timezone.utc).isoformat()})
-    return rows,{'scope':'Entire named-source WPB/Mangonia records; CONDO=NO, industrial use labels, minimum '+str(min_acres)+' acres. Not an 8-mile radius or the unprovided 803-row input.','source_counts':c.counts,'unique_parcels':len(entries),'duplicate_source_rows':len(features)-len(entries),'conflicting_parcels':sum(bool(e['conflicts']) for e in entries.values())}
+    return rows,{'scope':('Exact supplied parcel IDs; source facts regardless of acreage/type' if pins else 'Entire named-source WPB/Mangonia records; CONDO=NO, industrial'+('/vacant commercial' if include_vacant_commercial else '')+' use labels, minimum '+str(min_acres)+' acres. Not an 8-mile radius or the unprovided 803-row input.'),'source_counts':c.counts,'unique_parcels':len(entries),'duplicate_source_rows':len(features)-len(entries),'conflicting_parcels':sum(bool(e['conflicts']) for e in entries.values())}
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);group=ap.add_mutually_exclusive_group(required=True);group.add_argument('--csv');group.add_argument('--live-pbc',action='store_true');ap.add_argument('--min-acres',type=float,default=1);ap.add_argument('--out',default=str(ROOT/'.radar/oz-research/fl-parcel-review.csv'));args=ap.parse_args()
+    ap=argparse.ArgumentParser(description=__doc__);group=ap.add_mutually_exclusive_group(required=True);group.add_argument('--csv');group.add_argument('--live-pbc',action='store_true');ap.add_argument('--min-acres',type=float,default=1);ap.add_argument('--include-vacant-commercial',action='store_true');ap.add_argument('--out',default=str(ROOT/'.radar/oz-research/fl-parcel-review.csv'));args=ap.parse_args()
     if not math.isfinite(args.min_acres) or args.min_acres<0:ap.error('Use a nonnegative acreage minimum')
     dest=Path(args.out).resolve()
     if dest.is_relative_to(ROOT) and not dest.is_relative_to(ROOT/'.radar'):ap.error('Output stays local under .radar; do not overwrite public datasets')
@@ -95,7 +107,7 @@ def main():
         with open(args.csv,newline='',encoding='utf-8-sig') as f:rows=list(csv.DictReader(f))
         if len(rows)>5000:raise ValueError('Use at most 5000 input records')
         stats={'scope':'Supplied local CSV; input assertions require independent source verification','input_records':len(rows)}
-    else:rows,stats=live_rows(args.min_acres)
+    else:rows,stats=live_rows(args.min_acres,args.include_vacant_commercial)
     reviewed=[review(row) for row in rows];reviewed.sort(key=lambda r:(-r['DUE_DILIGENCE_FLAG_COUNT'],-(num(r.get('ACRES')) or 0)))
     columns=list(dict.fromkeys(k for r in reviewed for k in r)) or ['PARID'];dest.parent.mkdir(parents=True,exist_ok=True);temp=dest.with_name(dest.name+'.tmp')
     with temp.open('w',newline='',encoding='utf8') as f:

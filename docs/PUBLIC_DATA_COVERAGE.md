@@ -1,14 +1,16 @@
 # Public GIS coverage and data contract
 
-This repository bundles code, not a national property/owner database. Live records are requested on demand. Source attribution and retrieval dates accompany observations. See [free sources and feature gaps](FREE_SOURCES_AND_FEATURES.md) for the current comparison with licensed products and the recovery pilot.
+For the current executive feature inventory, source findings and release limitations, see [CEO pilot review — November 6, 2026](CEO_PILOT_2026-11-06.md). Older market observations below are historical unless independently renewed.
+
+This repository bundles code, not a national property/owner database. Live records are requested on demand. Source attribution and retrieval dates accompany observations. Current official NJ nomination and FloridaCommerce eligibility snapshots supplement the older OZ reference layers described below; neither establishes new-round certification. See [free sources and feature gaps](FREE_SOURCES_AND_FEATURES.md) for the current comparison with licensed products and the recovery pilot.
 
 ## Connected adapters
 
 | Market | Service | Geometry and attributes | Ownership research | Verification |
 |---|---|---|---|---|
 | NJ: 21 counties | [NJGIN](https://nj.gov/njgin/edata/parcels/index.html) | Public polygons, PIN, reported acres, MOD-IV class and available year fields | Exact-ID published OWNER_NAME lookup where available; blanks/protected names unresolved, with official county/state research links | Code/schema checks and mocked browser tests; current physical-device live verification pending |
-| Palm Beach FL | [County public GIS](https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0) | Polygons, PARID, ACRES, PROPERTY_USE, YRBLT | Separate exact-ID OWNER_NAME1 query | Live parcel retrieval and owner field/record sampled; not title verification |
-| Broward FL | [Public taxroll](https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0) | County polygons, ID/use/address; connected projection lacks acreage | NAME_LINE_1 adapter | Current endpoint verification blocked by network policy; acreage searches explicitly stop |
+| Palm Beach FL | [County public GIS](https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0) | Polygons, PARID, ACRES, PROPERTY_USE, YRBLT | Exact-ID OWNER_NAME1 observation and verified PADDR1/2/3 mailing schema; confidential flags respected | Live parcel retrieval and owner field/record sampled; not title verification |
+| Broward FL | [Public taxroll](https://services.arcgis.com/JMAJrTsHNLrSsWf5/ArcGIS/rest/services/PARCEL_POLY_BCPA_TAXROLL/FeatureServer/0) | County polygons, ID/use/address; computed polygon/published lot-size acreage path where the schema supports it | NAME_LINE_1 adapter | Source-specific availability remains subject to runtime checks; unsupported acreage paths stop explicitly |
 | Miami-Dade FL | [County public GIS](https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/PaParcelView_gdb/FeatureServer/0) | Polygons, FOLIO, address, LOT_SIZE, DOR_CODE_CUR | TRUE_OWNER1 adapter | Current endpoint verification blocked by network policy |
 | Martin / St. Lucie FL fallback | [Florida DOR](https://floridarevenue.com/property/Pages/DataPortal_RequestAssessmentRollGISData.aspx) | Centroids, county-qualified parcel IDs, LND_SQFOOT, assessment use/year and building attributes where present | County-qualified OWN_NAME adapter | Slow/timeout-prone queries; no all-county performance claim |
 
@@ -23,7 +25,7 @@ The statewide fallback supports only configured FL county IDs (6, 13, 53, 60, 66
 
 ## Field rules
 
-- Bulk parcel scans exclude owner names and mailing addresses. Separate assessment-name research never requests mailing addresses. Organization-style names can populate a browser-local company directory; individual names are not indexed there. Names do not establish legal title, beneficial ownership or LLC control.
+- Bulk parcel scans exclude owner names and mailing addresses. Explicit selected-property and business-target batch research can request published mailing recipients; protected records are suppressed. These observations are separate from general parcel retrieval and hosted prompts. Organization-style names can populate a browser-local company directory; individual names are not indexed there. Names do not establish legal title, beneficial ownership or LLC control.
 - Owner lookup identity includes provider, county/jurisdiction and exact parcel ID. Statewide FL IDs require CO_NO to avoid same-ID county collisions. Conflicting or truncated responses do not select an owner.
 - Assessment class is not zoning, occupancy, availability or entitlement. Effective construction year is not a confirmed remodel. Tenant, lease terms, renewal dates and seller intent remain unavailable without evidence.
 - Reported acreage and geometry precision are source-specific. Point-only parcels have no boundary claim. Assemblies report connectivity, overlaps and summed acres; no legal adjacency/common-control or dissolved land-area claim.
