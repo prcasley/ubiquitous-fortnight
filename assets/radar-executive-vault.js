@@ -259,9 +259,4 @@
     module.exports = api;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
-/* Mount the "Unlock Executive Contacts" button in the top header once the page is ready. */
-(function () {
-  const mount = () => window.RadarExecutiveVault?.mountExecutiveVaultHeaderControl('.top');
-  if (typeof document === 'undefined') return;
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
-})();
+/* No separate vault button: the site password (radar-entry.js) opens the vault. */
