@@ -42,8 +42,8 @@ IV_BYTES = 12
 
 def derive_aes_key(passphrase: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
     """Derives a 256-bit AES key from the executive passphrase using PBKDF2-HMAC-SHA256."""
-    if not passphrase or len(passphrase.strip()) < 8:
-        raise ValueError("Executive passphrase must be at least 8 characters long.")
+    if not passphrase or len(passphrase.strip()) < 5:
+        raise ValueError("Executive passphrase must be at least 5 characters long.")
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
