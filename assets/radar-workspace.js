@@ -26,3 +26,9 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+/* Fill the gray band: when the map's box becomes taller or wider than the map last measured
+   (tab switch, closing a card, page layout change), re-measure once. Shrinking is ignored, which
+   prevents a refresh loop with the overlay legend. */
+(() => {let timer=0;const fit=entries=>{const r=entries[0]?.contentRect;if(!r)return;clearTimeout(timer);timer=setTimeout(()=>{const map=window.PublicRadarBridge?.getMap();if(!map)return;const s=map.getSize();if(r.width>s.x+24||r.height>s.y+24)map.invalidateSize({pan:false,debounceMoveend:true});},250);};
+ const start=()=>{const el=document.getElementById('map');if(el&&'ResizeObserver' in window)new ResizeObserver(fit).observe(el);};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();})();
