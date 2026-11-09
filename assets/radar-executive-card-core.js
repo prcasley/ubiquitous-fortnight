@@ -13,7 +13,7 @@
   const o=record.publishedOwner||record.ownership;
   const isProtected=!!(o?.protectedName||research?.protectedName||/protected|confidential/i.test(o?.message||''));
   // On-site businesses (federal carrier, environmental permit) can lead when no owner name is published.
-  const carrier=usdot?.carrierName&&https(usdot.sourceURL)?{name:usdot.carrierName+(usdot.officers?.length?' — '+usdot.officers.join(', '):''),role:ROLES.carrier,url:https(usdot.sourceURL),note:'Not confirmed owner — on-site business'+(usdot.status?' · '+usdot.status:'')+(usdot.filingDate?' · filed '+usdot.filingDate:''),tier:'carrier',phone:usdot.businessPhone||null}:null;
+  const carrier=usdot?.carrierName&&https(usdot.sourceURL)?{name:usdot.carrierName+(usdot.officers?.length?' — '+usdot.officers.join(', '):''),role:ROLES.carrier,url:https(usdot.sourceURL),note:'Not confirmed owner — on-site business'+(usdot.status?' · '+usdot.status:'')+(usdot.filingDate?' · filed '+String(usdot.filingDate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'):''),tier:'carrier',phone:usdot.businessPhone||null}:null;
   const site=regulatory?.sites?.find(s=>s.siteName&&https(s.sourceURL));
   const permit=site?{name:site.siteName,role:ROLES.site,url:https(site.sourceURL),note:'Not confirmed owner — may be a tenant',tier:'site'}:null;
   // A protected record never falls through to older names or mailing addresses.

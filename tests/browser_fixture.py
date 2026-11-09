@@ -430,3 +430,13 @@ def unlock(page):
         page.fill('#accessPassword','WP123');page.click('#accessForm button')
         page.wait_for_function('!document.documentElement.hasAttribute("data-radar-locked")')
     page.evaluate('document.fonts.ready')
+
+# The site opens in Simple view by default; these suites exercise every tool, so open them in "All tools".
+from playwright.sync_api import Browser as _Browser, BrowserContext as _BrowserContext
+_ADVANCED = "try{localStorage.setItem('radar_ui_mode','advanced')}catch(e){}"
+for _cls in (_Browser, _BrowserContext):
+    def _advanced_page(self, *args, _original=_cls.new_page, **kwargs):
+        page = _original(self, *args, **kwargs)
+        page.add_init_script(_ADVANCED)
+        return page
+    _cls.new_page = _advanced_page

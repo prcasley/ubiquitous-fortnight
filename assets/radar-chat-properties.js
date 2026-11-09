@@ -46,7 +46,7 @@
         const citation=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Source and map accuracy';
         const source=document.createElement('p');source.textContent=item.sourceName+' · '+item.sourceVintage;
         citation.append(summary,source);if(item.sourceURL)citation.append(link('Official data layer (technical source)',item.sourceURL));
-        article.append(title,details,owner,ownerButton,reference,picture,precision,id,actions,citation);window.RadarExecutiveCards?.enhance(article,record);grid.append(article);if(owner.querySelector('.owner-pending'))setTimeout(()=>ownerButton.click(),150*(grid.children.length));else ownerButton.hidden=true;
+        trip.dataset.simpleHide='1';article.append(title,details,owner,ownerButton,reference,picture,precision,id,actions,citation);window.RadarExecutiveCards?.enhance(article,record);grid.append(article);if(owner.querySelector('.owner-pending'))setTimeout(()=>ownerButton.click(),150*(grid.children.length));else ownerButton.hidden=true;
       }
       shown=end;more.hidden=shown>=rows.length;more.textContent=`Show more properties (${shown} of ${rows.length} shown)`;
     }

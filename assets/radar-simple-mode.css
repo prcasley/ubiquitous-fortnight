@@ -1,0 +1,12 @@
+/* Simple view: search + Speak, the map, and large property cards only. "All tools" restores everything. */
+.radar-mode-toggle-btn{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid #0a6f66;background:#0a6f66;color:#fff;font-weight:800;font-size:15px;cursor:pointer;margin-right:10px}
+.radar-mode-toggle-btn[data-mode="advanced"]{background:#fff;color:#0a4d47}
+body[data-radar-mode="simple"] :is(.workspace-mode-tabs,#mobileNav,#executiveScanControls,#executiveScanSummary,#filterDrawer,#dataQualityNotice,#researchNotice,#resultInfo,#results,
+ #ozInventory,#ozDesignationResearch,#localMapOverlays,#recoveredReference,#dealNav,#acquisitionWorkbench,#ownershipWorkbench,#researchTools,#fieldTripPanel,#ownerSection,#sources){display:none!important}
+/* Cards: keep address, acreage/use, OZ, owner, Call/Email. Hide technical records and secondary buttons. */
+body[data-radar-mode="simple"] :is(.executive-technical,.executive-flags,.executive-metrics){display:none!important}
+body[data-radar-mode="simple"] .chat-property-card > button:is([data-simple-hide]),
+body[data-radar-mode="simple"] .chat-property-card .property-card-actions > button[data-simple-hide]{display:none!important}
+body[data-radar-mode="simple"] #agentPrompt{min-height:56px;font-size:20px}
+body[data-radar-mode="simple"] #agentMic,body[data-radar-mode="simple"] #agentForm button{min-height:56px;font-size:18px}
+body[data-radar-mode="simple"] .executive-call{min-height:56px;font-size:19px}
