@@ -46,3 +46,16 @@ body button{white-space:normal}
 .oz-cohort-bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 .oz-cohort{min-height:48px;font-size:15px;font-weight:800}
 .oz-cohort[aria-pressed="true"]{background:#0a6f66;color:#fff;border-color:#0a6f66}
+
+/* Voice: obvious "listening" state; tap again to stop. */
+#agentMic.listening{background:#c62828!important;color:#fff!important;border-color:#c62828!important;font-weight:800;animation:radar-listen 1.2s ease-in-out infinite}
+@keyframes radar-listen{0%,100%{box-shadow:0 0 0 0 #c6282880}50%{box-shadow:0 0 0 8px #c6282800}}
+@media (prefers-reduced-motion:reduce){#agentMic.listening{animation:none}}
+
+/* Executive vault contact row (visible only after unlock). */
+.executive-vault-contact{border-left:4px solid #f5c542;background:#162a3a;color:#fff;border-radius:8px;padding:10px 12px;margin:8px 0;display:grid;gap:6px}
+.executive-vault-contact strong{font-size:20px}
+.executive-vault-actions{display:flex;flex-wrap:wrap;gap:8px}
+.executive-call{display:inline-flex;align-items:center;min-height:48px;padding:0 14px;border-radius:9px;background:#0a8a7b;color:#fff!important;font-weight:800;font-size:17px;text-decoration:none}
+.exec-vault-btn{min-height:44px;padding:0 14px;border-radius:9px;border:1px solid #0a6f66;background:#fff;color:#0a4d47;font-weight:800;cursor:pointer}
+.exec-vault-btn[data-unlocked="true"]{background:#0a6f66;color:#fff}

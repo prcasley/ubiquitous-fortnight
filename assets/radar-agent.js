@@ -556,22 +556,28 @@
    const remember=value=>{consent=value;try{localStorage.setItem(key,value);}catch{}};
    function cancelPreview(){if(voiceTimer){clearTimeout(voiceTimer);voiceTimer=null;}document.getElementById('voicePreview')?.remove();}
    $('agentPrompt').addEventListener('input',cancelPreview);
+   let current=null;
+   const idle=()=>{speaking=false;current=null;button.textContent='🎙 Speak';button.classList.remove('listening');button.setAttribute('aria-pressed','false');button.setAttribute('aria-label','Start voice search');};
+   function submit(transcript){
+     $('agentPrompt').value=transcript;cancelPreview();
+     const preview=document.createElement('button');preview.id='voicePreview';preview.className='secondary';preview.type='button';preview.textContent='Searching for: '+transcript+' (tap to edit)';
+     preview.addEventListener('click',()=>{cancelPreview();$('agentPrompt').focus();});$('agentForm').after(preview);
+     voiceTimer=setTimeout(()=>{voiceTimer=null;preview.remove();ask(transcript);},2000);
+   }
+   // Keeps listening until the person taps Stop (or the browser ends after a long pause);
+   // words appear in the search box as they are heard.
    function start(){
      if(speaking||busy)return;cancelPreview();
-     const r=new Recognition();r.lang='en-US';r.interimResults=false;r.maxAlternatives=1;speaking=true;button.textContent='Listening…';
-     r.onresult=e=>{
-       const result=e.results?.[e.resultIndex||0];if(!result||result.isFinal===false)return;
-       const transcript=clean(result[0]?.transcript);if(!transcript)return;
-       $('agentPrompt').value=transcript;cancelPreview();
-       const preview=document.createElement('button');preview.id='voicePreview';preview.className='secondary';preview.type='button';preview.textContent='Searching for: '+transcript+' (tap to edit)';
-       preview.addEventListener('click',()=>{cancelPreview();$('agentPrompt').focus();});$('agentForm').after(preview);
-       voiceTimer=setTimeout(()=>{voiceTimer=null;preview.remove();ask(transcript);},2000);
-     };
-     r.onerror=()=>{cancelPreview();putMessage('Microphone transcription failed. You can type your request instead.');};
-     r.onend=()=>{speaking=false;button.textContent='🎙 Speak';};
-     try{r.start();}catch{speaking=false;button.textContent='🎙 Speak';putMessage('Voice input could not start. Type your property request instead; your existing results were retained.');}
+     const r=new Recognition();r.lang='en-US';r.interimResults=true;r.continuous=true;r.maxAlternatives=1;current=r;speaking=true;
+     let finalText='',failed=false;const before=$('agentPrompt').value;
+     button.textContent='● Listening — tap to stop';button.classList.add('listening');button.setAttribute('aria-pressed','true');button.setAttribute('aria-label','Listening. Tap to stop and search.');
+     r.onresult=e=>{let interim='';for(let i=e.resultIndex||0;i<e.results.length;i++){const res=e.results[i],t=res?.[0]?.transcript||'';if(res.isFinal)finalText+=t+' ';else interim+=t;}$('agentPrompt').value=clean((finalText+interim).trim())||before;};
+     r.onerror=ev=>{if(ev?.error==='no-speech'||ev?.error==='aborted')return;failed=true;cancelPreview();putMessage('Microphone transcription failed. You can type your request instead.');};
+     r.onend=()=>{idle();const transcript=clean(finalText.trim()||(failed?'':$('agentPrompt').value!==before?$('agentPrompt').value:''));if(transcript&&!failed)submit(transcript);else if(!transcript)$('agentPrompt').value=before;};
+     try{r.start();}catch{idle();putMessage('Voice input could not start. Type your property request instead; your existing results were retained.');}
    }
    button.addEventListener('click',()=>{
+     if(speaking&&current){try{current.stop();}catch{idle();}return;}
      if(speaking||busy)return;if(consent==='allow'){start();return;}
      if($('voiceConsent'))return;
      const note=document.createElement('div');note.id='voiceConsent';note.className='assistant-status';note.setAttribute('role','note');
