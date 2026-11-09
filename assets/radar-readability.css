@@ -41,3 +41,8 @@ body button{white-space:normal}
 .owner-name{font:800 19px/1.25 Manrope,sans-serif;color:#0d1f24;overflow-wrap:anywhere}
 .owner-name.owner-pending{font-weight:600;font-size:15px;color:#5d7379}
 .owner-note{flex-basis:100%;font-size:11px;color:#6a8086}
+
+/* One-tap NJ tract filter (mirrors the dropdown). */
+.oz-cohort-bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.oz-cohort{min-height:48px;font-size:15px;font-weight:800}
+.oz-cohort[aria-pressed="true"]{background:#0a6f66;color:#fff;border-color:#0a6f66}

@@ -47,3 +47,15 @@ November 6, 2026 live checks before the final metadata-label additions:
 These are regulatory research leads, not verified owners. Original supplied test coverage was retained, with its suite-merging expectation corrected and additional ambiguity, recency, source-pagination and privacy tests added.
 
 Recorded transfers now format valid dates and separate low-consideration amounts (at most $100) from price references. Placeholder/future dates remain unknown; no inheritance, debt maturity or seller intent is inferred. The original recorded consideration stays in its own source field for deed review.
+
+## Federal motor-carrier context (USDOT)
+
+`usdot_site_context.py` adds FMCSA Company Census context to a lead CSV from `nj_parcel_leads.py`:
+
+```sh
+python3 scripts/usdot_site_context.py \
+  --csv .radar/oz-research/nj-parcel-leads-municipalities.csv \
+  --out .radar/oz-research/nj-parcel-leads-usdot.csv
+```
+
+A carrier is matched only when its **physical** street address (same house number and street) is in the same town as the parcel; carrier mailing addresses are never used for matching. Every match is labelled `ON-SITE CARRIER (USDOT) - NOT THE PROPERTY OWNER`, because a carrier at an address is usually a tenant or operator. Owner columns are never changed. The census has no email field, and the phone is the business line filed with FMCSA (check `USDOT_MCS150_DATE` for staleness). Use `--research-json assets/data/nj-parcel-research.json` to add a `usdotContext` block to each published NJ research record (by PAMS_PIN). Tests: `python3 -m unittest tests/test_usdot_site_context.py`.

@@ -9,3 +9,6 @@ __pycache__/
 /test-results/
 
 /raw_modiv_csvs/
+private_build/
+*.raw.csv
+*.raw.json
