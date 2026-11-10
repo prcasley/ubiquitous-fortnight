@@ -22,3 +22,15 @@ body .executive-parcel .executive-facts :is(h2,h3,.executive-use){color:#fff!imp
 @media(max-width:900px){.executive-card-heading{grid-template-columns:minmax(0,1fr) auto}.executive-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.executive-metrics>div:last-child{grid-column:1/-1}}
 
 body .executive-parcel .executive-technical :is(.public-owner-section,.detail-grid>div){background:#163954!important}body .executive-parcel .executive-metrics strong,body .executive-parcel .executive-acreage{font-size:max(22px,var(--radar-font-size))!important}body .executive-parcel .executive-contact-actions :is(a,button),body .executive-parcel .executive-use{font-size:max(18px,var(--radar-font-size))!important}
+
+/* Contacts lead the card; evidence stays together after all property controls. */
+.executive-identity strong,.executive-contact-actions strong,.executive-live-contacts strong{font-size:1.14rem;font-weight:800}
+.executive-contact-actions a[href^="tel:"],.executive-live-contacts a[href^="tel:"]{font-size:1.24rem;font-weight:800}
+.executive-officers{display:block;margin:.5rem 0}
+.card-source-box{font-size:.74rem;color:#4b5563;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;padding:.65rem;margin-top:.8rem;overflow-wrap:anywhere}
+.card-source-box a{display:inline-block;font-size:inherit;margin:.25rem .8rem .25rem 0}
+.card-source-box p:empty{display:none}
+.parcel-data-drawer>summary{cursor:pointer;font-weight:800;padding:.8rem;min-height:44px}
+.parcel-data-drawer>summary:focus-visible{outline:3px solid #245d9f}
+
+body .executive-parcel .card-source-box,body .executive-parcel .card-source-box *{font-size:.74rem!important;color:#4b5563}body .executive-parcel .card-source-box a{color:#245d9f}
