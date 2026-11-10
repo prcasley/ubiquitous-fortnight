@@ -9,10 +9,10 @@ def routes(r):
 try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page();page.route('**/*',routes);errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('RadarArchive.getBundle()?.records.length===2')
-  check('archive observations are distinct from live scan results',page.evaluate('PublicRadarBridge.getResults().length===0') and 'historical' in page.locator('#archiveStatus').inner_text())
-  page.fill('#agentPrompt','industrial over 5 acres in Edison NJ');page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled');live=page.evaluate('({search:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')
   check('Parcel Data starts closed',not page.locator('.parcel-data-drawer').evaluate('e=>e.open'))
   page.locator('.parcel-data-drawer > summary').click()
+  check('archive observations are distinct from live scan results',page.evaluate('PublicRadarBridge.getResults().length===0') and 'historical' in page.locator('#archiveStatus').inner_text())
+  page.fill('#agentPrompt','industrial over 5 acres in Edison NJ');page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled');live=page.evaluate('({search:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')
   before=page.evaluate('PublicRadarBridge.getSearchCenter()');page.locator('[data-archive-query="mangonia"]').click();check('Mangonia quick view locates recovered data',len(page.evaluate('RadarArchive.getVisible()'))==1)
   check('archive view never changes future search anchor',page.evaluate('PublicRadarBridge.getSearchCenter()')==before)
   page.locator('#archiveResults').get_by_role('button',name='Open Parcel Data').click();text=page.locator('#archiveDetails').inner_text();check('historical owner, acreage and date are explicit','SYNTHETIC PUBLIC LLC' in text and '261,360' in text and '2026-09-28' in text and 'current ownership unverified' in text)
