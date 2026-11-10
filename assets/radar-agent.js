@@ -392,7 +392,18 @@
 
    if(!intent.search&&(intent.questionOwnership||intent.questionOZ)){
      if(intent.state&&bridge().getResults().length&&intent.state!==bridge().getMeta().state){putMessage("Your current shortlist is in "+bridge().getMeta().state+". Search for properties in "+intent.state+" first; no ownership or OZ answer was inferred for a different state.");return;}
-     if(!bridge().getResults().length){putMessage("Search for properties first so I can check specific parcel records.");return;}
+     if(!bridge().getResults().length){
+       // Contact / nomination questions before any search: answer from the published NJ nominated-tract
+       // research (real records only), with one-tap buttons that open each property card.
+       if(/\b(contact|contacts|phone|call|email|who (?:owns|runs|is at)|nomination|nominated|new (?:oz|zone)|oz ?2)\b/i.test(intent.q)){
+         try{const d=await fetch('assets/data/nj-parcel-research.json',{credentials:'omit'}).then(r=>{if(!r.ok)throw Error();return r.json();});
+           const picks=(d.records||[]).filter(x=>x.usdotContext?.carrierName&&x.facts?.PROP_LOC).sort((a,b)=>{const v=x=>window.RadarExecutiveVault?.getExecutiveRecordForParcel?.(x.parcelId)?1:0;return (v(b)-v(a))||((b.usdotContext.status==='ACTIVE')-(a.usdotContext.status==='ACTIVE'));}).slice(0,5);
+           if(picks.length){putMessage("Here are properties in New Jersey's 2026 nominated tracts with a business on file. Tap one to open its card. A business at an address is not necessarily the owner.");
+             const host=$("agentLog")?.lastElementChild;const list=document.createElement('div');list.className='agent-quick-picks';
+             for(const x of picks){const town=String(x.facts.MUN_NAME||'').replace(/\s+(BORO|BOROUGH|TWP|TOWNSHIP|CITY|TOWN)$/i,'');const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=x.facts.PROP_LOC+', '+town+' — '+x.usdotContext.carrierName;b.addEventListener('click',()=>window.RadarMapActions?.retrieve(x.facts.PROP_LOC+', '+town+', NJ'));list.append(b);}
+             host?.append(list);return;}}catch{}
+       }
+       putMessage("Search for properties first so I can check specific parcel records.");return;}
      const actionButton=$("agentForm").querySelector('button[type=submit]');busy=true;actionButton.disabled=true;try{if(intent.questionOwnership)await ownerAnswer(intent);else await ozAnswer(intent);if(intent.questionDeadline)putMessage(explainFollowUp({questionDeadline:true}));}finally{busy=false;actionButton.disabled=false;}return;
    }
    if(!intent.search){

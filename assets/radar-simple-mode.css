@@ -4,9 +4,15 @@
 body[data-radar-mode="simple"] :is(.workspace-mode-tabs,#mobileNav,#executiveScanControls,#executiveScanSummary,#filterDrawer,#dataQualityNotice,#researchNotice,#resultInfo,#results,
  #ozInventory,#ozDesignationResearch,#localMapOverlays,#recoveredReference,#dealNav,#acquisitionWorkbench,#ownershipWorkbench,#researchTools,#fieldTripPanel,#ownerSection,#sources){display:none!important}
 /* Cards: keep address, acreage/use, OZ, owner, Call/Email. Hide technical records and secondary buttons. */
-body[data-radar-mode="simple"] :is(.executive-technical,.executive-flags,.executive-metrics){display:none!important}
+body[data-radar-mode="simple"] :is(.executive-technical,.executive-flags){display:none!important}
 body[data-radar-mode="simple"] .chat-property-card > button:is([data-simple-hide]),
 body[data-radar-mode="simple"] .chat-property-card .property-card-actions > button[data-simple-hide]{display:none!important}
 body[data-radar-mode="simple"] #agentPrompt{min-height:56px;font-size:20px}
 body[data-radar-mode="simple"] #agentMic,body[data-radar-mode="simple"] #agentForm button{min-height:56px;font-size:18px}
 body[data-radar-mode="simple"] .executive-call{min-height:56px;font-size:19px}
+/* Right-click map menu and quick picks (both views) */
+.radar-map-menu{display:grid;gap:6px;min-width:220px}
+.radar-map-menu-item{min-height:48px;text-align:left;padding:0 12px;border-radius:8px;border:1px solid #c9d8dc;background:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.radar-map-menu-item:hover,.radar-map-menu-item:focus{background:#e9f5f3;outline:2px solid #0a6f66}
+.agent-quick-picks{display:grid;gap:8px;margin-top:8px}
+.agent-quick-picks button{min-height:48px;text-align:left;font-size:16px}
