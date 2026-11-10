@@ -19,7 +19,8 @@ CARD = """() => {const a=[...document.querySelectorAll('.chat-properties:not(.pr
  const vis=e=>e&&e.getBoundingClientRect().height>0;
  return {address:a.querySelector('h3')?.innerText||'',owner:a.querySelector('.executive-identity')?.innerText||'',
   vault:a.querySelector('.executive-vault-contact')?.innerText||'',
-  calls:[...a.querySelectorAll('a.executive-call')].filter(vis).map(x=>({text:x.innerText.trim(),review:x.classList.contains('needs-review')})),
+  calls:[...a.querySelectorAll('a.executive-call')].filter(vis).map(x=>({text:x.innerText.trim(),href:x.getAttribute('href')})),
+  review:[...a.querySelectorAll('.executive-needs-review')].filter(vis).map(x=>x.innerText.trim()),
   live:a.querySelector('.executive-live-contacts')?.innerText||null,
   liveButton:!!a.querySelector('.executive-live-contacts button'),
   mailing:[...a.querySelectorAll('.executive-contact-actions a')].some(x=>/mailing address/i.test(x.innerText)),
@@ -48,7 +49,7 @@ with sync_playwright() as p:
     ask(page, "351 Roosevelt Ave, Carteret, NJ"); c = page.evaluate(CARD)
     texts = [x["text"] for x in c["calls"]]
     check("Transways: officers shown", "Dooley" in c["vault"], c["vault"][:200])
-    check("Transways: federal-sourced phones are normal buttons", any("732-442-4630" in t and not x["review"] for x, t in zip(c["calls"], texts)), c["calls"])
+    check("Transways: federal-sourced phones are normal buttons", any("732-442-4630" in t for t in texts), c["calls"])
     check("Transways: mailing address link kept", c["mailing"], c)
     check("Transways: live check button on NJ card, no A/B label", c["liveButton"] and not re.search(r"\b[AB] ·", c["live"] or ""), c["live"])
     page.locator(".chat-properties:not(.previous-search) article .executive-live-contacts button").last.click(); page.wait_for_timeout(25000)
@@ -59,8 +60,9 @@ with sync_playwright() as p:
 
     # Carteret: Qualmax
     ask(page, "60 Grant Ave, Carteret, NJ"); c = page.evaluate(CARD)
-    check("Qualmax: sourced office line is a normal button", any("718-305-6766" in x["text"] and not x["review"] for x in c["calls"]), c["calls"])
-    check("Qualmax: unsourced cell labelled needs review", any("917-676-1434" in x["text"] and x["review"] for x in c["calls"]), c["calls"])
+    check("Qualmax: sourced office line is a one-tap button", any("718-305-6766" in x["text"] for x in c["calls"]), c["calls"])
+    check("Qualmax: unsourced cell shown as text, not a button", any("917-676-1434 · needs review" in x for x in c["review"]) and not any("917" in x["text"] for x in c["calls"]), c)
+    check("Qualmax: unsourced email shown as text, not a button", any("Joel@qualmaxsupplies.com · needs review".lower() in x.lower() for x in c["review"]) and not any("joel@" in (x["href"] or "").lower() for x in c["calls"]), c)
 
     # Sayreville: Alzo
     ask(page, "650 Jernee Mill Rd, Sayreville, NJ"); c = page.evaluate(CARD)
