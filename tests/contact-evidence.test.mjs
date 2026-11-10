@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import V from '../assets/radar-contact-verifier.js';
+const p={id:'1201_1_1',address:'100 N Main St',municipality:'Carteret',state:'NJ'};const c={parcelId:p.id,address:p.address,city:p.municipality,state:'NJ',company:'Example business',role:'Carrier, not owner',checkedAt:new Date().toISOString(),fields:[{type:'phone',value:'7324424630',evidenceValue:'7324424630',company:'Example business',sourceUrl:'https://data.transportation.gov/record',method:'source-observed'}]};
+test('missing evidence cannot create call buttons',()=>{assert.equal(V.verify(p,{...c,fields:[]}).fields.length,0);assert.equal(V.verify(p,{...c,fields:[{...c.fields[0],evidenceValue:undefined}]}).fields.length,0)});
+test('town, direction, street type and parcel mismatches block contacts',()=>{for(const patch of [{city:'Newark'},{address:'100 S Main St'},{address:'100 N Main Ave'},{parcelId:'1201_1_2'}])assert.equal(V.verify(p,{...c,...patch}).fields.length,0)});
+test('stale and future observations are withheld',()=>{for(const checkedAt of ['2020-01-01','2099-01-01'])assert.equal(V.verify(p,{...c,checkedAt}).fields.length,0)});
+test('exact source-supported business contact remains callable',()=>assert.equal(V.verify(p,c).fields.length,1));
+test('unavailable carrier service is not zero matches',async()=>{await assert.rejects(V.lookup(p,async()=>({ok:false,status:503})),/unavailable/)});
+test('actual parcel shape maps municipality',()=>assert.equal(V.parcel({id:'x',state:'NJ',original:{PROP_LOC:'100 Main St',MUN_NAME:'CARTERET BORO'}}).city,'CARTERET BORO'));

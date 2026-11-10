@@ -34,3 +34,6 @@ if(process.argv.includes('--local-reference')){
  await copyFile(root+'.radar/recovered-reference.json',root+'dist/assets/data/recovered-reference.json');
  console.log('LOCAL preview includes recovered reference facts; do not publish this dist directory.');
 }
+
+await copyFile(root+'contact-preview.html',root+'dist/contact-preview.html');
+if(process.argv.includes('--contact-coverage'))await copyFile(root+'contact-coverage.html',root+'dist/contact-coverage.html');

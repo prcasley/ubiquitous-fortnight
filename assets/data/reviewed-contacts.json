@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "checkedAt": "2026-11-10",
+  "contacts": [
+    {
+      "parcelId": "1201_5301_5",
+      "address": "60 Grant Avenue",
+      "city": "Carteret",
+      "state": "NJ",
+      "company": "Qualmax Supplies, Inc.",
+      "role": "Business at this address \u2014 ownership unconfirmed",
+      "checkedAt": "2026-11-10T14:00:00Z",
+      "fields": [
+        {
+          "type": "phone",
+          "value": "718-305-6766",
+          "evidenceValue": "718-305-6766",
+          "company": "Qualmax Supplies, Inc.",
+          "sourceUrl": "https://www.qualmaxsupplies.com/contact.aspx",
+          "method": "source-observed"
+        },
+        {
+          "type": "email",
+          "value": "sales@qualmaxsupplies.com",
+          "evidenceValue": "sales@qualmaxsupplies.com",
+          "company": "Qualmax Supplies, Inc.",
+          "sourceUrl": "https://www.qualmaxsupplies.com/contact.aspx",
+          "method": "source-observed"
+        }
+      ]
+    },
+    {
+      "parcelId": "1219_13_1.03",
+      "address": "650 Jernee Mill Road",
+      "city": "Sayreville",
+      "state": "NJ",
+      "company": "Alzo International Inc.",
+      "role": "Business at this address \u2014 ownership unconfirmed",
+      "checkedAt": "2026-11-10T14:00:00Z",
+      "fields": [
+        {
+          "type": "phone",
+          "value": "732-254-1901",
+          "evidenceValue": "732-254-1901",
+          "company": "Alzo International Inc.",
+          "sourceUrl": "https://www.alzointernational.com/contact",
+          "method": "source-observed"
+        }
+      ]
+    }
+  ]
+}
