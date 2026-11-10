@@ -9,7 +9,7 @@ try:
   browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);context=browser.new_context();page=context.new_page();page.route('**/*',network);errors=[];page.on('pageerror',lambda e:errors.append(str(e)));mode['ceo']=True
   page.goto(f'http://127.0.0.1:{server.server_port}/')
   check('fresh entry screen hides the application and navigation',page.locator('#accessGate').is_visible() and not page.locator('.shell').is_visible() and not page.locator('.mobile-shortcuts').is_visible())
-  page.fill('#accessPassword','wrong');page.click('#accessForm button');check('wrong password keeps screen locked','not recognized' in page.locator('#accessError').inner_text() and not page.locator('.shell').is_visible())
+  page.fill('#accessPassword','wrong');page.click('#accessForm button');page.wait_for_function('document.getElementById("accessError").textContent.length>0');check('wrong password keeps screen locked','not recognized' in page.locator('#accessError').inner_text() and not page.locator('.shell').is_visible())
   unlock(page);check('requested password reveals the app',page.locator('.shell').is_visible())
   check('fresh NJ source starts executive area in Edison without location access',page.input_value('#executiveMarket')=='edison' and page.input_value('#stateSelect')=='NJ' and 'Starting area: Edison NJ' in page.locator('#executiveScanStatus').inner_text())
   page.select_option('#executiveMarket','palmarea');page.reload();unlock(page)

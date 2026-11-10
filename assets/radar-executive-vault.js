@@ -21,6 +21,7 @@
 
   // Held strictly in closure RAM for the active page lifecycle
   let unlockedVaultData = null;
+  const SESSION_DATA_KEY = 'radar_exec_vault_session_data';
   const listeners = new Set();
 
   function base64ToBytes(b64) {
@@ -89,7 +90,7 @@
    * Fetches `assets/data/executive-vault.enc` and unlocks executive contacts into RAM.
    */
   async function unlockExecutiveContactVault(passphrase, vaultUrl = DEFAULT_VAULT_URL) {
-    const response = await fetch(vaultUrl, { cache: 'no-store', credentials: 'omit' });
+    const response = await fetch(vaultUrl, { cache: 'no-store', credentials: 'same-origin' });
     if (!response.ok) {
       throw new Error('Encrypted executive vault file not found (' + response.status + ').');
     }
@@ -97,8 +98,11 @@
     const data = await decryptVaultPayload(payload, passphrase);
     unlockedVaultData = data;
 
+    // Keep the decrypted contacts for this browser tab only, so a refresh does not ask
+    // for the code again. The code itself is never stored. Lock clears it.
     try {
       global.sessionStorage?.setItem(SESSION_FLAG_KEY, 'true');
+      global.sessionStorage?.setItem(SESSION_DATA_KEY, JSON.stringify(data));
     } catch (_e) {
       // Ignore storage quota / private mode restrictions
     }
@@ -114,6 +118,7 @@
     unlockedVaultData = null;
     try {
       global.sessionStorage?.removeItem(SESSION_FLAG_KEY);
+      global.sessionStorage?.removeItem(SESSION_DATA_KEY);
     } catch (_e) {
       // Ignore
     }
@@ -244,7 +249,23 @@
     });
   }
 
+  /** Restore contacts unlocked earlier in this tab (after a refresh). Returns true if restored. */
+  function restoreVaultSession() {
+    try {
+      const raw = global.sessionStorage?.getItem(SESSION_DATA_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return false;
+      unlockedVaultData = data;
+      notifyListeners();
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   const api = {
+    restoreVaultSession,
     decryptVaultPayload,
     unlockExecutiveContactVault,
     lockExecutiveContactVault,
