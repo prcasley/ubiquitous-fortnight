@@ -1,24 +1,3 @@
-/**
- * assets/radar-simple-mode.js
- * 1-Click "SIMPLE MODE / ADVANCED MODE" Toggle & Case-Insensitive WP123 Welcome Helper
- * for Capital Radar. Adapted from Argon's draft to the real page structure.
- *
- * Designed for a 90-year-old executive:
- * 1. Mounts a prominent, high-contrast "SIMPLE MODE / ADVANCED MODE" toggle button
- *    in the top header bar (`.top`) next to the font-size controls.
- * 2. In SIMPLE MODE (`body[data-radar-mode="simple"]`):
- *    - Hides the 3 workspace tabs, technical GIS dropdowns, layer checkboxes,
- *      import/export workbenches, and secondary filter boxes.
- *    - Keeps ONLY the plain-language "Ask Radar" search & red pulsing "🎙 Speak" box
- *      plus simplified, large-print property cards showing ONLY:
- *        * Address & Town
- *        * Acreage, Use Type & Opportunity Zone badge
- *        * Bold Owner / On-Site Company & Human Officers
- *        * Large 1-tap Call and Email buttons
- *    - Automatically bumps base text size to 19px (while preserving manual A-/A+ buttons).
- * 3. Normalizes welcome passcode input (`wp123` -> `WP123`) before submission so
- *    lowercase typing still unlocks the AES-256-GCM executive contacts vault.
- */
 (function (global) {
   'use strict';
 
@@ -127,43 +106,10 @@
     return btn;
   }
 
-  /**
-   * Ensures typing "wp123" in lowercase on the welcome screen is automatically
-   * normalized to "WP123" so the case-sensitive PBKDF2 contact vault always unlocks.
-   */
-  function attachCaseInsensitiveWelcomePasscode() {
-    const doc = global.document;
-    if (!doc) return;
-    const normalizePasscodeInput = (el) => {
-      if (!el || typeof el.value !== 'string') return;
-      if (el.value.trim().toUpperCase() === 'WP123') {
-        el.value = 'WP123';
-      }
-    };
-
-    doc.addEventListener('submit', (ev) => {
-      const form = ev.target;
-      if (!form || typeof form.querySelector !== 'function') return;
-      const passInput = form.querySelector('#accessPassword, input[type="password"]');
-      if (passInput) normalizePasscodeInput(passInput);
-    }, true);
-
-    doc.addEventListener('input', (ev) => {
-      const target = ev.target;
-      if (!target || target.tagName !== 'INPUT') return;
-      if (target.id === 'accessPassword' || target.type === 'password') {
-        if (target.value.trim().toUpperCase() === 'WP123') {
-          target.value = 'WP123';
-        }
-      }
-    }, true);
-  }
-
   function initSimpleMode() {
     const initial = getInitialMode();
     mountModeToggleButton('.top');
     applyMode(initial, { adjustFont: initial === 'simple' });
-    attachCaseInsensitiveWelcomePasscode();
     // Re-apply after the workspace tabs and the text-size control finish loading.
     for (const ms of [400, 1500]) setTimeout(() => { if (global.document.body.dataset.radarMode === 'simple') applyMode('simple', { adjustFont: true }); }, ms);
   }
@@ -180,8 +126,7 @@
     getInitialMode,
     applyMode,
     toggleMode,
-    mountModeToggleButton,
-    attachCaseInsensitiveWelcomePasscode
+    mountModeToggleButton
   };
 
   global.RadarSimpleMode = api;
