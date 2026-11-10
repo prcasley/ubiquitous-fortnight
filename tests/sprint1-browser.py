@@ -110,7 +110,7 @@ try:
         page.set_viewport_size({'width':width,'height':900})
         check('readable layout has no overflow at '+str(width),page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
         check('placeholder fits at '+str(width),page.evaluate('''()=>{const n=document.querySelector('#agentPrompt'),c=document.createElement('canvas').getContext('2d'),s=getComputedStyle(n);c.font=s.font;return c.measureText(n.placeholder).width<=n.clientWidth-parseFloat(s.paddingLeft)-parseFloat(s.paddingRight);}'''))
-        check('visible type is at least 15px at '+str(width),page.evaluate('''()=>[...document.querySelectorAll('body *')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden').every(n=>parseFloat(getComputedStyle(n).fontSize)>=15)'''))
+        check('visible type is at least 15px outside requested source fine print at '+str(width),page.evaluate('''()=>[...document.querySelectorAll('body *')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden').every(n=>parseFloat(getComputedStyle(n).fontSize)>=(n.closest('.card-source-box') ? .74*parseFloat(getComputedStyle(document.documentElement).fontSize)-.1 : 15))'''))
         check('board reply stays visible after responsive reparenting at '+str(width),page.locator('.board-summary').last.bounding_box()['y']<page.locator('#agentLog').bounding_box()['y']+page.locator('#agentLog').bounding_box()['height'])
     page.screenshot(path='/tmp/radar-sprint1-desktop.png')
     page.set_viewport_size({'width':390,'height':844});page.screenshot(path='/tmp/radar-sprint1-mobile.png')
