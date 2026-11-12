@@ -11,6 +11,7 @@ try:
   check('fresh entry screen hides the application and navigation',page.locator('#accessGate').is_visible() and not page.locator('.shell').is_visible() and not page.locator('.mobile-shortcuts').is_visible())
   page.fill('#accessPassword','wrong');page.click('#accessForm button');page.wait_for_function('document.getElementById("accessError").textContent.length>0');check('wrong password keeps screen locked','not recognized' in page.locator('#accessError').inner_text() and not page.locator('.shell').is_visible())
   unlock(page);check('requested password reveals the app',page.locator('.shell').is_visible())
+  page.locator('#v34Coverage > summary').click()
   check('fresh NJ source starts executive area in Edison without location access',page.input_value('#executiveMarket')=='edison' and page.input_value('#stateSelect')=='NJ' and 'Starting area: Edison NJ' in page.locator('#executiveScanStatus').inner_text())
   page.select_option('#executiveMarket','palmarea');page.reload();unlock(page)
   check('saved Florida choice restores actual area, source and county',page.input_value('#executiveMarket')=='palmarea' and page.input_value('#stateSelect')=='FL' and page.input_value('#countySelect')=='PalmBeach' and page.evaluate('Math.abs(PublicRadarBridge.getSearchCenter().lon+80.0956)<.001') and page.input_value('#executiveRadius')=='8')

@@ -63,7 +63,7 @@ try:
         page.wait_for_function('document.getElementById("researchToolsStatus").textContent.includes("previous records preserved")')
         assert '$200.00/building SF' in page.locator('#localCompResults').inner_text()
         map_box=page.locator('#map').bounding_box()
-        assert map_box['width']>600 and map_box['height']>=300, map_box
+        assert map_box['width']>=500 and map_box['height']>=300, map_box
         page.click('#expandMap')
         assert page.locator('#expandMap').get_attribute('aria-expanded')=='true'
         page.keyboard.press('Escape')

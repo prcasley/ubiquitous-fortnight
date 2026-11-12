@@ -7,6 +7,7 @@ try:
   mode['inventory']=True;mode['njOwnerName']='SYNTHETIC INVENTORY LLC'
   browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':1280,'height':900});page.route('**/*',network);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto(f'http://127.0.0.1:{server.server_port}/');unlock(page);page.wait_for_function('RadarOZInventory.getState().tracts===130')
+  page.locator('#v34Coverage > summary').click()
   check('all 130 tracts start unchecked, not falsely complete','0/130 tracts complete' in page.locator('#ozInventorySummary').inner_text() and '130 not checked' in page.locator('#ozInventorySummary').inner_text())
   before=page.evaluate('({criteria:PublicRadarBridge.getSearch(),results:PublicRadarBridge.getResults().map(r=>r.key)})')
   page.click('#ozInventoryBuild');page.wait_for_function('!RadarOZInventory.getState().busy && RadarOZInventory.getState().parcels===3')
