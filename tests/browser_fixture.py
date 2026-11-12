@@ -84,8 +84,10 @@ def reveal_workspace(locator):
     if target and page.evaluate('RadarWorkspace.getMode()')!=target:
         _workspace_locator_click(page.locator('#workspace-tab-'+target))
     if not root.first.is_visible():
-        for details in root.first.locator('xpath=ancestor::details[not(@open)]').all():
-            _workspace_locator_click(details.locator(':scope > summary'))
+        for details in root.first.locator('xpath=ancestor::details').all():
+            if root.first.is_visible():break
+            if details.get_attribute('open') is None and details.locator(':scope > summary').is_visible():
+                _workspace_locator_click(details.locator(':scope > summary'))
 _workspace_locator_click=Locator.click
 for _method in ['click','fill','press','check','uncheck','select_option','set_input_files','screenshot','scroll_into_view_if_needed']:
     def _wrapped(self,*args,_original=getattr(Locator,_method),**kwargs):
