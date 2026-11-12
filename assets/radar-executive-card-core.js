@@ -34,11 +34,16 @@
   if(o.status==='expired'||o.validUntil&&Date.parse(o.validUntil)<=Date.now())return 'OZ data expired · refresh needed';
   if(o.status==='checking')return 'Checking Opportunity Zone status…';
   if(o.status==='unavailable')return 'OZ check needs retry';
-  if(r.state==='NJ')return o.kind==='ozNJ'&&o.nominationVerified===true&&o.status==='reference-intersection'&&o.coverageBasis==='parcel-area'&&o.overlapPercent>=95?'NJ-nominated OZ 2.0 · certification unverified':o.status==='no-reference-intersection'?'No NJ nomination match in this check':'NJ nomination boundary/evidence review needed';
+  const D=(typeof window!=='undefined'?window:globalThis).RadarOZ2Designations;
+  if(r.state==='NJ')return o.kind==='ozNJ'&&o.nominationVerified===true&&o.status==='reference-intersection'&&o.coverageBasis==='parcel-area'&&o.overlapPercent>=95?'Designated OZ 2.0 · Certified by U.S. Treasury (Effective Jan 1, 2027 – Dec 31, 2036)':o.status==='no-reference-intersection'?'Not in a designated NJ OZ 2.0 tract':'Designated-tract boundary review needed';
   if(r.state==='FL'&&o.kind==='ozFL'){const t=(o.tractDetails||[])[0],pct=v=>Number.isFinite(v)?v:null,pov=pct(t?.poverty),fi=Number(t?.familyIncome),ai=Number(t?.areaIncome);
    const facts=[pov!=null?'poverty '+(pov*100).toFixed(1)+'%':null,fi>0&&ai>0?'income '+Math.round(fi/ai*100)+'% of area':null].filter(Boolean).join(' · ');
-   return 'FloridaCommerce OZ 2.0 eligibility '+(o.eligibilityStatus==='met'?'met':o.eligibilityStatus==='not-met'?'not met':'needs review')+(facts?' ('+facts+')':'')+' · not a nomination';}
- return 'OZ reference only · certification unverified';
+   const designated=D?.isLoaded?.()?(o.tractDetails||[]).some(x=>D.get(x.geoid)?.state==='FL'):null;
+   if(designated===true)return 'Designated OZ 2.0 (Effective Jan 1, 2027)'+(facts?' · '+facts:'');
+   if(o.eligibilityStatus==='met')return (designated===false?'OZ 2.0 eligible · not designated by Treasury':'OZ 2.0 eligible · designation check loading')+(facts?' ('+facts+')':'');
+   return o.eligibilityStatus==='not-met'?'Not an OZ 2.0 tract'+(facts?' ('+facts+')':''):'OZ 2.0 status needs review';}
+ return 'OZ reference only · not a Treasury designation check';
  }
- return {https,getPrimaryDisplayOwner,numbers,oz,mailingText,ROLES};
+ function ozBadges(r){const D=(typeof window!=='undefined'?window:globalThis).RadarOZ2Designations;if(!D?.isLoaded?.())return [];const o=r.ozObservations?.[r.state==='NJ'?'ozNJ':r.state==='FL'?'ozFL':'oz2']||r.ozObservation;if(!o||!['reference-intersection','reference-point-intersection'].includes(o.status))return [];if(r.state==='NJ'&&!(o.coverageBasis==='parcel-area'&&o.overlapPercent>=95))return [];const seen=new Set(),out=[];for(const t of o.tractDetails||[])for(const b of D.badges(t.geoid))if(!seen.has(b.text)){seen.add(b.text);out.push(b);}return out;}
+ return {https,getPrimaryDisplayOwner,numbers,oz,ozBadges,mailingText,ROLES};
 });

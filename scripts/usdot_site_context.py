@@ -13,8 +13,8 @@ What it does
 
 What it does not do
   * It does not change owner fields, infer ownership or authority to sell, or create contacts.
-  * The census has no email field; none is produced. The phone is the carrier's business line
-    as filed with FMCSA and may be stale (see USDOT_MCS150_DATE).
+  * Phone, cell phone and email are the carrier's own entries on its FMCSA filing (empty when
+    not filed) and may be stale (see USDOT_MCS150_DATE).
   * Works on a lead CSV (--csv) or on the published NJ research file (--research-json),
     adding a usdotContext block to each record by PAMS_PIN.
 
@@ -35,10 +35,10 @@ from nj_parcel_leads import same_address  # noqa: E402  (shared, tested address 
 DATASET = "https://data.transportation.gov/resource/az4n-8mr2.json"
 SNAPSHOT = "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string="
 FIELDS = ["dot_number", "legal_name", "dba_name", "phy_street", "phy_city", "phy_state", "phy_zip",
-          "company_officer_1", "company_officer_2", "phone", "status_code", "power_units", "mcs150_date"]
+          "company_officer_1", "company_officer_2", "phone", "cell_phone", "email_address", "status_code", "power_units", "mcs150_date"]
 ROLE = "ON-SITE CARRIER (USDOT) - NOT THE PROPERTY OWNER"
 OUT_COLS = ["USDOT_ROLE", "USDOT_MATCH_METHOD", "USDOT_NUMBER", "USDOT_CARRIER_NAME", "USDOT_DBA",
-            "USDOT_OFFICER_1", "USDOT_OFFICER_2", "USDOT_BUSINESS_PHONE", "USDOT_STATUS",
+            "USDOT_OFFICER_1", "USDOT_OFFICER_2", "USDOT_BUSINESS_PHONE", "USDOT_CELL_PHONE", "USDOT_EMAIL", "USDOT_STATUS",
             "USDOT_POWER_UNITS", "USDOT_MCS150_DATE", "USDOT_OTHER_CARRIERS_AT_ADDRESS",
             "USDOT_SOURCE_URL", "USDOT_CHECKED_AT"]
 PAGE = 5000
@@ -115,6 +115,8 @@ def enrich(rows: list[dict], carriers_by_town: dict[str, list[dict]], checked_at
                     "USDOT_OFFICER_1": best.get("company_officer_1") or "",
                     "USDOT_OFFICER_2": best.get("company_officer_2") or "",
                     "USDOT_BUSINESS_PHONE": best.get("phone") or "",
+                    "USDOT_CELL_PHONE": best.get("cell_phone") or "",
+                    "USDOT_EMAIL": (best.get("email_address") or "").strip().lower(),
                     "USDOT_STATUS": status_label(best.get("status_code")),
                     "USDOT_POWER_UNITS": best.get("power_units") or "",
                     "USDOT_MCS150_DATE": str(best.get("mcs150_date") or "")[:10],
@@ -137,16 +139,20 @@ def write_csv(path: Path, rows: list[dict], cols: list[str]) -> None:
     os.replace(tmp, path)
 
 
-def load_towns(towns):
-    if len(towns) > 25:
-        raise SystemExit("More than 25 towns in one run; split the input")
+def load_towns(towns, retries=3, sleep=time.sleep):
+    if len(towns) > 150:
+        raise SystemExit("More than 150 towns in one run; split the input")
     carriers_by_town, coverage = {}, {}
     for town in towns:
-        try:
-            carriers_by_town[town] = fetch_town(town)
-            coverage[town] = {"status": "checked", "carriers": len(carriers_by_town[town])}
-        except Exception as exc:  # keep going; that town is marked not checked
-            coverage[town] = {"status": "unavailable", "message": str(exc)[:200]}
+        for attempt in range(retries):
+            try:
+                carriers_by_town[town] = fetch_town(town)
+                coverage[town] = {"status": "checked", "carriers": len(carriers_by_town[town])}
+                break
+            except Exception as exc:  # retry dropped connections; then mark the town not checked
+                coverage[town] = {"status": "unavailable", "message": str(exc)[:200]}
+                if attempt + 1 < retries:
+                    sleep(2 * (attempt + 1))
         print(f"USDOT {town}: {coverage[town]}", flush=True)
     return carriers_by_town, coverage
 
@@ -159,7 +165,8 @@ def context_block(row: dict) -> dict:
         block.update({"dotNumber": row["USDOT_NUMBER"], "carrierName": row["USDOT_CARRIER_NAME"],
                       "dba": row["USDOT_DBA"] or None,
                       "officers": [o for o in (row["USDOT_OFFICER_1"], row["USDOT_OFFICER_2"]) if o],
-                      "businessPhone": row["USDOT_BUSINESS_PHONE"] or None, "status": row["USDOT_STATUS"],
+                      "businessPhone": row["USDOT_BUSINESS_PHONE"] or None,
+                      "cellPhone": row.get("USDOT_CELL_PHONE") or None, "email": row.get("USDOT_EMAIL") or None, "status": row["USDOT_STATUS"],
                       "powerUnits": row["USDOT_POWER_UNITS"] or None, "filingDate": row["USDOT_MCS150_DATE"] or None,
                       "otherCarriersAtAddress": row["USDOT_OTHER_CARRIERS_AT_ADDRESS"], "sourceURL": row["USDOT_SOURCE_URL"]})
     return block
@@ -206,7 +213,7 @@ def main(argv=None) -> int:
     out_path.with_suffix(".coverage.json").write_text(json.dumps({
         "checkedAt": checked_at, "source": DATASET, "towns": coverage, "parcels": len(enriched),
         "parcelsWithOnSiteCarrier": matched,
-        "note": "Carrier = on-site operator or tenant reference, not the property owner. No email field exists in the census.",
+        "note": "Carrier = on-site operator or tenant reference, not the property owner. Phone, cell and email are as filed with FMCSA.",
     }, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"parcels": len(enriched), "withOnSiteCarrier": matched, "out": str(out_path)}))
     return 0

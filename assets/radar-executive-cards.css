@@ -34,3 +34,9 @@ body .executive-parcel .executive-technical :is(.public-owner-section,.detail-gr
 .parcel-data-drawer>summary:focus-visible{outline:3px solid #245d9f}
 
 body .executive-parcel .card-source-box,body .executive-parcel .card-source-box *{font-size:.74rem!important;color:#4b5563}body .executive-parcel .card-source-box a{color:#245d9f}
+.executive-oz-badges{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.executive-oz-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:15px;font-weight:700;color:#fff;background:#1e293b;border:1px solid #475569}
+.executive-oz-badge.cohort-new{background:#0c3b2e;border-color:#34d399}
+.executive-oz-badge.cohort-retained{background:#1e293b;border-color:#94a3b8}
+.executive-oz-badge.cohort-partial{background:#3b2a0c;border-color:#fbbf24}
+.executive-oz-badge.rural{background:#2e1065;border-color:#a78bfa}

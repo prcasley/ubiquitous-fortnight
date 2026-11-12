@@ -8,7 +8,7 @@ import usdot_site_context as U  # noqa: E402
 
 CARRIERS = [
     {"dot_number": "1", "legal_name": "OLD CARRIER", "phy_street": "351 ROOSEVELT AVE", "status_code": "I", "mcs150_date": "2015-01-01", "phone": "7325550000"},
-    {"dot_number": "2", "legal_name": "ACTIVE CARRIER", "phy_street": "351 Roosevelt Avenue", "status_code": "A", "mcs150_date": "2024-05-01", "phone": "7325551111", "company_officer_1": "PERSON ONE"},
+    {"dot_number": "2", "legal_name": "ACTIVE CARRIER", "phy_street": "351 Roosevelt Avenue", "status_code": "A", "mcs150_date": "2024-05-01", "phone": "7325551111", "cell_phone": "7325552222", "email_address": " Ops@Example.com ", "company_officer_1": "PERSON ONE"},
     {"dot_number": "3", "legal_name": "MAIL ONLY CARRIER", "phy_street": "9 OTHER ST", "carrier_mailing_street": "351 ROOSEVELT AVE", "status_code": "A"},
 ]
 
@@ -26,7 +26,7 @@ class UsdotSiteContext(unittest.TestCase):
         self.assertEqual(r["USDOT_OTHER_CARRIERS_AT_ADDRESS"], 1)  # mailing-only carrier is not counted
         self.assertIn("NOT THE PROPERTY OWNER", r["USDOT_ROLE"])
         self.assertEqual(r["OWNER"], "X")  # owner fields are never overwritten
-        self.assertNotIn("USDOT_EMAIL", r)
+        self.assertEqual(r["USDOT_EMAIL"], "ops@example.com")
 
     def test_wrong_house_number_or_unchecked_town_does_not_match(self):
         rows = U.enrich([{"MUNICIPALITY": "CARTERET", "PROPERTY_ADDRESS": "353 ROOSEVELT AVE"},
@@ -35,13 +35,15 @@ class UsdotSiteContext(unittest.TestCase):
         self.assertIn("no carrier", rows[0]["USDOT_MATCH_METHOD"])
         self.assertIn("not checked", rows[1]["USDOT_MATCH_METHOD"])
 
-    def test_research_block_is_role_labelled_and_has_no_email(self):
+    def test_research_block_is_role_labelled_with_filed_email_and_cell(self):
         row = U.enrich([{"MUNICIPALITY": "CARTERET", "PROPERTY_ADDRESS": "351 ROOSEVELT AVE"}], {"CARTERET": CARRIERS}, "t")[0]
         b = U.context_block(row)
         self.assertEqual(b["role"], "on-site-carrier-not-owner")
         self.assertEqual(b["carrierName"], "ACTIVE CARRIER")
         self.assertEqual(b["officers"], ["PERSON ONE"])
-        self.assertNotIn("email", json.dumps(b).lower())
+        self.assertEqual(b["email"], "ops@example.com")
+        self.assertEqual(b["cellPhone"], "7325552222")
+        self.assertEqual(b["businessPhone"], "7325551111")
 
     def test_fetch_uses_real_field_names_and_pages(self):
         seen = []
@@ -58,7 +60,24 @@ class UsdotSiteContext(unittest.TestCase):
         self.assertEqual(len(rows), U.PAGE + 3)
         self.assertIn("phone", seen[0])
         self.assertNotIn("telephone", seen[0])
-        self.assertNotIn("email", seen[0])
+        self.assertIn("email_address", seen[0])
+        self.assertIn("cell_phone", seen[0])
+
+    def test_town_lookup_retries_dropped_connections(self):
+        calls = []
+        def flaky(town):
+            calls.append(town)
+            if len(calls) < 3:
+                raise OSError("Connection reset by peer")
+            return CARRIERS
+        orig = U.fetch_town
+        U.fetch_town = flaky
+        try:
+            got, cov = U.load_towns(["CARTERET"], sleep=lambda s: None)
+        finally:
+            U.fetch_town = orig
+        self.assertEqual(cov["CARTERET"]["status"], "checked")
+        self.assertEqual(len(calls), 3)
 
 
 if __name__ == "__main__":

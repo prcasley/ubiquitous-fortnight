@@ -17,7 +17,7 @@ try:
   page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled');check('third-party tract reference never becomes a certified prediction','check unavailable' in page.locator('#ozStatusResults').inner_text() and 'No probability' in page.locator('#ozStatusResults').inner_text())
   mode['njNomination']=True
   page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled')
-  check('exact NJ nomination tract joins official-reference snapshot without certification', 'state nominated' in page.locator('#ozStatusResults').inner_text() and 'not Treasury certification' in page.locator('#ozStatusResults').inner_text() and page.locator('#ozStatusResults a',has_text='Official evidence record').count()==1)
+  check('exact NJ nomination tract joins official-reference snapshot with Treasury designation', 'state nominated' in page.locator('#ozStatusResults').inner_text() and 'designated by U.S. Treasury (SB0682)' in page.locator('#ozStatusResults').inner_text() and page.locator('#ozStatusResults a',has_text='Official evidence record').count()==1)
   mode['njNomInvalid']=True;page.click('#checkSelectedOZ');page.wait_for_function('!document.querySelector("#checkSelectedOZ").disabled')
   check('invalid NJ tract cannot acquire a designation status','unavailable' in page.locator('#ozStatusMessage').inner_text() and 'No designation' in page.locator('#ozStatusMessage').inner_text())
   mode['njNomInvalid']=False;mode['njNomination']=False

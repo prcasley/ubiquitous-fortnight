@@ -100,7 +100,7 @@ def run_stress(pw, url=DEFAULT_URL, network=None, synthetic=False):
         point=page.evaluate('([lat,lon])=>{const m=PublicRadarBridge.getMap(),p=m.latLngToContainerPoint([lat,lon]),r=m.getContainer().getBoundingClientRect();return [r.left+p.x,r.top+p.y]}',[lat,lon])
         page.mouse.click(*point)
         popup=page.locator('.leaflet-popup-content').inner_text()
-        record('popup names municipality/county and distinguishes certification','Newark city' in popup and 'Essex County' in popup and 'not Treasury certification' in popup)
+        record('popup names municipality/county and distinguishes certification','Newark city' in popup and 'Essex County' in popup and 'Certified by U.S. Treasury (SB0682' in popup)
         record('popup uses corrected official announcement',page.locator('.leaflet-popup-content a').get_attribute('href')==ANNOUNCEMENT)
         for _ in range(10):toggle(page,False);toggle(page,True)
         settle(page);raw=features(page);ids=[f['properties']['Geography'] for f in raw]
