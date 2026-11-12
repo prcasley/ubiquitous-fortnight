@@ -1,0 +1,46 @@
+/* Woodmont V3.4 — unified navy header, light research/map/detail workspace. */
+body.radar-v34{--bg:#f5f6f7;--ink:#17212b;--muted:#66717d;background:#f5f6f7;color:#17212b;font-family:Inter,'Segoe UI',Arial,sans-serif}
+body.radar-v34 .content{padding:0!important}
+body.radar-v34 header.top{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;background:#0b2942;color:white;min-height:82px;border:0;z-index:900}
+.v34-brand{display:grid;gap:4px;min-width:215px}.v34-brand strong{font-size:20px}.v34-brand small{color:#c6d6e3}
+body.radar-v34 .v34-nav{display:flex!important;flex:1;gap:4px;grid-column:auto;padding:0;min-width:0;flex-wrap:wrap}
+body.radar-v34 .v34-nav button{background:transparent;color:#d7e2eb;border:0;border-radius:8px;min-height:44px;padding:8px 10px;width:auto;font-weight:650;box-shadow:none}
+body.radar-v34 .v34-nav button:hover,body.radar-v34 .v34-nav button[aria-current=page],body.radar-v34 .v34-nav button[aria-selected=true]{background:#ffffff20;color:white}
+body.radar-v34 .text-size-controls{background:#ffffff18;border:1px solid #ffffff38;border-radius:8px;color:white}
+body.radar-v34 .text-size-controls button{color:white;background:#ffffff16;border-color:#ffffff38}
+body.radar-v34 .radar-mode-toggle-btn{margin:0;background:#0d6e5b;color:white;border:1px solid #26a68d}
+body.radar-v34 .v34-vault-pill{color:#ffe2a8;background:#f2b84b22;border:1px solid #f2b84b;border-radius:8px;min-height:44px}
+body.radar-v34 .radar-split{grid-template-columns:minmax(330px,380px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:calc(100dvh - var(--v34-header-height,82px));gap:0;min-height:0}
+body.radar-v34 .workspace-drawer{grid-column:1;grid-row:1;border:0;border-right:1px solid #dfe4e8;border-radius:0;background:#f7f8f9;padding:14px}
+body.radar-v34 .workspace-map-slot{grid-column:2;grid-row:1}
+body.radar-v34 .workspace-map-slot .map-column{display:grid;grid-template-columns:minmax(260px,1fr) minmax(280px,350px);grid-template-rows:minmax(0,1fr);gap:0;position:relative}
+body.radar-v34 .workspace-map-slot #mapPanel{grid-column:1;grid-row:1;border:0;border-radius:0;background:#dde3e7}
+body.radar-v34 .workspace-map-slot #details:not([hidden]){grid-column:2;grid-row:1;position:static;inset:auto;width:auto;max-width:none;max-height:none;height:100%;overflow:auto;z-index:1;border:0!important;border-left:1px solid #dfe4e8!important;border-radius:0;box-shadow:none;background:white!important;padding:16px!important}
+.v34-detail-empty{grid-column:2;grid-row:1;padding:24px 16px;background:white;color:#66717d;border-left:1px solid #dfe4e8}.v34-detail-empty[hidden]{display:none}.v34-detail-empty h2{color:#0b2942}
+body.radar-v34 .map-actions{background:#f7fafb;border-bottom:1px solid #cbd5e1;padding:5px}body.radar-v34 .map-actions button,body.radar-v34 .map-actions select{background:white;color:#0b2942;border:1px solid #c9d1d8;border-radius:7px;min-height:44px}
+body.radar-v34 .v34-ask{background:linear-gradient(145deg,#073b3a,#0b2942)!important;color:white;border:1px solid #166963;border-radius:12px;padding:14px!important;box-shadow:0 4px 14px #073b3a2e}
+body.radar-v34 .v34-ask .agent-top :is(h2,p,span){color:#fff!important}.v34-ask .agent-tag,.v34-ask .eyebrow{display:none}
+body.radar-v34 #agentForm{display:flex;flex-wrap:wrap;gap:6px}body.radar-v34 #agentPrompt{flex:1 1 100%;background:white;color:#0b2942;border:1px solid #2b8a82;border-radius:8px}
+body.radar-v34 #agentForm button[type=submit]{background:#1eb980;color:#06291d;font-weight:800;border:0;border-radius:8px;flex:1}
+body.radar-v34 .agent-suggestions{display:flex;flex-wrap:wrap;gap:5px}body.radar-v34 .agent-suggestions button{border:1px solid #ffffff3d;background:#ffffff19;color:#e6f7f5;border-radius:999px;padding:6px 9px;min-height:44px}
+body.radar-v34 .assistant-status{color:#bfe6e2}.v34-section-title h2{margin:0;color:#0b2942}.v34-section-title p{color:#66717d;margin:6px 0 12px}
+body.radar-v34 .v34-fold,body.radar-v34 #filterDrawer,body.radar-v34 #workspaceLayers{background:white;border:1px solid #d6e0e7;border-radius:10px;margin:10px 0;padding:0}
+body.radar-v34 :is(.v34-fold,#filterDrawer,#workspaceLayers)>summary{padding:12px;background:#f3f7fa;color:#0b2942;cursor:pointer;font-weight:700;min-height:44px}
+.v34-fold>div{padding:10px}body.radar-v34[data-radar-mode=simple] :is(#filterDrawer,#v34Coverage #executiveScanControls,#v34Coverage #ozInventory,#v34Coverage #localMapOverlays,#v34Coverage #recoveredReference){display:block!important}
+body.radar-v34 .executive-parcel{background:white!important;color:#17212b!important;border:1px solid #d6e0e7!important;box-shadow:0 3px 10px #0b29420f}
+body.radar-v34 .executive-parcel .executive-card-heading :is(h2,h3),body.radar-v34 .executive-parcel .executive-use{color:#0b2942!important}
+body.radar-v34 .executive-identity{background:#f2fbf9;border:2px solid #166963;border-radius:11px;color:#0b2942}
+body.radar-v34 .executive-label{color:#0f5c54!important}body.radar-v34 .executive-role-note{color:#476275!important}
+body.radar-v34 .executive-parcel .executive-contact-actions :is(a,button){background:#e7edf1;color:#243644;border:1px solid #cbd5e1}
+body.radar-v34 .executive-parcel a[href^='tel:']{background:#0d7a5f!important;color:white!important;border-radius:8px;min-height:48px;padding:10px}
+body.radar-v34 .executive-parcel a[href^='mailto:']{background:#164e78!important;color:white!important;border-radius:8px;min-height:48px;padding:10px}
+body.radar-v34 .executive-needs-review{color:#78350f;background:#fef3c7;padding:4px;border-radius:4px}
+body.radar-v34 .executive-parcel .executive-acreage{background:#e1f3ef;color:#0f5c54!important;justify-self:start}
+body.radar-v34 .executive-oz{color:#0b2942!important;background:#f3f7fa;border:1px solid #cbd5e1}
+body.radar-v34 .executive-metrics{background:#f3f7fa;border:1px solid #dfe4e8;border-radius:9px}
+body.radar-v34 .executive-metrics span{color:#526777!important}body.radar-v34 .executive-parcel .executive-metrics strong{color:#0b2942!important}
+body.radar-v34 .executive-parcel .executive-technical{color:#334155}body.radar-v34 .executive-parcel .executive-technical :is(.public-owner-section,.detail-grid>div){background:#f3f7fa!important;color:#17212b!important}body.radar-v34 .executive-technical a{color:#164e78!important}
+.v34-kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.v34-kpis>div{display:grid;background:white;border:1px solid #dfe4e8;border-radius:12px;padding:12px}.v34-kpis strong{font-size:25px;color:#0b2942}.v34-table-wrap{overflow:auto;margin-top:12px;background:white;border:1px solid #dfe4e8;border-radius:12px}.v34-table-wrap table{border-collapse:collapse;width:100%}.v34-table-wrap th,.v34-table-wrap td{padding:8px;border-bottom:1px solid #edf0f2;text-align:left}.v34-table-wrap th{background:#eef2f4}.v34-table-wrap button,.v34-list-view button,.v34-star{background:#e7edf1;color:#243644;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;padding:8px;cursor:pointer}.v34-list-view>button{display:block;width:100%;margin:8px 0}.v34-saved-row{display:flex;gap:8px;margin:8px 0}.v34-saved-row button:first-child{flex:1}.v34-ownership input{width:100%;padding:10px;border:1px solid #cfd7dd;border-radius:8px}
+@media(max-width:1100px) and (min-width:901px){body.radar-v34 .radar-split{grid-template-columns:330px minmax(0,1fr)}body.radar-v34 .workspace-map-slot .map-column{grid-template-columns:minmax(0,1fr)}body.radar-v34 .workspace-map-slot #details:not([hidden]){position:absolute;right:0;bottom:0;top:auto;width:340px;height:55%;z-index:600}.v34-detail-empty{display:none}}
+@media(max-width:900px){body.radar-v34 header.top{gap:6px;padding:8px}.v34-brand{min-width:150px;flex:1}.v34-brand strong{font-size:17px}body.radar-v34 .v34-nav{order:5;flex-basis:100%;flex-wrap:nowrap;overflow:auto}body.radar-v34 .v34-nav button{flex:none;font-size:15px!important;min-height:44px}body.radar-v34 .text-size-controls{margin:0}body.radar-v34 .radar-mode-toggle-btn{font-size:15px;min-height:44px;padding:5px 8px}body.radar-v34 .radar-split{display:block;height:calc(100dvh - var(--v34-header-height,180px))}body.radar-v34 .workspace-map-slot .map-column{display:flex}.v34-detail-empty{display:none}body.radar-v34 .workspace-map-slot #details:not([hidden]){position:absolute;right:0;top:var(--executive-map-top,130px);bottom:auto;width:min(390px,96vw);height:auto;max-height:32dvh;z-index:650}body.radar-v34 .workspace-drawer{padding:8px}body.radar-v34 .workspace-map-slot #mapPanel{flex:1}.v34-vault-pill{font-size:15px!important}}
+body.radar-v34.map-expanded .workspace-map-slot #mapPanel{position:fixed;inset:0;width:100vw;height:100dvh;z-index:10000}body.radar-v34.map-expanded .workspace-map-slot #details:not([hidden]){position:fixed;right:0;top:auto;bottom:0;width:min(350px,96vw);height:45dvh;z-index:10001}
