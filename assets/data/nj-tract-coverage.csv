@@ -1,131 +1,131 @@
-tract,municipality,county,rural,cohort2018,scanStatus,parcels2acPlus,acres,ownerNamePublished,taxBillMailing,njdepSites,njdepProgramNames,onSiteCarriers,carrierPhone,carrierEmail
-34001000400,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0
-34001001400,Atlantic City city,Atlantic,Yes,new,complete,6,118.1,0,6,24,49,0,0,0
-34001001900,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0
-34001002300,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0
-34001002400,Atlantic City city,Atlantic,Yes,retained,complete,4,22.0,0,4,50,102,1,1,1
-34001011702,Egg Harbor township,Atlantic,Yes,retained,complete,209,1811.4,0,209,602,1130,2,2,1
-34001012100,Pleasantville city,Atlantic,Yes,retained,complete,10,96.6,0,10,46,74,1,1,0
-34001012702,Somers Point city,Atlantic,Yes,retained,complete,4,80.9,0,4,33,50,1,1,0
-34003018200,Fairview borough,Bergen,No,retained,complete,17,70919.1,0,17,201,445,7,7,7
-34003021600,Garfield city,Bergen,No,retained,complete,2,9.2,0,2,26,48,0,0,0
-34003023501,Hackensack city,Bergen,No,partial,complete,3,100.0,0,3,16,35,3,3,0
-34003023502,Hackensack city,Bergen,No,partial,complete,2,4.3,0,2,8,8,0,0,0
-34003023602,Hackensack city,Bergen,No,partial,complete,8,21843.2,0,8,74,144,1,1,1
-34003036100,South Hackensack twp./Teterboro borough,Bergen,No,retained,complete,51,10059.5,0,51,555,1315,15,15,11
-34005700703,Riverside township,Burlington,No,retained,complete,7,240.0,0,7,67,122,2,2,0
-34005701002,Edgewater Park township,Burlington,No,new,complete,4,29.1,0,4,16,26,0,0,0
-34005701203,Burlington city,Burlington,No,new,complete,16,75.4,0,16,49,91,0,0,0
-34005701204,Burlington city,Burlington,No,retained,complete,4,11.2,0,4,24,41,1,1,1
-34007600700,Camden city,Camden,No,retained,complete,4,36.6,0,4,25,54,1,1,1
-34007601400,Camden city,Camden,No,partial,complete,1,2.1,0,1,11,20,0,0,0
-34007601500,Camden city,Camden,No,retained,complete,3,10.8,0,3,13,30,1,1,1
-34007601800,Camden city,Camden,No,unknown,complete,17,173.4,0,17,118,413,4,3,2
-34007604100,Woodlynne borough,Camden,No,partial,complete,3,10.4,0,3,18,33,1,1,0
-34007608210,Gloucester township,Camden,No,new,complete,31,242.3,0,31,100,190,0,0,0
-34007610300,Camden city,Camden,No,retained,complete,10,85.0,0,10,76,185,0,0,0
-34007610400,Camden city,Camden,No,retained,complete,1,3.7,0,1,6,19,0,0,0
-34007610800,Pennsauken township,Camden,No,retained,complete,102,648.0,0,102,562,1290,34,33,19
-34009020500,Woodbine borough,Cape May,Yes,new,complete,77,1092.8,0,77,45,113,1,1,1
-34011020503,Bridgeton city,Cumberland,Yes,retained,complete,32,251.7,0,32,67,170,1,1,1
-34011030100,Millville city,Cumberland,No,retained,complete,5,34.8,0,5,35,56,0,0,0
-34011040901,Vineland city,Cumberland,No,new,complete,193,1625.2,0,193,569,1190,45,45,38
-34013000300,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0
-34013000500,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0
-34013000900,Newark city,Essex,No,new,complete,1,3.4,0,1,10,11,0,0,0
-34013001000,Newark city,Essex,No,partial,complete,2,4.1,0,2,12,26,0,0,0
-34013001400,Newark city,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0
-34013001500,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0
-34013002800,Newark city,Essex,No,partial,complete,0,0,0,0,0,0,0,0,0
-34013005400,Newark city,Essex,No,partial,complete,0,0,0,0,0,0,0,0,0
-34013006400,Newark city,Essex,No,new,complete,3,30728.1,0,3,16,34,0,0,0
-34013007900,Newark city,Essex,No,partial,complete,2,4.3,0,2,18,33,0,0,0
-34013008000,Newark city,Essex,No,retained,complete,8,45.8,0,8,144,239,2,2,1
-34013008100,Newark city,Essex,No,retained,complete,3,7.7,0,3,45,82,0,0,0
-34013010600,East Orange city,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0
-34013011300,East Orange city,Essex,No,retained,complete,2,10.8,0,2,20,26,0,0,0
-34013011900,Irvington township,Essex,No,new,complete,0,0,0,0,0,0,0,0,0
-34013015300,Bloomfield township,Essex,No,new,complete,4,187.1,0,4,13,23,1,1,1
-34013015900,Bloomfield township,Essex,No,new,complete,11,49.7,0,11,132,314,3,2,2
-34013018300,City of Orange township,Essex,No,retained,complete,3,8.1,0,3,29,47,1,1,1
-34013018400,City of Orange township,Essex,No,partial,complete,2,6.3,0,2,11,17,0,0,0
-34013018600,City of Orange township,Essex,No,retained,complete,27,23867.8,0,27,172,257,0,0,0
-34013018900,City of Orange township,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0
-34015500400,Paulsboro borough,Gloucester,No,new,complete,26,1362.6,0,26,111,314,2,2,0
-34017001202,Jersey City city,Hudson,No,new,complete,2,14.6,0,2,11,26,0,0,0
-34017001900,Jersey City city,Hudson,No,retained,complete,3,14.0,0,3,44,53,0,0,0
-34017002001,Jersey City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0
-34017002002,Jersey City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0
-34017003000,Jersey City city,Hudson,No,partial,complete,1,130.0,0,1,17,22,0,0,0
-34017003102,Jersey City city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0
-34017004600,Jersey City city,Hudson,No,retained,complete,3,7.2,0,3,41,87,1,1,0
-34017006300,Jersey City city,Hudson,No,retained,complete,2,13.3,0,2,27,52,1,1,1
-34017006700,Jersey City city,Hudson,No,partial,complete,7,20.7,0,7,74,143,5,5,5
-34017010900,Bayonne city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0
-34017011000,Bayonne city,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0
-34017012800,Kearny town,Hudson,No,partial,complete,18,248.1,0,18,154,398,3,3,1
-34017013400,East Newark borough,Hudson,No,partial,complete,3,18.2,0,3,48,145,1,1,0
-34017015003,Guttenberg town,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0
-34017015004,Guttenberg town,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0
-34017016200,Union City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0
-34017017700,Union City city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0
-34017017800,Union City city,Hudson,No,retained,complete,1,4.9,0,1,8,9,0,0,0
-34021000100,Trenton city,Mercer,No,retained,complete,3,9.8,0,3,8,11,0,0,0
-34021000800,Trenton city,Mercer,No,retained,complete,3,38.1,0,3,27,46,0,0,0
-34021000900,Trenton city,Mercer,No,retained,complete,10,3021.2,0,10,81,104,0,0,0
-34021001000,Trenton city,Mercer,No,partial,complete,6,98936.9,0,6,17,46,1,1,1
-34021001101,Trenton city,Mercer,No,partial,complete,3,81312.7,0,3,18,31,0,0,0
-34021001700,Trenton city,Mercer,No,new,complete,14,313099.3,0,14,58,111,0,0,0
-34021002100,Trenton city,Mercer,No,retained,complete,3,79095.9,0,3,19,35,0,0,0
-34021002701,Hamilton township,Mercer,No,new,complete,15,97.0,0,15,58,128,2,2,2
-34021003400,Ewing township,Mercer,No,new,complete,30,169.2,0,30,252,603,3,3,2
-34021003707,Ewing township,Mercer,No,new,complete,34,213.1,0,34,185,380,4,4,3
-34023000300,Dunellen borough,Middlesex,No,new,complete,5,34.7,0,5,45,92,2,2,2
-34023004502,Perth Amboy city,Middlesex,No,retained,complete,30,593.7,0,30,149,471,2,2,2
-34023004600,Perth Amboy city,Middlesex,No,retained,complete,8,90.7,0,8,41,96,1,1,1
-34023004800,Perth Amboy city,Middlesex,No,retained,complete,19,240.3,0,19,124,329,5,4,4
-34023005300,New Brunswick city,Middlesex,No,retained,complete,3,15.4,0,3,74,101,1,1,1
-34023005500,New Brunswick city,Middlesex,No,retained,complete,71,388.4,0,71,558,1282,29,29,25
-34023005602,New Brunswick city,Middlesex,No,retained,complete,0,0,0,0,0,0,0,0,0
-34023007103,Sayreville borough,Middlesex,No,new,complete,57,1006.6,0,57,270,500,11,11,10
-34023009300,New Brunswick city,Middlesex,No,retained,complete,5,31.1,0,5,75,124,0,0,0
-34023980000,Carteret borough,Middlesex,No,partial,complete,46,832.0,0,46,217,689,18,18,16
-34025801700,Keansburg borough,Monmouth,No,new,complete,7,34.2,0,7,36,84,0,0,0
-34025805700,Long Branch city,Monmouth,No,new,complete,3,8.7,0,3,25,48,1,1,1
-34025807600,Neptune township,Monmouth,No,retained,complete,7,35.4,0,7,94,169,1,1,1
-34025807700,Neptune township,Monmouth,No,partial,complete,25,7596.1,0,25,135,235,2,2,1
-34027041705,Parsippany-Troy Hills township,Morris,No,new,complete,5,31.2,0,5,44,108,0,0,0
-34027043500,Morristown town,Morris,No,new,complete,7,28.6,0,7,52,92,0,0,0
-34027046107,Mount Olive township,Morris,No,new,complete,9,51.7,0,9,39,56,0,0,0
-34029715001,Lakewood township,Ocean,No,retained,complete,122,753.2,0,122,648,1368,26,26,25
-34029715404,Lakewood township,Ocean,No,retained,complete,3,3566.0,0,3,17,34,0,0,0
-34029715600,Lakewood township,Ocean,No,retained,complete,7,49.1,0,7,58,113,2,2,2
-34029715800,Lakewood township,Ocean,No,retained,complete,141,1505.4,0,141,684,1507,39,38,34
-34029717002,Jackson township,Ocean,No,new,complete,19,102.5,0,19,80,129,0,0,0
-34029720105,Manchester township,Ocean,No,retained,complete,102,4715.5,0,102,112,180,0,0,0
-34029728003,Seaside Heights borough,Ocean,No,new,complete,3,8.2,0,3,18,32,0,0,0
-34031125100,Clifton city,Passaic,No,retained,complete,2,18.6,0,2,32,72,1,1,1
-34031175200,Passaic city,Passaic,No,retained,complete,5,126.5,0,5,70,169,0,0,0
-34031175402,Passaic city,Passaic,No,retained,complete,7,246.5,0,7,77,149,0,0,0
-34031175804,Passaic city,Passaic,No,new,complete,0,0,0,0,0,0,0,0,0
-34031175900,Passaic city,Passaic,No,retained,complete,14,69.1,0,14,181,499,3,3,3
-34031180900,Paterson city,Passaic,No,new,complete,11,2263.6,0,11,185,421,1,1,0
-34031181800,Paterson city,Passaic,No,retained,complete,1,3.2,0,1,15,30,0,0,0
-34031182900,Paterson city,Passaic,No,partial,complete,1,2.8,0,1,13,31,1,1,1
-34031183200,Paterson city,Passaic,No,retained,complete,3,182.1,0,3,16,22,1,1,1
-34031264200,Paterson city,Passaic,No,retained,complete,0,0,0,0,0,0,0,0,0
-34033020300,Penns Grove borough,Salem,No,partial,complete,1,10.8,0,1,10,13,0,0,0
-34033022000,Salem city,Salem,Yes,partial,complete,8,59.3,0,8,29,57,0,0,0
-34033022100,Salem city,Salem,Yes,retained,complete,16,114.4,0,16,42,139,0,0,0
-34035051100,Bound Brook borough,Somerset,No,retained,complete,2,8.8,0,2,8,30,0,0,0
-34037373700,Newton town,Sussex,Yes,new,complete,22,158.0,0,22,113,196,1,1,1
-34039030400,Elizabeth city,Union,No,partial,complete,0,0,0,0,0,0,0,0,0
-34039030600,Elizabeth city,Union,No,new,complete,17,673.5,0,17,95,377,3,3,3
-34039031100,Elizabeth city,Union,No,retained,complete,2,7333.4,0,2,23,28,1,0,0
-34039031602,Elizabeth city,Union,No,retained,complete,4,455.7,0,4,26,36,1,1,0
-34039032300,Hillside township,Union,No,partial,complete,35,215.1,0,35,455,896,15,12,11
-34039039200,Plainfield city,Union,No,partial,complete,0,0,0,0,0,0,0,0,0
-34039039302,Plainfield city,Union,No,retained,complete,0,0,0,0,0,0,0,0,0
-34039039801,Elizabeth city,Union,No,retained,complete,13,116.8,0,13,147,296,5,5,4
-34039039900,Elizabeth city,Union,No,retained,complete,12,12447.4,0,12,112,158,2,2,2
-34041030700,Phillipsburg town,Warren,No,retained,complete,4,22.0,0,4,19,39,1,1,1
+tract,municipality,county,rural,cohort2018,scanStatus,parcels2acPlus,acres,ownerNamePublished,taxBillMailing,njdepSites,njdepProgramNames,onSiteCarriers,carrierPhone,carrierEmail,epaFacilityParcels,namedOnSiteBusiness
+34001000400,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34001001400,Atlantic City city,Atlantic,Yes,new,complete,6,118.1,0,6,24,49,0,0,0,3,3
+34001001900,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34001002300,Atlantic City city,Atlantic,Yes,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34001002400,Atlantic City city,Atlantic,Yes,retained,complete,4,22.0,0,4,50,102,1,1,1,3,3
+34001011702,Egg Harbor township,Atlantic,Yes,retained,complete,209,1811.4,0,209,602,1130,2,2,1,88,88
+34001012100,Pleasantville city,Atlantic,Yes,retained,complete,10,96.6,0,10,46,74,1,1,0,3,3
+34001012702,Somers Point city,Atlantic,Yes,retained,complete,4,80.9,0,4,33,50,1,1,0,2,2
+34003018200,Fairview borough,Bergen,No,retained,complete,17,70919.1,0,17,201,445,7,7,7,15,15
+34003021600,Garfield city,Bergen,No,retained,complete,2,9.2,0,2,26,48,0,0,0,2,2
+34003023501,Hackensack city,Bergen,No,partial,complete,3,100.0,0,3,16,35,3,3,0,3,3
+34003023502,Hackensack city,Bergen,No,partial,complete,2,4.3,0,2,8,8,0,0,0,2,2
+34003023602,Hackensack city,Bergen,No,partial,complete,8,21843.2,0,8,74,144,1,1,1,4,4
+34003036100,South Hackensack twp./Teterboro borough,Bergen,No,retained,complete,51,10059.5,0,51,555,1315,15,15,11,42,44
+34005700703,Riverside township,Burlington,No,retained,complete,7,240.0,0,7,67,122,2,2,0,4,4
+34005701002,Edgewater Park township,Burlington,No,new,complete,4,29.1,0,4,16,26,0,0,0,1,1
+34005701203,Burlington city,Burlington,No,new,complete,16,75.4,0,16,49,91,0,0,0,6,6
+34005701204,Burlington city,Burlington,No,retained,complete,4,11.2,0,4,24,41,1,1,1,1,2
+34007600700,Camden city,Camden,No,retained,complete,4,36.6,0,4,25,54,1,1,1,3,3
+34007601400,Camden city,Camden,No,partial,complete,1,2.1,0,1,11,20,0,0,0,1,1
+34007601500,Camden city,Camden,No,retained,complete,3,10.8,0,3,13,30,1,1,1,0,1
+34007601800,Camden city,Camden,No,unknown,complete,17,173.4,0,17,118,413,4,3,2,10,10
+34007604100,Woodlynne borough,Camden,No,partial,complete,3,10.4,0,3,18,33,1,1,0,0,1
+34007608210,Gloucester township,Camden,No,new,complete,31,242.3,0,31,100,190,0,0,0,17,17
+34007610300,Camden city,Camden,No,retained,complete,10,85.0,0,10,76,185,0,0,0,6,6
+34007610400,Camden city,Camden,No,retained,complete,1,3.7,0,1,6,19,0,0,0,1,1
+34007610800,Pennsauken township,Camden,No,retained,complete,102,648.0,0,102,562,1290,34,33,19,60,71
+34009020500,Woodbine borough,Cape May,Yes,new,complete,77,1092.8,0,77,45,113,1,1,1,6,6
+34011020503,Bridgeton city,Cumberland,Yes,retained,complete,32,251.7,0,32,67,170,1,1,1,11,11
+34011030100,Millville city,Cumberland,No,retained,complete,5,34.8,0,5,35,56,0,0,0,1,1
+34011040901,Vineland city,Cumberland,No,new,complete,193,1625.2,0,193,569,1190,45,45,38,100,111
+34013000300,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34013000500,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34013000900,Newark city,Essex,No,new,complete,1,3.4,0,1,10,11,0,0,0,1,1
+34013001000,Newark city,Essex,No,partial,complete,2,4.1,0,2,12,26,0,0,0,0,0
+34013001400,Newark city,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34013001500,Newark city,Essex,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34013002800,Newark city,Essex,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34013005400,Newark city,Essex,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34013006400,Newark city,Essex,No,new,complete,3,30728.1,0,3,16,34,0,0,0,2,2
+34013007900,Newark city,Essex,No,partial,complete,2,4.3,0,2,18,33,0,0,0,0,0
+34013008000,Newark city,Essex,No,retained,complete,8,45.8,0,8,144,239,2,2,1,0,2
+34013008100,Newark city,Essex,No,retained,complete,3,7.7,0,3,45,82,0,0,0,1,1
+34013010600,East Orange city,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34013011300,East Orange city,Essex,No,retained,complete,2,10.8,0,2,20,26,0,0,0,1,1
+34013011900,Irvington township,Essex,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34013015300,Bloomfield township,Essex,No,new,complete,4,187.1,0,4,13,23,1,1,1,3,4
+34013015900,Bloomfield township,Essex,No,new,complete,11,49.7,0,11,132,314,3,2,2,6,7
+34013018300,City of Orange township,Essex,No,retained,complete,3,8.1,0,3,29,47,1,1,1,3,3
+34013018400,City of Orange township,Essex,No,partial,complete,2,6.3,0,2,11,17,0,0,0,0,0
+34013018600,City of Orange township,Essex,No,retained,complete,27,23867.8,0,27,172,257,0,0,0,3,3
+34013018900,City of Orange township,Essex,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34015500400,Paulsboro borough,Gloucester,No,new,complete,26,1362.6,0,26,111,314,2,2,0,10,11
+34017001202,Jersey City city,Hudson,No,new,complete,2,14.6,0,2,11,26,0,0,0,0,0
+34017001900,Jersey City city,Hudson,No,retained,complete,3,14.0,0,3,44,53,0,0,0,0,0
+34017002001,Jersey City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34017002002,Jersey City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34017003000,Jersey City city,Hudson,No,partial,complete,1,130.0,0,1,17,22,0,0,0,0,0
+34017003102,Jersey City city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34017004600,Jersey City city,Hudson,No,retained,complete,3,7.2,0,3,41,87,1,1,0,3,3
+34017006300,Jersey City city,Hudson,No,retained,complete,2,13.3,0,2,27,52,1,1,1,2,2
+34017006700,Jersey City city,Hudson,No,partial,complete,7,20.7,0,7,74,143,5,5,5,6,7
+34017010900,Bayonne city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34017011000,Bayonne city,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34017012800,Kearny town,Hudson,No,partial,complete,18,248.1,0,18,154,398,3,3,1,12,13
+34017013400,East Newark borough,Hudson,No,partial,complete,3,18.2,0,3,48,145,1,1,0,2,2
+34017015003,Guttenberg town,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34017015004,Guttenberg town,Hudson,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34017016200,Union City city,Hudson,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34017017700,Union City city,Hudson,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34017017800,Union City city,Hudson,No,retained,complete,1,4.9,0,1,8,9,0,0,0,1,1
+34021000100,Trenton city,Mercer,No,retained,complete,3,9.8,0,3,8,11,0,0,0,1,1
+34021000800,Trenton city,Mercer,No,retained,complete,3,38.1,0,3,27,46,0,0,0,1,1
+34021000900,Trenton city,Mercer,No,retained,complete,10,3021.2,0,10,81,104,0,0,0,1,1
+34021001000,Trenton city,Mercer,No,partial,complete,6,98936.9,0,6,17,46,1,1,1,3,4
+34021001101,Trenton city,Mercer,No,partial,complete,3,81312.7,0,3,18,31,0,0,0,0,0
+34021001700,Trenton city,Mercer,No,new,complete,14,313099.3,0,14,58,111,0,0,0,2,2
+34021002100,Trenton city,Mercer,No,retained,complete,3,79095.9,0,3,19,35,0,0,0,1,1
+34021002701,Hamilton township,Mercer,No,new,complete,15,97.0,0,15,58,128,2,2,2,6,6
+34021003400,Ewing township,Mercer,No,new,complete,30,169.2,0,30,252,603,3,3,2,14,15
+34021003707,Ewing township,Mercer,No,new,complete,34,213.1,0,34,185,380,4,4,3,23,24
+34023000300,Dunellen borough,Middlesex,No,new,complete,5,34.7,0,5,45,92,2,2,2,3,3
+34023004502,Perth Amboy city,Middlesex,No,retained,complete,30,593.7,0,30,149,471,2,2,2,17,17
+34023004600,Perth Amboy city,Middlesex,No,retained,complete,8,90.7,0,8,41,96,1,1,1,3,3
+34023004800,Perth Amboy city,Middlesex,No,retained,complete,19,240.3,0,19,124,329,5,4,4,12,13
+34023005300,New Brunswick city,Middlesex,No,retained,complete,3,15.4,0,3,74,101,1,1,1,3,3
+34023005500,New Brunswick city,Middlesex,No,retained,complete,71,388.4,0,71,558,1282,29,29,25,58,63
+34023005602,New Brunswick city,Middlesex,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34023007103,Sayreville borough,Middlesex,No,new,complete,57,1006.6,0,57,270,500,11,11,10,30,34
+34023009300,New Brunswick city,Middlesex,No,retained,complete,5,31.1,0,5,75,124,0,0,0,3,3
+34023980000,Carteret borough,Middlesex,No,partial,complete,46,832.0,0,46,217,689,18,18,16,33,34
+34025801700,Keansburg borough,Monmouth,No,new,complete,7,34.2,0,7,36,84,0,0,0,2,2
+34025805700,Long Branch city,Monmouth,No,new,complete,3,8.7,0,3,25,48,1,1,1,2,2
+34025807600,Neptune township,Monmouth,No,retained,complete,7,35.4,0,7,94,169,1,1,1,4,4
+34025807700,Neptune township,Monmouth,No,partial,complete,25,7596.1,0,25,135,235,2,2,1,11,11
+34027041705,Parsippany-Troy Hills township,Morris,No,new,complete,5,31.2,0,5,44,108,0,0,0,3,3
+34027043500,Morristown town,Morris,No,new,complete,7,28.6,0,7,52,92,0,0,0,3,3
+34027046107,Mount Olive township,Morris,No,new,complete,9,51.7,0,9,39,56,0,0,0,3,3
+34029715001,Lakewood township,Ocean,No,retained,complete,122,753.2,0,122,648,1368,26,26,25,58,63
+34029715404,Lakewood township,Ocean,No,retained,complete,3,3566.0,0,3,17,34,0,0,0,1,1
+34029715600,Lakewood township,Ocean,No,retained,complete,7,49.1,0,7,58,113,2,2,2,7,7
+34029715800,Lakewood township,Ocean,No,retained,complete,141,1505.4,0,141,684,1507,39,38,34,82,91
+34029717002,Jackson township,Ocean,No,new,complete,19,102.5,0,19,80,129,0,0,0,6,6
+34029720105,Manchester township,Ocean,No,retained,complete,102,4715.5,0,102,112,180,0,0,0,11,11
+34029728003,Seaside Heights borough,Ocean,No,new,complete,3,8.2,0,3,18,32,0,0,0,1,1
+34031125100,Clifton city,Passaic,No,retained,complete,2,18.6,0,2,32,72,1,1,1,1,2
+34031175200,Passaic city,Passaic,No,retained,complete,5,126.5,0,5,70,169,0,0,0,2,2
+34031175402,Passaic city,Passaic,No,retained,complete,7,246.5,0,7,77,149,0,0,0,1,1
+34031175804,Passaic city,Passaic,No,new,complete,0,0,0,0,0,0,0,0,0,0,0
+34031175900,Passaic city,Passaic,No,retained,complete,14,69.1,0,14,181,499,3,3,3,5,7
+34031180900,Paterson city,Passaic,No,new,complete,11,2263.6,0,11,185,421,1,1,0,7,7
+34031181800,Paterson city,Passaic,No,retained,complete,1,3.2,0,1,15,30,0,0,0,1,1
+34031182900,Paterson city,Passaic,No,partial,complete,1,2.8,0,1,13,31,1,1,1,0,1
+34031183200,Paterson city,Passaic,No,retained,complete,3,182.1,0,3,16,22,1,1,1,0,1
+34031264200,Paterson city,Passaic,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34033020300,Penns Grove borough,Salem,No,partial,complete,1,10.8,0,1,10,13,0,0,0,1,1
+34033022000,Salem city,Salem,Yes,partial,complete,8,59.3,0,8,29,57,0,0,0,3,3
+34033022100,Salem city,Salem,Yes,retained,complete,16,114.4,0,16,42,139,0,0,0,4,4
+34035051100,Bound Brook borough,Somerset,No,retained,complete,2,8.8,0,2,8,30,0,0,0,0,0
+34037373700,Newton town,Sussex,Yes,new,complete,22,158.0,0,22,113,196,1,1,1,11,11
+34039030400,Elizabeth city,Union,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34039030600,Elizabeth city,Union,No,new,complete,17,673.5,0,17,95,377,3,3,3,9,10
+34039031100,Elizabeth city,Union,No,retained,complete,2,7333.4,0,2,23,28,1,0,0,0,1
+34039031602,Elizabeth city,Union,No,retained,complete,4,455.7,0,4,26,36,1,1,0,1,1
+34039032300,Hillside township,Union,No,partial,complete,35,215.1,0,35,455,896,15,12,11,27,27
+34039039200,Plainfield city,Union,No,partial,complete,0,0,0,0,0,0,0,0,0,0,0
+34039039302,Plainfield city,Union,No,retained,complete,0,0,0,0,0,0,0,0,0,0,0
+34039039801,Elizabeth city,Union,No,retained,complete,13,116.8,0,13,147,296,5,5,4,3,6
+34039039900,Elizabeth city,Union,No,retained,complete,12,12447.4,0,12,112,158,2,2,2,3,3
+34041030700,Phillipsburg town,Warren,No,retained,complete,4,22.0,0,4,19,39,1,1,1,2,2

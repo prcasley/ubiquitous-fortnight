@@ -385,6 +385,112 @@
    "reason": "Carteret/Sayreville parcels of 1.5–2 acres from the 2026-11-09 run, kept as researched",
    "checkedAt": "2026-11-09T15:02:54.395Z"
   },
+  "epa": {
+   "source": "EPA ECHO facility search + FRS registry links",
+   "checkedAt": "2026-11-12T22:46:30Z",
+   "counties": {
+    "ATLANTIC": {
+     "status": "checked",
+     "facilities": 13041,
+     "expected": 13041
+    },
+    "BERGEN": {
+     "status": "checked",
+     "facilities": 28748,
+     "expected": 28748
+    },
+    "BURLINGTON": {
+     "status": "checked",
+     "facilities": 14622,
+     "expected": 14622
+    },
+    "CAMDEN": {
+     "status": "checked",
+     "facilities": 13963,
+     "expected": 13963
+    },
+    "CAPE MAY": {
+     "status": "checked",
+     "facilities": 8367,
+     "expected": 8367
+    },
+    "CUMBERLAND": {
+     "status": "checked",
+     "facilities": 5941,
+     "expected": 5941
+    },
+    "ESSEX": {
+     "status": "checked",
+     "facilities": 23994,
+     "expected": 23994
+    },
+    "GLOUCESTER": {
+     "status": "checked",
+     "facilities": 9959,
+     "expected": 9959
+    },
+    "HUDSON": {
+     "status": "checked",
+     "facilities": 16909,
+     "expected": 16909
+    },
+    "MERCER": {
+     "status": "checked",
+     "facilities": 11435,
+     "expected": 11435
+    },
+    "MIDDLESEX": {
+     "status": "checked",
+     "facilities": 24507,
+     "expected": 24507
+    },
+    "MONMOUTH": {
+     "status": "checked",
+     "facilities": 27277,
+     "expected": 27277
+    },
+    "MORRIS": {
+     "status": "checked",
+     "facilities": 23632,
+     "expected": 23632
+    },
+    "OCEAN": {
+     "status": "checked",
+     "facilities": 27739,
+     "expected": 27739
+    },
+    "PASSAIC": {
+     "status": "checked",
+     "facilities": 15689,
+     "expected": 15689
+    },
+    "SALEM": {
+     "status": "checked",
+     "facilities": 3399,
+     "expected": 3399
+    },
+    "SOMERSET": {
+     "status": "checked",
+     "facilities": 12371,
+     "expected": 12371
+    },
+    "SUSSEX": {
+     "status": "checked",
+     "facilities": 10187,
+     "expected": 10187
+    },
+    "UNION": {
+     "status": "checked",
+     "facilities": 18145,
+     "expected": 18145
+    },
+    "WARREN": {
+     "status": "checked",
+     "facilities": 5476,
+     "expected": 5476
+    }
+   }
+  },
   "tractsWithParcels": 103,
   "municipalities": 90
  },
@@ -392,7 +498,9 @@
   "records": 1949,
   "assessmentNames": 0,
   "regulatorySites": 10370,
-  "onSiteCarriers": 327
+  "onSiteCarriers": 327,
+  "epaFacilityParcels": 933,
+  "namedOnSiteBusiness": 1005
  },
  "shards": {
   "1102": {
@@ -401,6 +509,7 @@
    "municipality": "EWING TWP",
    "county": "MERCER",
    "onSiteCarriers": 7,
+   "epaFacilityParcels": 37,
    "regulatorySites": 437
   },
   "1103": {
@@ -409,6 +518,7 @@
    "municipality": "HAMILTON TWP",
    "county": "MERCER",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 6,
    "regulatorySites": 61
   },
   "1106": {
@@ -417,6 +527,7 @@
    "municipality": "HOPEWELL TWP",
    "county": "MERCER",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "1111": {
@@ -425,6 +536,7 @@
    "municipality": "TRENTON CITY",
    "county": "MERCER",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 8,
    "regulatorySites": 196
   },
   "1201": {
@@ -433,6 +545,7 @@
    "municipality": "CARTERET BORO",
    "county": "MIDDLESEX",
    "onSiteCarriers": 18,
+   "epaFacilityParcels": 31,
    "regulatorySites": 212
   },
   "1203": {
@@ -441,6 +554,7 @@
    "municipality": "DUNELLEN BORO",
    "county": "MIDDLESEX",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 9
   },
   "1210": {
@@ -449,6 +563,7 @@
    "municipality": "MIDDLESEX BORO",
    "county": "MIDDLESEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 1,
    "regulatorySites": 19
   },
   "1213": {
@@ -457,6 +572,7 @@
    "municipality": "NEW BRUNSWICK CITY",
    "county": "MIDDLESEX",
    "onSiteCarriers": 29,
+   "epaFacilityParcels": 62,
    "regulatorySites": 664
   },
   "1215": {
@@ -465,6 +581,7 @@
    "municipality": "OLD BRIDGE TWP",
    "county": "MIDDLESEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 0,
    "regulatorySites": 9
   },
   "1216": {
@@ -473,6 +590,7 @@
    "municipality": "PERTH AMBOY CITY",
    "county": "MIDDLESEX",
    "onSiteCarriers": 8,
+   "epaFacilityParcels": 32,
    "regulatorySites": 292
   },
   "1217": {
@@ -481,6 +599,7 @@
    "municipality": "PISCATAWAY TWP",
    "county": "MIDDLESEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 1,
    "regulatorySites": 16
   },
   "1219": {
@@ -489,6 +608,7 @@
    "municipality": "SAYREVILLE BORO",
    "county": "MIDDLESEX",
    "onSiteCarriers": 10,
+   "epaFacilityParcels": 30,
    "regulatorySites": 261
   },
   "1225": {
@@ -497,6 +617,7 @@
    "municipality": "WOODBRIDGE TWP",
    "county": "MIDDLESEX",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 2,
    "regulatorySites": 15
   },
   "1318": {
@@ -505,6 +626,7 @@
    "municipality": "HAZLET TWP",
    "county": "MONMOUTH",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 13
   },
   "1321": {
@@ -513,6 +635,7 @@
    "municipality": "HOWELL TWP",
    "county": "MONMOUTH",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 2
   },
   "1323": {
@@ -521,6 +644,7 @@
    "municipality": "KEANSBURG BORO",
    "county": "MONMOUTH",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 23
   },
   "1327": {
@@ -529,6 +653,7 @@
    "municipality": "LONG BRANCH CITY",
    "county": "MONMOUTH",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 25
   },
   "1335": {
@@ -537,6 +662,7 @@
    "municipality": "NEPTUNE TWP",
    "county": "MONMOUTH",
    "onSiteCarriers": 3,
+   "epaFacilityParcels": 15,
    "regulatorySites": 229
   },
   "1422": {
@@ -545,6 +671,7 @@
    "municipality": "MORRIS TWP",
    "county": "MORRIS",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 14
   },
   "1424": {
@@ -553,6 +680,7 @@
    "municipality": "MORRISTOWN TOWN",
    "county": "MORRIS",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 2,
    "regulatorySites": 38
   },
   "1427": {
@@ -561,6 +689,7 @@
    "municipality": "MOUNT OLIVE TWP",
    "county": "MORRIS",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 3,
    "regulatorySites": 39
   },
   "1429": {
@@ -569,6 +698,7 @@
    "municipality": "PARSIPPANY TR HLS TWP",
    "county": "MORRIS",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 3,
    "regulatorySites": 44
   },
   "1506": {
@@ -577,6 +707,7 @@
    "municipality": "BERKELEY TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "1507": {
@@ -585,6 +716,7 @@
    "municipality": "BRICK TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 2
   },
   "1512": {
@@ -593,6 +725,7 @@
    "municipality": "JACKSON TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 6,
    "regulatorySites": 80
   },
   "1514": {
@@ -601,6 +734,7 @@
    "municipality": "LAKEHURST BORO",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 2
   },
   "1515": {
@@ -609,6 +743,7 @@
    "municipality": "LAKEWOOD TWP",
    "county": "OCEAN",
    "onSiteCarriers": 67,
+   "epaFacilityParcels": 147,
    "regulatorySites": 1403
   },
   "1519": {
@@ -617,6 +752,7 @@
    "municipality": "MANCHESTER TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 11,
    "regulatorySites": 110
   },
   "1527": {
@@ -625,6 +761,7 @@
    "municipality": "SEASIDE HEIGHTS BORO",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 14
   },
   "1528": {
@@ -633,6 +770,7 @@
    "municipality": "SEASIDE PARK BORO",
    "county": "OCEAN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 4
   },
   "1602": {
@@ -641,6 +779,7 @@
    "municipality": "CLIFTON CITY",
    "county": "PASSAIC",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 1,
    "regulatorySites": 32
   },
   "1607": {
@@ -649,6 +788,7 @@
    "municipality": "PASSAIC CITY",
    "county": "PASSAIC",
    "onSiteCarriers": 3,
+   "epaFacilityParcels": 5,
    "regulatorySites": 226
   },
   "1608": {
@@ -657,6 +797,7 @@
    "municipality": "PATERSON CITY",
    "county": "PASSAIC",
    "onSiteCarriers": 3,
+   "epaFacilityParcels": 8,
    "regulatorySites": 229
   },
   "1704": {
@@ -665,6 +806,7 @@
    "municipality": "ELSINBORO TWP",
    "county": "SALEM",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "1708": {
@@ -673,6 +815,7 @@
    "municipality": "PENNS GROVE BORO",
    "county": "SALEM",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 10
   },
   "1711": {
@@ -681,6 +824,7 @@
    "municipality": "PITTSGROVE TWP",
    "county": "SALEM",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "1713": {
@@ -689,6 +833,7 @@
    "municipality": "SALEM CITY",
    "county": "SALEM",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 7,
    "regulatorySites": 71
   },
   "1804": {
@@ -697,6 +842,7 @@
    "municipality": "BOUND BROOK BORO",
    "county": "SOMERSET",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 1
   },
   "1809": {
@@ -705,6 +851,7 @@
    "municipality": "GREEN BROOK TWP",
    "county": "SOMERSET",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 8
   },
   "1915": {
@@ -713,6 +860,7 @@
    "municipality": "NEWTON TOWN",
    "county": "SUSSEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 11,
    "regulatorySites": 113
   },
   "2004": {
@@ -721,6 +869,7 @@
    "municipality": "ELIZABETH CITY",
    "county": "UNION",
    "onSiteCarriers": 12,
+   "epaFacilityParcels": 16,
    "regulatorySites": 403
   },
   "2007": {
@@ -729,6 +878,7 @@
    "municipality": "HILLSIDE TWP",
    "county": "UNION",
    "onSiteCarriers": 14,
+   "epaFacilityParcels": 26,
    "regulatorySites": 448
   },
   "2019": {
@@ -737,6 +887,7 @@
    "municipality": "UNION TWP",
    "county": "UNION",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 1,
    "regulatorySites": 7
   },
   "2119": {
@@ -745,6 +896,7 @@
    "municipality": "PHILLIPSBURG TOWN",
    "county": "WARREN",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 19
   },
   "0101": {
@@ -753,6 +905,7 @@
    "municipality": "ABSECON CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 3,
    "regulatorySites": 15
   },
   "0102": {
@@ -761,6 +914,7 @@
    "municipality": "ATLANTIC CITY CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 6,
    "regulatorySites": 74
   },
   "0108": {
@@ -769,6 +923,7 @@
    "municipality": "EGG HARBOR TWP",
    "county": "ATLANTIC",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 83,
    "regulatorySites": 564
   },
   "0111": {
@@ -777,6 +932,7 @@
    "municipality": "GALLOWAY TWP",
    "county": "ATLANTIC",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 9
   },
   "0112": {
@@ -785,6 +941,7 @@
    "municipality": "HAMILTON TWP",
    "county": "ATLANTIC",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "0119": {
@@ -793,6 +950,7 @@
    "municipality": "PLEASANTVILLE CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 5,
    "regulatorySites": 60
   },
   "0121": {
@@ -801,6 +959,7 @@
    "municipality": "SOMERS POINT CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 33
   },
   "0218": {
@@ -809,6 +968,7 @@
    "municipality": "FAIRVIEW BORO",
    "county": "BERGEN",
    "onSiteCarriers": 5,
+   "epaFacilityParcels": 11,
    "regulatorySites": 158
   },
   "0221": {
@@ -817,6 +977,7 @@
    "municipality": "GARFIELD CITY",
    "county": "BERGEN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 2,
    "regulatorySites": 26
   },
   "0223": {
@@ -825,6 +986,7 @@
    "municipality": "HACKENSACK CITY",
    "county": "BERGEN",
    "onSiteCarriers": 4,
+   "epaFacilityParcels": 9,
    "regulatorySites": 98
   },
   "0230": {
@@ -833,6 +995,7 @@
    "municipality": "LITTLE FERRY BORO",
    "county": "BERGEN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 8
   },
   "0249": {
@@ -841,6 +1004,7 @@
    "municipality": "RIDGEFIELD BORO",
    "county": "BERGEN",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 16
   },
   "0259": {
@@ -849,6 +1013,7 @@
    "municipality": "SO HACKENSACK TWP",
    "county": "BERGEN",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 16,
    "regulatorySites": 190
   },
   "0262": {
@@ -857,6 +1022,7 @@
    "municipality": "TETERBORO BORO",
    "county": "BERGEN",
    "onSiteCarriers": 13,
+   "epaFacilityParcels": 25,
    "regulatorySites": 357
   },
   "0305": {
@@ -865,6 +1031,7 @@
    "municipality": "BURLINGTON CITY",
    "county": "BURLINGTON",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 7,
    "regulatorySites": 66
   },
   "0306": {
@@ -873,6 +1040,7 @@
    "municipality": "BURLINGTON TWP",
    "county": "BURLINGTON",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 10
   },
   "0312": {
@@ -881,6 +1049,7 @@
    "municipality": "EDGEWATER PARK TWP",
    "county": "BURLINGTON",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 6
   },
   "0330": {
@@ -889,6 +1058,7 @@
    "municipality": "RIVERSIDE TWP",
    "county": "BURLINGTON",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 4,
    "regulatorySites": 67
   },
   "0408": {
@@ -897,6 +1067,7 @@
    "municipality": "CAMDEN CITY",
    "county": "CAMDEN",
    "onSiteCarriers": 6,
+   "epaFacilityParcels": 19,
    "regulatorySites": 224
   },
   "0414": {
@@ -905,6 +1076,7 @@
    "municipality": "GLOUCESTER CITY",
    "county": "CAMDEN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 15
   },
   "0415": {
@@ -913,6 +1085,7 @@
    "municipality": "GLOUCESTER TWP",
    "county": "CAMDEN",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 16,
    "regulatorySites": 79
   },
   "0427": {
@@ -921,6 +1094,7 @@
    "municipality": "PENNSAUKEN TWP",
    "county": "CAMDEN",
    "onSiteCarriers": 34,
+   "epaFacilityParcels": 60,
    "regulatorySites": 562
   },
   "0437": {
@@ -929,6 +1103,7 @@
    "municipality": "WOODLYNNE BORO",
    "county": "CAMDEN",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 0,
    "regulatorySites": 18
   },
   "0504": {
@@ -937,6 +1112,7 @@
    "municipality": "DENNIS TWP",
    "county": "CAPE MAY",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 2
   },
   "0511": {
@@ -945,6 +1121,7 @@
    "municipality": "UPPER TWP",
    "county": "CAPE MAY",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 0,
    "regulatorySites": 0
   },
   "0516": {
@@ -953,6 +1130,7 @@
    "municipality": "WOODBINE BORO",
    "county": "CAPE MAY",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 6,
    "regulatorySites": 43
   },
   "0601": {
@@ -961,6 +1139,7 @@
    "municipality": "BRIDGETON CITY",
    "county": "CUMBERLAND",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 10,
    "regulatorySites": 62
   },
   "0605": {
@@ -969,6 +1148,7 @@
    "municipality": "FAIRFIELD TWP",
    "county": "CUMBERLAND",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 5
   },
   "0610": {
@@ -977,6 +1157,7 @@
    "municipality": "MILLVILLE CITY",
    "county": "CUMBERLAND",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 35
   },
   "0614": {
@@ -985,6 +1166,7 @@
    "municipality": "VINELAND CITY",
    "county": "CUMBERLAND",
    "onSiteCarriers": 45,
+   "epaFacilityParcels": 100,
    "regulatorySites": 569
   },
   "0701": {
@@ -993,6 +1175,7 @@
    "municipality": "BELLEVILLE TWP",
    "county": "ESSEX",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 10
   },
   "0702": {
@@ -1001,6 +1184,7 @@
    "municipality": "BLOOMFIELD TWP",
    "county": "ESSEX",
    "onSiteCarriers": 3,
+   "epaFacilityParcels": 7,
    "regulatorySites": 126
   },
   "0705": {
@@ -1009,6 +1193,7 @@
    "municipality": "EAST ORANGE CITY",
    "county": "ESSEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 29
   },
   "0714": {
@@ -1017,6 +1202,7 @@
    "municipality": "NEWARK CITY",
    "county": "ESSEX",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 4,
    "regulatorySites": 245
   },
   "0717": {
@@ -1025,6 +1211,7 @@
    "municipality": "ORANGE CITY TWP",
    "county": "ESSEX",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 5,
    "regulatorySites": 198
   },
   "0722": {
@@ -1033,6 +1220,7 @@
    "municipality": "WEST ORANGE TWP",
    "county": "ESSEX",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 1,
    "regulatorySites": 8
   },
   "0803": {
@@ -1041,6 +1229,7 @@
    "municipality": "EAST GREENWICH TWP",
    "county": "GLOUCESTER",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 12
   },
   "0807": {
@@ -1049,6 +1238,7 @@
    "municipality": "GREENWICH TWP",
    "county": "GLOUCESTER",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 10
   },
   "0814": {
@@ -1057,6 +1247,7 @@
    "municipality": "PAULSBORO BORO",
    "county": "GLOUCESTER",
    "onSiteCarriers": 2,
+   "epaFacilityParcels": 6,
    "regulatorySites": 78
   },
   "0818": {
@@ -1065,6 +1256,7 @@
    "municipality": "WASHINGTON TWP",
    "county": "GLOUCESTER",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 21
   },
   "0820": {
@@ -1073,6 +1265,7 @@
    "municipality": "WEST DEPTFORD TWP",
    "county": "GLOUCESTER",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 2,
    "regulatorySites": 11
   },
   "0902": {
@@ -1081,6 +1274,7 @@
    "municipality": "EAST NEWARK BORO",
    "county": "HUDSON",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 48
   },
   "0906": {
@@ -1089,6 +1283,7 @@
    "municipality": "JERSEY CITY CITY",
    "county": "HUDSON",
    "onSiteCarriers": 7,
+   "epaFacilityParcels": 11,
    "regulatorySites": 214
   },
   "0907": {
@@ -1097,6 +1292,7 @@
    "municipality": "KEARNY TOWN",
    "county": "HUDSON",
    "onSiteCarriers": 3,
+   "epaFacilityParcels": 12,
    "regulatorySites": 154
   },
   "0908": {
@@ -1105,6 +1301,7 @@
    "municipality": "NORTH BERGEN TWP",
    "county": "HUDSON",
    "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
    "regulatorySites": 27
   },
   "0910": {
@@ -1113,6 +1310,7 @@
    "municipality": "UNION CITY CITY",
    "county": "HUDSON",
    "onSiteCarriers": 0,
+   "epaFacilityParcels": 1,
    "regulatorySites": 8
   }
  },

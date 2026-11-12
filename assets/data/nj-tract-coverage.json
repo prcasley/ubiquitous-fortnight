@@ -19,7 +19,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34001001400",
@@ -36,7 +38,9 @@
 "njdepProgramNames": 49,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34001001900",
@@ -53,7 +57,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34001002300",
@@ -70,7 +76,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34001002400",
@@ -87,7 +95,9 @@
 "njdepProgramNames": 102,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34001011702",
@@ -104,7 +114,9 @@
 "njdepProgramNames": 1130,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 88,
+"namedOnSiteBusiness": 88
 },
 {
 "tract": "34001012100",
@@ -121,7 +133,9 @@
 "njdepProgramNames": 74,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34001012702",
@@ -138,7 +152,9 @@
 "njdepProgramNames": 50,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34003018200",
@@ -155,7 +171,9 @@
 "njdepProgramNames": 445,
 "onSiteCarriers": 7,
 "carrierPhone": 7,
-"carrierEmail": 7
+"carrierEmail": 7,
+"epaFacilityParcels": 15,
+"namedOnSiteBusiness": 15
 },
 {
 "tract": "34003021600",
@@ -172,7 +190,9 @@
 "njdepProgramNames": 48,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34003023501",
@@ -189,7 +209,9 @@
 "njdepProgramNames": 35,
 "onSiteCarriers": 3,
 "carrierPhone": 3,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34003023502",
@@ -206,7 +228,9 @@
 "njdepProgramNames": 8,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34003023602",
@@ -223,7 +247,9 @@
 "njdepProgramNames": 144,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 4,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34003036100",
@@ -240,7 +266,9 @@
 "njdepProgramNames": 1315,
 "onSiteCarriers": 15,
 "carrierPhone": 15,
-"carrierEmail": 11
+"carrierEmail": 11,
+"epaFacilityParcels": 42,
+"namedOnSiteBusiness": 44
 },
 {
 "tract": "34005700703",
@@ -257,7 +285,9 @@
 "njdepProgramNames": 122,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 4,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34005701002",
@@ -274,7 +304,9 @@
 "njdepProgramNames": 26,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34005701203",
@@ -291,7 +323,9 @@
 "njdepProgramNames": 91,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34005701204",
@@ -308,7 +342,9 @@
 "njdepProgramNames": 41,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34007600700",
@@ -325,7 +361,9 @@
 "njdepProgramNames": 54,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34007601400",
@@ -342,7 +380,9 @@
 "njdepProgramNames": 20,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34007601500",
@@ -359,7 +399,9 @@
 "njdepProgramNames": 30,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34007601800",
@@ -376,7 +418,9 @@
 "njdepProgramNames": 413,
 "onSiteCarriers": 4,
 "carrierPhone": 3,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 10,
+"namedOnSiteBusiness": 10
 },
 {
 "tract": "34007604100",
@@ -393,7 +437,9 @@
 "njdepProgramNames": 33,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34007608210",
@@ -410,7 +456,9 @@
 "njdepProgramNames": 190,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 17,
+"namedOnSiteBusiness": 17
 },
 {
 "tract": "34007610300",
@@ -427,7 +475,9 @@
 "njdepProgramNames": 185,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34007610400",
@@ -444,7 +494,9 @@
 "njdepProgramNames": 19,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34007610800",
@@ -461,7 +513,9 @@
 "njdepProgramNames": 1290,
 "onSiteCarriers": 34,
 "carrierPhone": 33,
-"carrierEmail": 19
+"carrierEmail": 19,
+"epaFacilityParcels": 60,
+"namedOnSiteBusiness": 71
 },
 {
 "tract": "34009020500",
@@ -478,7 +532,9 @@
 "njdepProgramNames": 113,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34011020503",
@@ -495,7 +551,9 @@
 "njdepProgramNames": 170,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 11,
+"namedOnSiteBusiness": 11
 },
 {
 "tract": "34011030100",
@@ -512,7 +570,9 @@
 "njdepProgramNames": 56,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34011040901",
@@ -529,7 +589,9 @@
 "njdepProgramNames": 1190,
 "onSiteCarriers": 45,
 "carrierPhone": 45,
-"carrierEmail": 38
+"carrierEmail": 38,
+"epaFacilityParcels": 100,
+"namedOnSiteBusiness": 111
 },
 {
 "tract": "34013000300",
@@ -546,7 +608,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013000500",
@@ -563,7 +627,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013000900",
@@ -580,7 +646,9 @@
 "njdepProgramNames": 11,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34013001000",
@@ -597,7 +665,9 @@
 "njdepProgramNames": 26,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013001400",
@@ -614,7 +684,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013001500",
@@ -631,7 +703,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013002800",
@@ -648,7 +722,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013005400",
@@ -665,7 +741,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013006400",
@@ -682,7 +760,9 @@
 "njdepProgramNames": 34,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34013007900",
@@ -699,7 +779,9 @@
 "njdepProgramNames": 33,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013008000",
@@ -716,7 +798,9 @@
 "njdepProgramNames": 239,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34013008100",
@@ -733,7 +817,9 @@
 "njdepProgramNames": 82,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34013010600",
@@ -750,7 +836,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013011300",
@@ -767,7 +855,9 @@
 "njdepProgramNames": 26,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34013011900",
@@ -784,7 +874,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013015300",
@@ -801,7 +893,9 @@
 "njdepProgramNames": 23,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34013015900",
@@ -818,7 +912,9 @@
 "njdepProgramNames": 314,
 "onSiteCarriers": 3,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 7
 },
 {
 "tract": "34013018300",
@@ -835,7 +931,9 @@
 "njdepProgramNames": 47,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34013018400",
@@ -852,7 +950,9 @@
 "njdepProgramNames": 17,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34013018600",
@@ -869,7 +969,9 @@
 "njdepProgramNames": 257,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34013018900",
@@ -886,7 +988,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34015500400",
@@ -903,7 +1007,9 @@
 "njdepProgramNames": 314,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 10,
+"namedOnSiteBusiness": 11
 },
 {
 "tract": "34017001202",
@@ -920,7 +1026,9 @@
 "njdepProgramNames": 26,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017001900",
@@ -937,7 +1045,9 @@
 "njdepProgramNames": 53,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017002001",
@@ -954,7 +1064,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017002002",
@@ -971,7 +1083,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017003000",
@@ -988,7 +1102,9 @@
 "njdepProgramNames": 22,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017003102",
@@ -1005,7 +1121,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017004600",
@@ -1022,7 +1140,9 @@
 "njdepProgramNames": 87,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34017006300",
@@ -1039,7 +1159,9 @@
 "njdepProgramNames": 52,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34017006700",
@@ -1056,7 +1178,9 @@
 "njdepProgramNames": 143,
 "onSiteCarriers": 5,
 "carrierPhone": 5,
-"carrierEmail": 5
+"carrierEmail": 5,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 7
 },
 {
 "tract": "34017010900",
@@ -1073,7 +1197,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017011000",
@@ -1090,7 +1216,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017012800",
@@ -1107,7 +1235,9 @@
 "njdepProgramNames": 398,
 "onSiteCarriers": 3,
 "carrierPhone": 3,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 12,
+"namedOnSiteBusiness": 13
 },
 {
 "tract": "34017013400",
@@ -1124,7 +1254,9 @@
 "njdepProgramNames": 145,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34017015003",
@@ -1141,7 +1273,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017015004",
@@ -1158,7 +1292,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017016200",
@@ -1175,7 +1311,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017017700",
@@ -1192,7 +1330,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34017017800",
@@ -1209,7 +1349,9 @@
 "njdepProgramNames": 9,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34021000100",
@@ -1226,7 +1368,9 @@
 "njdepProgramNames": 11,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34021000800",
@@ -1243,7 +1387,9 @@
 "njdepProgramNames": 46,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34021000900",
@@ -1260,7 +1406,9 @@
 "njdepProgramNames": 104,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34021001000",
@@ -1277,7 +1425,9 @@
 "njdepProgramNames": 46,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34021001101",
@@ -1294,7 +1444,9 @@
 "njdepProgramNames": 31,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34021001700",
@@ -1311,7 +1463,9 @@
 "njdepProgramNames": 111,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34021002100",
@@ -1328,7 +1482,9 @@
 "njdepProgramNames": 35,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34021002701",
@@ -1345,7 +1501,9 @@
 "njdepProgramNames": 128,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34021003400",
@@ -1362,7 +1520,9 @@
 "njdepProgramNames": 603,
 "onSiteCarriers": 3,
 "carrierPhone": 3,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 14,
+"namedOnSiteBusiness": 15
 },
 {
 "tract": "34021003707",
@@ -1379,7 +1539,9 @@
 "njdepProgramNames": 380,
 "onSiteCarriers": 4,
 "carrierPhone": 4,
-"carrierEmail": 3
+"carrierEmail": 3,
+"epaFacilityParcels": 23,
+"namedOnSiteBusiness": 24
 },
 {
 "tract": "34023000300",
@@ -1396,7 +1558,9 @@
 "njdepProgramNames": 92,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34023004502",
@@ -1413,7 +1577,9 @@
 "njdepProgramNames": 471,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 17,
+"namedOnSiteBusiness": 17
 },
 {
 "tract": "34023004600",
@@ -1430,7 +1596,9 @@
 "njdepProgramNames": 96,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34023004800",
@@ -1447,7 +1615,9 @@
 "njdepProgramNames": 329,
 "onSiteCarriers": 5,
 "carrierPhone": 4,
-"carrierEmail": 4
+"carrierEmail": 4,
+"epaFacilityParcels": 12,
+"namedOnSiteBusiness": 13
 },
 {
 "tract": "34023005300",
@@ -1464,7 +1634,9 @@
 "njdepProgramNames": 101,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34023005500",
@@ -1481,7 +1653,9 @@
 "njdepProgramNames": 1282,
 "onSiteCarriers": 29,
 "carrierPhone": 29,
-"carrierEmail": 25
+"carrierEmail": 25,
+"epaFacilityParcels": 58,
+"namedOnSiteBusiness": 63
 },
 {
 "tract": "34023005602",
@@ -1498,7 +1672,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34023007103",
@@ -1515,7 +1691,9 @@
 "njdepProgramNames": 500,
 "onSiteCarriers": 11,
 "carrierPhone": 11,
-"carrierEmail": 10
+"carrierEmail": 10,
+"epaFacilityParcels": 30,
+"namedOnSiteBusiness": 34
 },
 {
 "tract": "34023009300",
@@ -1532,7 +1710,9 @@
 "njdepProgramNames": 124,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34023980000",
@@ -1549,7 +1729,9 @@
 "njdepProgramNames": 689,
 "onSiteCarriers": 18,
 "carrierPhone": 18,
-"carrierEmail": 16
+"carrierEmail": 16,
+"epaFacilityParcels": 33,
+"namedOnSiteBusiness": 34
 },
 {
 "tract": "34025801700",
@@ -1566,7 +1748,9 @@
 "njdepProgramNames": 84,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34025805700",
@@ -1583,7 +1767,9 @@
 "njdepProgramNames": 48,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34025807600",
@@ -1600,7 +1786,9 @@
 "njdepProgramNames": 169,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 4,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34025807700",
@@ -1617,7 +1805,9 @@
 "njdepProgramNames": 235,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 11,
+"namedOnSiteBusiness": 11
 },
 {
 "tract": "34027041705",
@@ -1634,7 +1824,9 @@
 "njdepProgramNames": 108,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34027043500",
@@ -1651,7 +1843,9 @@
 "njdepProgramNames": 92,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34027046107",
@@ -1668,7 +1862,9 @@
 "njdepProgramNames": 56,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34029715001",
@@ -1685,7 +1881,9 @@
 "njdepProgramNames": 1368,
 "onSiteCarriers": 26,
 "carrierPhone": 26,
-"carrierEmail": 25
+"carrierEmail": 25,
+"epaFacilityParcels": 58,
+"namedOnSiteBusiness": 63
 },
 {
 "tract": "34029715404",
@@ -1702,7 +1900,9 @@
 "njdepProgramNames": 34,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34029715600",
@@ -1719,7 +1919,9 @@
 "njdepProgramNames": 113,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 7,
+"namedOnSiteBusiness": 7
 },
 {
 "tract": "34029715800",
@@ -1736,7 +1938,9 @@
 "njdepProgramNames": 1507,
 "onSiteCarriers": 39,
 "carrierPhone": 38,
-"carrierEmail": 34
+"carrierEmail": 34,
+"epaFacilityParcels": 82,
+"namedOnSiteBusiness": 91
 },
 {
 "tract": "34029717002",
@@ -1753,7 +1957,9 @@
 "njdepProgramNames": 129,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 6,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34029720105",
@@ -1770,7 +1976,9 @@
 "njdepProgramNames": 180,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 11,
+"namedOnSiteBusiness": 11
 },
 {
 "tract": "34029728003",
@@ -1787,7 +1995,9 @@
 "njdepProgramNames": 32,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34031125100",
@@ -1804,7 +2014,9 @@
 "njdepProgramNames": 72,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34031175200",
@@ -1821,7 +2033,9 @@
 "njdepProgramNames": 169,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 },
 {
 "tract": "34031175402",
@@ -1838,7 +2052,9 @@
 "njdepProgramNames": 149,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34031175804",
@@ -1855,7 +2071,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34031175900",
@@ -1872,7 +2090,9 @@
 "njdepProgramNames": 499,
 "onSiteCarriers": 3,
 "carrierPhone": 3,
-"carrierEmail": 3
+"carrierEmail": 3,
+"epaFacilityParcels": 5,
+"namedOnSiteBusiness": 7
 },
 {
 "tract": "34031180900",
@@ -1889,7 +2109,9 @@
 "njdepProgramNames": 421,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 7,
+"namedOnSiteBusiness": 7
 },
 {
 "tract": "34031181800",
@@ -1906,7 +2128,9 @@
 "njdepProgramNames": 30,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34031182900",
@@ -1923,7 +2147,9 @@
 "njdepProgramNames": 31,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34031183200",
@@ -1940,7 +2166,9 @@
 "njdepProgramNames": 22,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34031264200",
@@ -1957,7 +2185,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34033020300",
@@ -1974,7 +2204,9 @@
 "njdepProgramNames": 13,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34033022000",
@@ -1991,7 +2223,9 @@
 "njdepProgramNames": 57,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34033022100",
@@ -2008,7 +2242,9 @@
 "njdepProgramNames": 139,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 4,
+"namedOnSiteBusiness": 4
 },
 {
 "tract": "34035051100",
@@ -2025,7 +2261,9 @@
 "njdepProgramNames": 30,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34037373700",
@@ -2042,7 +2280,9 @@
 "njdepProgramNames": 196,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 11,
+"namedOnSiteBusiness": 11
 },
 {
 "tract": "34039030400",
@@ -2059,7 +2299,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34039030600",
@@ -2076,7 +2318,9 @@
 "njdepProgramNames": 377,
 "onSiteCarriers": 3,
 "carrierPhone": 3,
-"carrierEmail": 3
+"carrierEmail": 3,
+"epaFacilityParcels": 9,
+"namedOnSiteBusiness": 10
 },
 {
 "tract": "34039031100",
@@ -2093,7 +2337,9 @@
 "njdepProgramNames": 28,
 "onSiteCarriers": 1,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34039031602",
@@ -2110,7 +2356,9 @@
 "njdepProgramNames": 36,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 1,
+"namedOnSiteBusiness": 1
 },
 {
 "tract": "34039032300",
@@ -2127,7 +2375,9 @@
 "njdepProgramNames": 896,
 "onSiteCarriers": 15,
 "carrierPhone": 12,
-"carrierEmail": 11
+"carrierEmail": 11,
+"epaFacilityParcels": 27,
+"namedOnSiteBusiness": 27
 },
 {
 "tract": "34039039200",
@@ -2144,7 +2394,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34039039302",
@@ -2161,7 +2413,9 @@
 "njdepProgramNames": 0,
 "onSiteCarriers": 0,
 "carrierPhone": 0,
-"carrierEmail": 0
+"carrierEmail": 0,
+"epaFacilityParcels": 0,
+"namedOnSiteBusiness": 0
 },
 {
 "tract": "34039039801",
@@ -2178,7 +2432,9 @@
 "njdepProgramNames": 296,
 "onSiteCarriers": 5,
 "carrierPhone": 5,
-"carrierEmail": 4
+"carrierEmail": 4,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 6
 },
 {
 "tract": "34039039900",
@@ -2195,7 +2451,9 @@
 "njdepProgramNames": 158,
 "onSiteCarriers": 2,
 "carrierPhone": 2,
-"carrierEmail": 2
+"carrierEmail": 2,
+"epaFacilityParcels": 3,
+"namedOnSiteBusiness": 3
 },
 {
 "tract": "34041030700",
@@ -2212,7 +2470,9 @@
 "njdepProgramNames": 39,
 "onSiteCarriers": 1,
 "carrierPhone": 1,
-"carrierEmail": 1
+"carrierEmail": 1,
+"epaFacilityParcels": 2,
+"namedOnSiteBusiness": 2
 }
 ]
 }
