@@ -10,6 +10,6 @@
  const COHORT={retained:'Retained 2018 zone',partial:'Partly a 2018 zone',new:'Brand-new 2026 designation',unknown:'2018 overlap not measured'};
  const RURAL='Rural OZ 2.0 (50% Improvement Threshold · 30% Step-Up)';
  function badges(id){const t=get(id);if(!t)return [];const out=[];if(t.state==='NJ'&&t.cohort2018)out.push({kind:'cohort-'+t.cohort2018,text:COHORT[t.cohort2018]});if(t.rural)out.push({kind:'rural',text:RURAL});return out;}
- root.RadarOZ2Designations={ready,get,load,badges,isLoaded:()=>!!data,meta:()=>data&&{source:data.source,effective:data.effective,expires:data.expires,totals:data.totals},COHORT,RURAL,
+ root.RadarOZ2Designations={ready,get,load,badges,isLoaded:()=>!!data,allNJ:()=>data?Object.values(data.tracts).filter(t=>t.state==='NJ'):[],meta:()=>data&&{source:data.source,effective:data.effective,expires:data.expires,totals:data.totals},COHORT,RURAL,
   LABEL_NJ:'Designated OZ 2.0 · Certified by U.S. Treasury (Effective Jan 1, 2027 – Dec 31, 2036)',LABEL_FL:'Designated OZ 2.0 (Effective Jan 1, 2027)'};
 })(typeof window!=='undefined'?window:globalThis);

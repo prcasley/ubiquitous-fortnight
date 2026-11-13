@@ -30,7 +30,7 @@
   function renderExtra(){extra.replaceChildren(make('h2',view==='stars'?'Starred properties':'Data & Export'));
    if(view==='stars'){extra.append(make('p','Saved on this device. Select a property to reopen current records.'));if(!stars.length)extra.append(make('p','Select a property, then choose ☆ Star property.'));for(const r of stars){const row=make('div',null,'v34-saved-row'),open=make('button',r.address),remove=make('button','Remove');open.onclick=()=>go(r);remove.onclick=()=>{stars=stars.filter(x=>x.key!==r.key);save();renderExtra();};row.append(open,remove);extra.append(row);}}
    else{extra.append(make('p','Public records and your local research tools. Imported private files stay in your browser.'));for(const [id,label,mode] of [['sources','Sources & provenance','scan'],['recoveredReference','Parcel Data','scan'],['localMapOverlays','Map overlays & imports','scan'],['researchTools','Local files & assemblies','deal'],['fieldTripPanel','Field packs & exports','owners']]){const b=make('button',label);b.onclick=()=>{window.RadarSimpleMode?.applyMode?.('advanced');show(mode);const el=$(id);if(el){el.style.setProperty('display','block','important');el.querySelector('details')?.setAttribute('open','');for(let p=el.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;window.RadarWorkspace.reveal(id);}};extra.append(b);}
-    const links=make('p',null,'v34-downloads');for(const [href,label] of [['assets/data/nj-tract-coverage.csv','NJ 130-tract coverage report (CSV)'],['assets/data/nj-parcel-research.csv','NJ parcel research (CSV)'],['assets/data/oz2-designations.json','Treasury OZ 2.0 designations, NJ & FL (JSON)']]){const a=make('a',label);a.href=href;a.download='';links.append(a);}extra.append(links);}
+    const links=make('p',null,'v34-downloads');for(const [href,label] of [['assets/data/nj-tract-coverage.csv','NJ 130-tract coverage report (CSV)'],['assets/data/nj-parcel-research.csv','NJ parcel research (CSV)'],['assets/data/oz2-designations.json','Treasury OZ 2.0 designations, NJ & FL (JSON)']]){const a=make('a',label);a.href=href;a.download='';links.append(a);}extra.append(links);extra.append(legal);}
   }
   const lock=$('lockRadar');if(lock){lock.classList.add('v34-vault-pill');top.append(lock);}
   const lockLabel=()=>{if(lock)lock.textContent=window.RadarExecutiveVault?.isVaultUnlocked?.()?'🔓 Contacts open · Lock':'Lock screen';};document.addEventListener('radar:vault-state',lockLabel);lockLabel();
@@ -43,6 +43,17 @@
   // One search box: the older deterministic Ask panel stays in the page (and working) but is not shown.
   document.getElementById('askForm')?.closest('section.panel')?.classList.add('v34-legacy-ask');
 
+  // Blocks that used to sit below the map move into the tab they belong to (nothing is deleted).
+  const content=document.querySelector('.content');
+  const researchPanel=content?.querySelector(':scope > .research-panel');
+  if(researchPanel){researchPanel.id=researchPanel.id||'v34ResearchPanel';$('workspace-mode-deal')?.append(researchPanel);}
+  const below=content?.querySelector(':scope > .below');
+  if($('ownerSection'))$('workspace-mode-owners')?.append($('ownerSection'));
+  const legal=make('details',null,'v34-fold v34-legal');legal.id='v34Legal';legal.append(make('summary','Legal & data provenance'));
+  const limits=[...(below?.querySelectorAll('section,div')||[])].find(e=>/^Limits & definitions/.test(e.querySelector(':scope > h2, :scope > h3')?.textContent||''));
+  if(limits)legal.append(limits);
+  const foot=content?.querySelector(':scope > .bottom-note');if(foot)legal.append(foot);
+  below?.classList.add('v34-below-moved');
   // Every optional section folds closed on its own, with a count.
   const links=el=>new Set([...el.querySelectorAll('a[href]')].map(a=>a.href)).size;
   const tractCount=()=>window.RadarOZ2Designations?.meta?.()?.totals?.NJ??130;
@@ -57,6 +68,8 @@
   fold('researchTools','Property research tools',el=>count(el,'details'));
   fold('ownershipWorkbench','Companies & ownership research',()=>{const m=/^(\d+) organizations/.exec($('ownerResearchCount')?.textContent||'');return m?m[1]+' organizations':null;});
   fold('fieldTripPanel','Field trip & field pack',el=>count($('fieldTripStops')||el,'li,article,tr'));
+  if(researchPanel)fold(researchPanel.id,'Saved research & screening',()=>count($('savedResearch'),'li,article,tr,.saved-item'));
+  fold('ownerSection','Owner records for the selected parcel',()=>count($('owners'),'li,article,tr,.owner-row'));
 
   // Fixed detail column beside the map.
   const column=document.querySelector('.map-column');

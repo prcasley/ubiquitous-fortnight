@@ -27,7 +27,7 @@
   "regulatoryRecordsPartial": 2,
   "partial": true,
   "usdot": {
-   "checkedAt": "2026-11-12T16:13:54+00:00",
+   "checkedAt": "2026-11-13T20:04:19+00:00",
    "towns": {
     "ABSECON": {
      "status": "checked",
@@ -71,7 +71,7 @@
     },
     "CARTERET": {
      "status": "checked",
-     "carriers": 1255
+     "carriers": 1256
     },
     "CLIFTON": {
      "status": "checked",
@@ -107,7 +107,7 @@
     },
     "ELIZABETH": {
      "status": "checked",
-     "carriers": 4941
+     "carriers": 4943
     },
     "ELSINBORO": {
      "status": "checked",
@@ -115,11 +115,11 @@
     },
     "EWING": {
      "status": "checked",
-     "carriers": 359
+     "carriers": 360
     },
     "FAIRFIELD": {
      "status": "checked",
-     "carriers": 533
+     "carriers": 534
     },
     "FAIRVIEW": {
      "status": "checked",
@@ -147,7 +147,7 @@
     },
     "HACKENSACK": {
      "status": "checked",
-     "carriers": 1217
+     "carriers": 1218
     },
     "HAMILTON": {
      "status": "checked",
@@ -159,7 +159,7 @@
     },
     "HILLSIDE": {
      "status": "checked",
-     "carriers": 777
+     "carriers": 778
     },
     "HOPEWELL": {
      "status": "checked",
@@ -175,7 +175,7 @@
     },
     "JERSEY CITY": {
      "status": "checked",
-     "carriers": 4010
+     "carriers": 4011
     },
     "KEANSBURG": {
      "status": "checked",
@@ -183,7 +183,7 @@
     },
     "KEARNY": {
      "status": "checked",
-     "carriers": 1364
+     "carriers": 1365
     },
     "LAKEHURST": {
      "status": "checked",
@@ -207,11 +207,11 @@
     },
     "MIDDLESEX": {
      "status": "checked",
-     "carriers": 323
+     "carriers": 324
     },
     "MILLVILLE": {
      "status": "checked",
-     "carriers": 447
+     "carriers": 448
     },
     "MORRIS": {
      "status": "checked",
@@ -235,7 +235,7 @@
     },
     "NEWARK": {
      "status": "checked",
-     "carriers": 6615
+     "carriers": 6616
     },
     "NEWTON": {
      "status": "checked",
@@ -243,7 +243,7 @@
     },
     "NORTH BERGEN": {
      "status": "checked",
-     "carriers": 2037
+     "carriers": 2038
     },
     "OLD BRIDGE": {
      "status": "checked",
@@ -275,7 +275,7 @@
     },
     "PENNSAUKEN": {
      "status": "checked",
-     "carriers": 896
+     "carriers": 897
     },
     "PERTH AMBOY": {
      "status": "checked",
@@ -299,7 +299,7 @@
     },
     "RIDGEFIELD": {
      "status": "checked",
-     "carriers": 339
+     "carriers": 338
     },
     "RIVERSIDE": {
      "status": "checked",
@@ -351,7 +351,7 @@
     },
     "VINELAND": {
      "status": "checked",
-     "carriers": 1091
+     "carriers": 1092
     },
     "WASHINGTON": {
      "status": "checked",
@@ -359,7 +359,7 @@
     },
     "WEST DEPTFORD": {
      "status": "checked",
-     "carriers": 131
+     "carriers": 132
     },
     "WEST ORANGE": {
      "status": "checked",
@@ -378,7 +378,7 @@
      "carriers": 15
     }
    },
-   "parcelsWithOnSiteCarrier": 327
+   "parcelsWithOnSiteCarrier": 328
   },
   "retainedEarlierRecords": {
    "count": 10,
@@ -498,7 +498,7 @@
   "records": 1949,
   "assessmentNames": 0,
   "regulatorySites": 10370,
-  "onSiteCarriers": 327,
+  "onSiteCarriers": 328,
   "epaFacilityParcels": 933,
   "namedOnSiteBusiness": 1005
  },
@@ -742,7 +742,7 @@
    "records": 266,
    "municipality": "LAKEWOOD TWP",
    "county": "OCEAN",
-   "onSiteCarriers": 67,
+   "onSiteCarriers": 68,
    "epaFacilityParcels": 147,
    "regulatorySites": 1403
   },
