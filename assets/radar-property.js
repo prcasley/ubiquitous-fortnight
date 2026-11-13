@@ -25,14 +25,14 @@
       if(o.status==='expired'||o.validUntil&&Date.parse(o.validUntil)<=Date.now())return 'NJ nomination data expired; refresh needed. No parcel nomination or absence was inferred.';
       if(o.status==='checking')return 'Checking official NJ nomination tracts…';
       if(o.status==='unavailable')return 'Official NJ nomination check unavailable; no nomination or absence was inferred.'+date;
-      if(o.status==='no-reference-intersection')return 'No matching NJ-nominated OZ 2.0 tract returned in this check. This is not an ineligibility finding.'+date;
-      if(['boundary-contact','partial-overlap'].includes(o.status))return 'NJ nomination boundary review: '+(o.status==='boundary-contact'?'line or corner contact only':(o.overlapPercent??0).toFixed(3)+'% of mapped parcel area overlaps nominated tracts')+' · tracts '+o.tracts.join(', ')+'. Not counted as a positive parcel match. The 95% screening rule is not a legal eligibility threshold.'+date;
-      if(o.coverageBasis==='point-only'||o.status==='reference-point-intersection')return 'Point intersects an NJ-nominated tract, but parcel-area coverage is unknown. No nominated-parcel match was inferred.'+date;
+      if(o.status==='no-reference-intersection')return 'Not in a designated NJ OZ 2.0 tract in this check. This is not an ineligibility finding.'+date;
+      if(['boundary-contact','partial-overlap'].includes(o.status))return 'Designated-tract boundary review: '+(o.status==='boundary-contact'?'line or corner contact only':(o.overlapPercent??0).toFixed(3)+'% of mapped parcel area overlaps designated tracts')+' · tracts '+o.tracts.join(', ')+'. Not counted as a positive parcel match. The 95% screening rule is not a legal eligibility threshold.'+date;
+      if(o.coverageBasis==='point-only'||o.status==='reference-point-intersection')return 'Point intersects a designated NJ OZ 2.0 tract, but parcel-area coverage is unknown. No parcel match was inferred.'+date;
       if(!o.nominationVerified)return 'NJ nomination evidence not verified; no nominated status was inferred.';
-      return 'NJ-nominated OZ 2.0 tract '+o.tracts.map(id=>id+(o.tractDetails.find(t=>t.geoid===id)?.municipality?' ('+o.tractDetails.find(t=>t.geoid===id).municipality+')':'')).join(', ')+'. Parcel overlap '+o.overlapPercent.toFixed(2)+'% (95% area screening rule, not a legal eligibility threshold). State nomination, not Treasury certification; federal certification not verified by this check. Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
+      return 'Designated OZ 2.0 tract '+o.tracts.map(id=>id+(o.tractDetails.find(t=>t.geoid===id)?.municipality?' ('+o.tractDetails.find(t=>t.geoid===id).municipality+')':'')).join(', ')+'. Parcel overlap '+o.overlapPercent.toFixed(2)+'% (95% area screening rule, not a legal eligibility threshold). Certified by U.S. Treasury (SB0682, Nov 5, 2026; effective Jan 1, 2027 – Dec 31, 2036). Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
     }
     if(o?.kind==='ozFL'){
-      const missingFL='No official state nomination list connected for '+record.state+'; new-round federal certification not verified.';
+      const missingFL='Treasury designation list still loading; designation not shown yet.';
       const money=v=>{const n=Number(String(v??'').replace(/[$,]/g,''));return Number.isFinite(n)&&n>0?'$'+Math.round(n).toLocaleString('en-US'):'not published';};
       const facts=t=>t.geoid+(t.poverty!=null||t.familyIncome?' (poverty '+(t.poverty!=null?(t.poverty*100).toFixed(1)+'%':'not published')+', family income '+money(t.familyIncome)+' vs area '+money(t.areaIncome)+')':'');
       const met=(o.tractDetails||[]).filter(t=>t.designation==='Meets Criteria'),not=(o.tractDetails||[]).filter(t=>t.designation==='Does not Meets Criteria');
@@ -42,7 +42,9 @@
       if(o.status==='unavailable')return 'FloridaCommerce eligibility check unavailable; no eligibility or ineligibility was inferred. '+missingFL+legacy+date;
       if(!met.length&&!not.length)return 'No FloridaCommerce eligibility tract returned for this parcel; this is not an eligibility finding. '+missingFL+legacy+date;
       const lead=met.length&&not.length?'FloridaCommerce OZ 2.0 eligibility: parcel touches tracts that meet ('+met.map(facts).join(', ')+') and do not meet ('+not.map(facts).join(', ')+') the criteria':met.length?'FloridaCommerce OZ 2.0 eligibility: tract '+met.map(facts).join(', ')+' meets the criteria':'FloridaCommerce OZ 2.0 eligibility: tract '+not.map(facts).join(', ')+' does not meet the criteria';
-      return lead+'. Eligibility is not nomination. '+missingFL+legacy+' Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
+      const D=(typeof window!=='undefined'?window:globalThis).RadarOZ2Designations,des=D?.isLoaded?.()?met.filter(t=>D.get(t.geoid)?.state==='FL'):null;
+      const designation=des===null?missingFL:des.length?'Designated OZ 2.0 (Effective Jan 1, 2027): tract '+des.map(t=>t.geoid+(D.get(t.geoid).rural?' (Rural OZ 2.0 — 50% improvement threshold, 30% step-up)':'')).join(', ')+' is on the U.S. Treasury designation list (SB0682, Nov 5, 2026).':'Not designated by U.S. Treasury (SB0682, Nov 5, 2026) — eligible tract was not selected.';
+      return (des&&des.length?designation+' '+lead+'.':lead+'. '+designation)+legacy+' Parcel intersection does not establish whole-parcel inclusion or tax qualification.'+date;
     }
     const missing='No official state nomination list connected for '+record.state+'.';
     if(!o)return missing+' OZ reference not checked.';

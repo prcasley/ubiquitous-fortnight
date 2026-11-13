@@ -17,8 +17,8 @@
   const nominated=nj?.kind==='ozNJ'&&Number.isFinite(Date.parse(nj.checkedAt))&&Date.parse(nj.checkedAt)<=now&&now-Date.parse(nj.checkedAt)<=90*86400000&&nj.nominationVerified===true&&nj.status==='reference-intersection'&&nj.coverageBasis==='parcel-area'&&nj.overlapPercent>=95&&Date.parse(nj.validUntil)>now;
   if(!nominated)return {status:'not-confirmed',label:'Meaningful NJ nomination overlap is not verified for this parcel; no new-versus-legacy classification.'};
   if(legacy?.kind!=='oz1'||!Number.isFinite(Date.parse(legacy.checkedAt))||Date.parse(legacy.checkedAt)>now||now-Date.parse(legacy.checkedAt)>86400000)return {status:'unknown',label:'NJ state nomination verified; older OZ 1.0 map reference is unavailable or stale.'};
-  if(legacy.status==='no-reference-intersection')return {status:'nomination-without-legacy-reference',label:'NJ-nominated parcel; no intersection found in the checked OZ 1.0 reference. This is a spatial research comparison, not a newly certified zone or a tax determination.'};
-  if(['reference-intersection','reference-point-intersection'].includes(legacy.status))return {status:'both-references',label:'NJ-nominated parcel also intersects the older OZ 1.0 map reference. Reference overlap does not establish tax qualification.'};
+  if(legacy.status==='no-reference-intersection')return {status:'nomination-without-legacy-reference',label:'Designated OZ 2.0 parcel; no intersection found in the checked OZ 1.0 reference (a brand-new zone by map comparison). Not a tax determination.'};
+  if(['reference-intersection','reference-point-intersection'].includes(legacy.status))return {status:'both-references',label:'Designated OZ 2.0 parcel also intersects the older OZ 1.0 map reference. Reference overlap does not establish tax qualification.'};
   return {status:'unknown',label:'NJ state nomination verified; older OZ reference did not produce a completed comparison.'};
  }
  return {corridors,inCorridor,assessment,scenario,compare,dateISO};

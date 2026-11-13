@@ -35,7 +35,7 @@ try:
   mode['crossBorder']=True;ctx,page=context(browser);ask(page,'industrial over 5 acres near Easton PA')
   check('Easton chat searches PA and NJ',set(page.evaluate('PublicRadarBridge.getResults().map(r=>r.state)'))=={'PA','NJ'})
   check('cross-border source coverage is reported independently',set(page.evaluate('PublicRadarBridge.getMeta().sourceReports.map(r=>r.state)'))=={'PA','NJ'})
-  ask(page,'QOZ?');check('Easton includes official NJ nominations','the 130 tracts New Jersey nominated' in page.locator('#agentLog').inner_text());ctx.close()
+  ask(page,'QOZ?');check('Easton includes official NJ nominations','the 130 New Jersey designated OZ 2.0 tracts' in page.locator('#agentLog').inner_text());ctx.close()
   ctx,page=context(browser);mode['addressSearch']=True;ask(page,'industrial over 5 acres near 40 Hilton St Easton PA')
   check('address-centered cross-border search retains its PA subject',page.evaluate('PublicRadarBridge.getSubject()?.provider==="northampton"&&PublicRadarBridge.getResults().some(r=>r.state==="NJ")'));ctx.close();mode.pop('addressSearch');mode['crossBorder']=False
   ctx,page=context(browser);external_requests.clear();ask(page,'industrial over 10 acres in Lehigh County PA')

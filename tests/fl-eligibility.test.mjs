@@ -15,14 +15,14 @@ for(const [name,features,kind] of [['unrecognized designation',[tract('120990002
  test('FloridaCommerce '+name+' is refused before any parcel is classified',async()=>{await assert.rejects(O.check([row],{kind,geo:turf,fetcher:fetcherFor(features)}));});
 const obs=(details,status='reference-intersection')=>({kind:'ozFL',status,tracts:details.map(t=>t.geoid),tractDetails:details,checkedAt:'2026-11-03T18:00:00Z'});
 const met={geoid:'12099000222',designation:'Meets Criteria',poverty:0.25811688,familyIncome:'$49,911',areaIncome:'89212'},notMet={geoid:'12099007833',designation:'Does not Meets Criteria',poverty:0.12292531,familyIncome:'$81,309',areaIncome:'89212'};
-test('labels: meets, does not meet, both, none and unavailable never claim nomination or certification',()=>{
+test('labels: meets, does not meet, both, none and unavailable never claim a designation the Treasury list does not show',()=>{
  const label=o=>P.ozLabel({...row,ozObservation:o,ozObservations:{ozFL:o}});
  assert.match(label(obs([met])),/tract 12099000222 \(poverty 25\.8%, family income \$49,911 vs area \$89,212\) meets the criteria/);
  assert.match(label(obs([notMet])),/tract 12099007833 \(poverty 12\.3%, family income \$81,309 vs area \$89,212\) does not meet the criteria/);
  assert.match(label(obs([met,notMet])),/touches tracts that meet .* and do not meet/);
  assert.match(label(obs([],'no-reference-intersection')),/not an eligibility finding/);
  assert.match(label(obs([],'unavailable')),/no eligibility or ineligibility was inferred/);
- for(const o of [obs([met]),obs([notMet]),obs([],'unavailable')]){const l=label(o);assert.ok(l.includes('No official state nomination list connected for FL'));assert.ok(!/NJ-nominated|is nominated|certified tract/i.test(l));}});
+ for(const o of [obs([met]),obs([notMet]),obs([],'unavailable')]){const l=label(o);assert.ok(l.includes('Treasury designation list still loading'));assert.ok(!/NJ-nominated|is nominated|certified tract/i.test(l));}});
 test('OZ 1.0 reference overlap is separate and has no invented sunset',()=>{const o=obs([notMet]);const l=P.ozLabel({...row,ozObservation:o,ozObservations:{ozFL:o,oz1:{kind:'oz1',status:'reference-intersection',tracts:['12099007833']}}});assert.match(l,/Also intersects 2018 OZ 1\.0 tract 12099007833/);assert.ok(!l.includes('2028'));});
 test('snapshots keep only the two official designations and bounded facts',()=>{
  const o=obs([{...met,poverty:7,OWNER:'x'},{...notMet,designation:'Approved Nomination'}]);const s=P.snapshot({...row,ozObservation:o,ozObservations:{ozFL:o}}).ozObservation;

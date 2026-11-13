@@ -15,10 +15,10 @@ try:
   check('Florida eligibility runs automatically before an OZ question','FloridaCommerce OZ 2.0 eligibility' in page.locator('.chat-properties').last.text_content())
   submit(page,'Which of these are in an opportunity zone?')
   text=log(page);cards=page.locator('.chat-properties').last.text_content()
-  check('chat reports FloridaCommerce eligibility, labeled as not a nomination list',f'FloridaCommerce OZ 2.0 eligibility (not a nomination list): {n} of {n} parcels are in tracts that meet the criteria' in text)
+  check('chat reports FloridaCommerce eligibility, with Treasury designation count',f'FloridaCommerce OZ 2.0 eligibility: {n} of {n} parcels are in tracts that meet the criteria' in text)
   check('chat states FL nominations are not connected and new-round certification is unverified','No official state nomination list connected for FL; no new-round federal certification is verified by this check' in text)
   check('cards name the meeting tract with its published facts','FloridaCommerce OZ 2.0 eligibility: tract 12099000222 (poverty 25.8%, family income $49,911 vs area $89,212) meets the criteria' in cards)
-  check('eligibility is never presented as nomination',' nominated' not in cards.lower().replace('not a nomination','') and 'Eligibility is not nomination' in cards)
+  check('eligibility is never presented as nomination or designation without the Treasury list',' nominated' not in cards.lower() and ('Designated OZ 2.0' in cards or 'Not designated by U.S. Treasury' in cards or 'Treasury designation list still loading' in cards))
   check('legacy third-party label is not used for FL once FloridaCommerce answered','Third-party OZ 2 eligibility reference' not in cards)
   # 7777 Southern Blvd pattern: tract does not meet criteria, but is a 2018 OZ 1.0 tract.
   mode['flNotMet']=True;submit(page,'opportunity zone')
