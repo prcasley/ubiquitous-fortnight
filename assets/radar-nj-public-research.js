@@ -21,6 +21,7 @@
  async function quickPicks(){await ready;if(!data)return [];if(data.version===2)return data.quickPicks||[];return data.records.filter(x=>x.usdotContext?.carrierName&&x.facts?.PROP_LOC).map(x=>({parcelId:x.parcelId,address:x.facts.PROP_LOC,municipality:x.facts.MUN_NAME,carrierName:x.usdotContext.carrierName,status:x.usdotContext.status||null}));}
  function regulatory(record){const d=find(record)?.njdepContext;if(!d||d.format!=='RadarNJDEPContext'||d.version!==1||d.parcelId!==record.id||!['observed','partial'].includes(d.status)||!Number.isFinite(Date.parse(d.checkedAt))||Date.parse(d.checkedAt)>Date.now()||Date.now()-Date.parse(d.checkedAt)>30*86400000||!Array.isArray(d.sites)||!Array.isArray(d.interests)||d.sites.some(s=>s.role!=='regulatory-site'||!s.sourceURL?.startsWith(window.RadarNJDEP.sources.sites+'/query?'))||d.interests.some(s=>s.role!=='program-interest'||!s.sourceURL?.startsWith(window.RadarNJDEP.sources.interests+'/query?')))return null;return d;}
  // Federal carrier filed at the parcel's street address: an on-site operator reference, never the owner.
+ function epa(record){const e=find(record)?.epaContext;if(!e||e.status!=='observed'||!Array.isArray(e.facilities))return [];return e.facilities.filter(f=>f.role==='on-site-facility-not-owner'&&f.name&&/^https:\/\//.test(f.sourceURL||''));}
  function usdot(record){const u=find(record)?.usdotContext;if(!u||u.role!=='on-site-carrier-not-owner'||!u.carrierName||!/^https:\/\//.test(u.sourceURL||''))return null;return u;}
- window.RadarNJPublicResearch={ready,find,ensure,quickPicks,regulatory,usdot};
+ window.RadarNJPublicResearch={ready,find,ensure,quickPicks,regulatory,usdot,epa};
 })();

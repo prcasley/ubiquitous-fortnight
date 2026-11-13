@@ -14,7 +14,7 @@ export function split(full){
  for(const [key,records] of [...groups].sort()){
   const first=records[0].facts||{};
   shards[key]={file:'nj-research/'+key+'.json',records:records.length,municipality:first.MUN_NAME||null,county:first.COUNTY||null,
-   onSiteCarriers:records.filter(r=>r.usdotContext?.carrierName).length,regulatorySites:records.reduce((n,r)=>n+(r.njdepContext?.sites?.length||0),0)};
+   onSiteCarriers:records.filter(r=>r.usdotContext?.carrierName).length,epaFacilityParcels:records.filter(r=>r.epaContext?.facilities?.length).length,regulatorySites:records.reduce((n,r)=>n+(r.njdepContext?.sites?.length||0),0)};
   files[key]={format:'RadarNJParcelResearchShard',version:1,shard:key,checkedAt:full.checkedAt,records};
  }
  const tracts=new Set(full.records.flatMap(r=>r.tractReferences||[]));
@@ -24,7 +24,7 @@ export function split(full){
  const manifest={format:'RadarNJParcelResearch',version:2,checkedAt:full.checkedAt,
   coverage:{...full.coverage,tractsWithParcels:tracts.size,municipalities:groups.size},
   totals:{records:full.records.length,assessmentNames:full.records.filter(r=>r.assessmentOwnerObservation).length,
-   regulatorySites:full.records.reduce((n,r)=>n+(r.njdepContext?.sites?.length||0),0),onSiteCarriers:full.records.filter(r=>r.usdotContext?.carrierName).length},
+   regulatorySites:full.records.reduce((n,r)=>n+(r.njdepContext?.sites?.length||0),0),onSiteCarriers:full.records.filter(r=>r.usdotContext?.carrierName).length,epaFacilityParcels:full.records.filter(r=>r.epaContext?.facilities?.length).length,namedOnSiteBusiness:full.records.filter(r=>r.usdotContext?.carrierName||r.epaContext?.facilities?.length).length},
   shards,quickPicks,mailingGroups:full.mailingGroups||[],caveat:full.caveat};
  return {manifest,files};
 }
