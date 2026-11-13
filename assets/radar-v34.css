@@ -164,3 +164,26 @@ body.radar-v34 .workspace-sheet{background:#0a0e14!important;border-color:#26364
 body.radar-v34 .workspace-sheet-controls button{background:#152031!important;color:#fff!important;border-color:#26364b!important}
 body.radar-v34 .workspace-sheet-controls button:is([aria-pressed=true],[aria-selected=true],.active){background:#0f5f58!important;border-color:#2dd4bf!important}
 @media(max-width:900px){body.radar-v34 .workspace-sheet{z-index:1050}}
+/* OZ 2.0 cohort bar */
+.oz-cohort-bar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+body.radar-v34 .oz-cohort-bar button{border-radius:999px;min-height:44px;padding:6px 12px;font-weight:700}
+body.radar-v34 .oz-cohort-bar button[aria-pressed=true]{background:#0f5f58;border-color:#2dd4bf;color:#fff}
+.oz-cohort-note{font-size:15px;color:#d6dde6;margin:2px 0 8px}
+
+/* Old below-the-map container: its blocks now live in the tabs */
+body.radar-v34 .content>.below.v34-below-moved{display:none!important}
+body.radar-v34 .v34-legal{margin-top:16px}
+body.radar-v34 .content>.radar-split{width:100%;align-self:stretch}
+body.radar-v34 .main{flex-direction:column!important}
+body.radar-v34 .main>.content{width:100%;min-width:0}
+/* Phone header: title + controls on one row, tabs on the next */
+@media(max-width:900px){
+ body.radar-v34 header.top{gap:6px;padding:6px 8px;min-height:0}
+ .v34-brand{min-width:0;flex:1 1 auto}
+ .v34-brand small{display:none}
+ body.radar-v34 .radar-mode-toggle-btn{font-size:15px!important;padding:4px 8px!important;min-height:44px;max-width:150px;white-space:normal;line-height:1.1}
+ body.radar-v34 .text-size-controls{display:flex;gap:2px;padding:0;border:0;background:transparent}
+ body.radar-v34 .text-size-controls button{min-height:44px;min-width:44px;padding:0 6px;font-size:15px}
+ body.radar-v34 .v34-vault-pill{min-height:44px;padding:4px 8px;font-size:15px!important;max-width:130px;white-space:normal;line-height:1.1}
+ body.radar-v34 .v34-nav{margin-top:2px}
+}

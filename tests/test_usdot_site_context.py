@@ -79,6 +79,12 @@ class UsdotSiteContext(unittest.TestCase):
         self.assertEqual(cov["CARTERET"]["status"], "checked")
         self.assertEqual(len(calls), 3)
 
+    def test_care_of_and_truncated_streets_match_only_with_same_number(self):
+        self.assertTrue(U.carrier_same_address("C O EVERFLOW SUPPLIES 100 MIDD", "100 MIDDLESEX AVENUE"))
+        self.assertFalse(U.carrier_same_address("C O EVERFLOW SUPPLIES 102 MIDD", "100 MIDDLESEX AVENUE"))
+        self.assertFalse(U.carrier_same_address("100 MIDD", "100 MIDDLESEX AVENUE"))
+        self.assertTrue(U.carrier_same_address("351 ROOSEVELT AVE UNIT 1", "351 ROOSEVELT AVE"))
+
 
 if __name__ == "__main__":
     unittest.main()

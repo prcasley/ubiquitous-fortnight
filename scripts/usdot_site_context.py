@@ -30,7 +30,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from nj_parcel_leads import same_address  # noqa: E402  (shared, tested address matcher)
+from nj_parcel_leads import same_address, addr_numbers  # noqa: E402  (shared, tested address matcher)
 
 DATASET = "https://data.transportation.gov/resource/az4n-8mr2.json"
 SNAPSHOT = "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string="
@@ -83,8 +83,24 @@ def rank(carrier: dict) -> tuple:
     return (carrier.get("status_code") == "A", str(carrier.get("mcs150_date") or ""))
 
 
+CARE_OF = re.compile(r"^(?:C\s*/?\s*O|ATTN|ATTENTION)\b.*?(?=\b\d)")
+
+
+def carrier_same_address(carrier_street: str, parcel_address: str) -> bool:
+    """FMCSA street lines can start with a care-of name and are cut at 30 characters:
+    'C O EVERFLOW SUPPLIES 100 MIDD' is 100 MIDDLESEX AVE. House number must still match."""
+    street = CARE_OF.sub("", str(carrier_street or "").upper()).strip()
+    if street and same_address(street, parcel_address):
+        return True
+    if len(str(carrier_street or "").strip()) >= 28 and street:
+        n1, s1 = addr_numbers(street)
+        n2, s2 = addr_numbers(parcel_address)
+        return bool(n1 & n2) and len(s1) >= 4 and s2.startswith(s1)
+    return False
+
+
 def match_parcel(parcel_address: str, carriers: list[dict]) -> list[dict]:
-    hits = [c for c in carriers if c.get("phy_street") and same_address(c["phy_street"], parcel_address)]
+    hits = [c for c in carriers if c.get("phy_street") and carrier_same_address(c["phy_street"], parcel_address)]
     return sorted(hits, key=rank, reverse=True)
 
 
