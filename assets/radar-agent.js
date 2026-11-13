@@ -47,7 +47,9 @@
      if(name==='Lehigh Valley'){intent.location='Allentown, PA';intent.region='full Lehigh Valley coverage (using an Allentown radius)';}
      if(name==='Northern New Jersey'){intent.location='Parsippany, NJ';intent.region='all of Northern New Jersey (using a Parsippany radius)';}
    }
-   const addressText=intent.q.replace(/^(?:where is|locate|find|show me|take me to)\s+/i,'');
+   const pair=intent.q.replace(/^(?:where is|locate|find|show me|take me to)\s+/i,'').match(/^(\d+)\s*(?:&|and|\/)\s*(\d+)\s+(.+)$/i);
+   if(pair)intent.secondAddress=pair[2]+' '+pair[3];
+   const addressText=intent.q.replace(/^(?:where is|locate|find|show me|take me to)\s+/i,'').replace(/^(\d+)\s*(?:&|and|\/)\s*\d+(?=\s)/i,'$1');
    const street=/^\d+(?:-\d+)?[A-Za-z]?\s+(?:[A-Za-z0-9][A-Za-z0-9.'’-]*\s+){0,8}(?:st|street|ave|avenue|rd|road|blvd|boulevard|hwy|highway|dr|drive|ln|lane|ct|court|way|pkwy|parkway|plaza|plz|place|pl|loop|trail|trl|terrace|ter|circle|cir)\b/i;
    const locations=[addressText,...[...intent.q.matchAll(/\b(?:near|around|at|within\s+\d+(?:\.\d+)?\s+miles?\s+of)\s+(\d.+)/gi)].map(m=>m[1])];
    const fullAddress=locations.find(text=>street.test(text)&&! /\b(?:acres?|ac|miles?|mi|within|over|under)\b/i.test(text.match(street)[0]));
@@ -348,6 +350,26 @@
  }
  function unknownYears(meta){const unknown=bridge().getYearUnknown?.()||[];if(!unknown.length)return;putMessage("I couldn't apply: year-built filter to "+unknown.length+' parcels (year not published).');const row=putMessage(unknown.length+' parcels: year not published — excluded from year-filter matches; listed separately below.');row.classList.add('year-not-published');window.RadarChatProperties?.render(unknown,{...meta,yearUnknown:true});}
 
+ // Parcel numbers: NJ PAMS PIN (e.g. 0614_1005_13) or Palm Beach County PCN (17 digits, dashes allowed).
+ function parcelIdOf(q){const t=String(q||'').trim().replace(/^(?:parcel|pin|pcn|parcel id|parcel number)[:#\s]*/i,'');
+  if(/^\d{4}_[0-9A-Za-z.]+_[0-9A-Za-z.]+(?:_[0-9A-Za-z.]+)?$/.test(t))return {state:'NJ',id:t.toUpperCase()};
+  const d=t.replace(/[-\s]/g,'');if(/^\d{17}$/.test(d)&&/^[\d\s-]+$/.test(t))return {state:'FL',id:d};return null;}
+ const PBC_URL='https://services1.arcgis.com/ZWOoUZbtaYePLlPw/arcgis/rest/services/Parcels_and_Property_Details_WebMercator/FeatureServer/0';
+ async function parcelById(pin){
+  const url=pin.state==='NJ'?bridge().getSources().NJ:PBC_URL,field=pin.state==='NJ'?'PAMS_PIN':'PARID';
+  putMessage('Looking up parcel '+pin.id+' in the '+(pin.state==='NJ'?'NJ statewide parcel layer':'Palm Beach County parcel layer')+'…');
+  try{const q=new URLSearchParams({f:'geojson',where:field+"='"+pin.id.replace(/'/g,"''")+"'",outFields:field,returnGeometry:'true',outSR:'4326',resultRecordCount:'2'});
+   const res=await fetch(url+'/query?'+q,{credentials:'omit'});if(!res.ok)throw Error('source returned '+res.status);const gj=await res.json();
+   if(!Array.isArray(gj.features)||gj.features.length!==1||!gj.features[0].geometry){putMessage('No single parcel with number '+pin.id+' was found in the published layer. Check the number, or search by address.');return;}
+   const c=window.turf.pointOnFeature(gj.features[0]).geometry.coordinates;
+   if($('stateSelect').value!==pin.state){$('stateSelect').value=pin.state;$('stateSelect').dispatchEvent(new Event('change'));}
+   bridge().setCenter(c[1],c[0],18);await new Promise(r=>setTimeout(r,600));
+   let record=null;for(let i=0;!record&&i<3;i++){if(i)await new Promise(r=>setTimeout(r,1200));record=await window.PublicRadarGeo.identifyAt(c[1],c[0]);}
+   if(!record){putMessage('Parcel '+pin.id+' was found on the map, but its record could not be loaded right now. Tap the parcel or try again.');return;}
+   putMessage('Parcel '+pin.id+' found. Verify the address and boundary below.');
+   window.RadarChatProperties?.render([record],{...bridge().getMeta(),time:record.retrievedAt,source:record.source.name,sourceURL:record.source.url,complete:true});
+  }catch(e){putMessage('Parcel lookup is unavailable right now ('+e.message+'). No parcel was guessed.');}
+ }
  async function ask(raw,options={}){
    let intent=options.intent?{...options.intent}:parseIntent(raw);if(!intent.q)return;
    if(busy){putMessage("A public-source search is already in progress. Finish it before submitting another request.");return;}
@@ -355,6 +377,7 @@
    if(/^(help|what can you do|how do I find land)[?!.]*$/i.test(intent.q)){putMessage(raw,'user');chips('Try one of these public-data searches. You can change the town, acreage or property type.',examples.map(x=>[x,x]));return;}
    if(/(?:print|text|font).*(?:bigger|larger)|make.*(?:print|text).*big/i.test(intent.q)){window.RadarReadability?.change(1);putMessage('Text enlarged. Use A− / A+ at the top to adjust it again.');return;}
    if(/^go back[.!]?$/i.test(intent.q)){if(history.length<2){putMessage('There is no earlier search in this tab yet. Your current criteria are unchanged.');return;}history.pop();const prior=history.at(-1);return ask(prior.intent.q,{intent:prior.intent,restore:prior.search,replay:true});}
+   {const pin=parcelIdOf(intent.q);if(pin){putMessage(raw,'user');await parcelById(pin);return;}}
    if(/^what does that mean[?!.]?$/i.test(intent.q)){putMessage(clarify());return;}
    if(/summariz[e].*(?:board)|board summary/i.test(intent.q)){boardSummary();return;}
    if(/^export (?:these|results|this)[.!]?$/i.test(intent.q)){if(!bridge().getResults().length){putMessage('Search a town first, then export its accepted public parcel records.');return;}exportPublicResults();putMessage('Exported the accepted public parcel records with source and retrieval dates. Year-not-published records are separate from year-filter matches.');return;}
@@ -482,9 +505,10 @@
        applyCounty(state,recognized.key,{center:false});
      }
      if(intent.address&&!geocodeMatch?.fallback){
-       const point=bridge().getSearchCenter();const record=await window.PublicRadarGeo.identifyAt(point.lat,point.lon);
+       const point=bridge().getSearchCenter();let record=await window.PublicRadarGeo.identifyAt(point.lat,point.lon);for(let i=0;!record&&i<2;i++){await new Promise(r=>setTimeout(r,1200));record=await window.PublicRadarGeo.identifyAt(point.lat,point.lon);}
        if(record){putMessage('Address geocoded; a public parcel was identified at that map point. Verify the parcel address and geometry below; geocoding is not title verification.');window.RadarChatProperties?.render([record],{...bridge().getMeta(),time:record.retrievedAt,source:record.source.name,sourceURL:record.source.url,complete:true});}
-       else putMessage('The address was geocoded, but no unique public parcel could be verified at that point. No parcel identity was guessed.');return;
+       else putMessage('The address was geocoded, but no unique public parcel could be verified at that point. No parcel identity was guessed.');
+       if(intent.secondAddress)chips('This address lists two street numbers. Check the other one too:',[[intent.secondAddress,intent.secondAddress]]);return;
      }
      $("typeSelect").value=intent.type||"industrial";
      bridge().setAcreageFilter(intent.acres??0,intent.comparison==="under"?"<":intent.comparison||">=",intent.maxAcres);

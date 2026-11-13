@@ -14,7 +14,7 @@ try:
   for key in ['deal','owners','scan']:
    page.click('#workspace-tab-'+key);check('mode changes without replacing map: '+key,page.evaluate('(key)=>RadarWorkspace.getMode()===key&&originalWorkspaceMap===PublicRadarBridge.getMap()',key))
   page.fill('#agentPrompt','industrial over 5 acres in Edison NJ');page.press('#agentPrompt','Enter');page.wait_for_function('!document.querySelector("#agentForm [type=submit]").disabled');before=page.evaluate('({ids:PublicRadarBridge.getResults().map(r=>r.key),scan:PublicRadarBridge.getMeta().scanId})')
-  page.click('#workspace-tab-owners');page.wait_for_function('document.getElementById("publishedOwnerFilesStatus").textContent.includes("1,490")');check('published owner files are reachable in ownership mode',page.get_by_role('link',name='Download imported owner records (CSV)').is_visible())
+  page.click('#workspace-tab-owners');page.wait_for_function('document.getElementById("publishedOwnerFilesStatus").textContent.includes("1,490")');page.evaluate("()=>document.querySelectorAll('.v34-fold,.v34-dossier').forEach(d=>d.open=true)");check('published owner files are reachable in ownership mode',page.get_by_role('link',name='Download imported owner records (CSV)').is_visible())
   page.click('#workspace-tab-deal');page.keyboard.press('ArrowRight');check('keyboard navigation selects owners',page.evaluate('RadarWorkspace.getMode()')=='owners');page.keyboard.press('Home');check('Home returns to Scan',page.evaluate('RadarWorkspace.getMode()')=='scan')
   for width in [390,360]:
    page.set_viewport_size({'width':width,'height':844});page.wait_for_timeout(100)

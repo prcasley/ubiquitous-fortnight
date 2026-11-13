@@ -1,0 +1,166 @@
+/* V3.4 — Dark Matte / Deep Navy. Top tabs, research column, map, fixed detail column. White body text; links are white and underlined. */
+body.radar-v34{--bg:#0a0e14;--panel:#0f1724;--panel2:#152031;--line:#26364b;--navy:#0b1b30;--ink:#ffffff;--muted:#d6dde6;--accent:#2dd4bf;--accent-bg:#0f5f58;
+ background:var(--bg);color:var(--ink);font-family:Inter,'Segoe UI',Arial,sans-serif;overflow:hidden}
+body.radar-v34 .content{padding:0!important}
+body.radar-v34 a{color:#fff!important;text-decoration:underline;text-underline-offset:2px}
+
+/* Header + tabs */
+body.radar-v34 header.top{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;background:var(--navy);color:#fff;min-height:72px;border:0;border-bottom:1px solid var(--line);z-index:900;flex:none}
+.v34-brand{display:grid;gap:2px;min-width:200px}
+.v34-brand strong{font-size:21px;color:#fff;letter-spacing:.2px}
+.v34-brand small{color:var(--muted);font-size:14px}
+body.radar-v34 .v34-nav{display:flex!important;flex:1;gap:4px;grid-column:auto;padding:0;min-width:0;flex-wrap:wrap}
+body.radar-v34 .v34-nav button{background:transparent;color:#e8eef5;border:1px solid transparent;border-radius:8px;min-height:44px;padding:8px 12px;width:auto;font-weight:700;font-size:16px;box-shadow:none}
+body.radar-v34 .v34-nav button:hover{background:#ffffff14}
+body.radar-v34 .v34-nav button[aria-current=page],body.radar-v34 .v34-nav button[aria-selected=true]{background:#ffffff1f;border-color:var(--accent);color:#fff}
+body.radar-v34 .text-size-controls{background:#ffffff10;border:1px solid var(--line);border-radius:8px;color:#fff}
+body.radar-v34 .text-size-controls button{color:#fff;background:#ffffff12;border-color:var(--line)}
+body.radar-v34 .radar-mode-toggle-btn{margin:0;background:var(--accent-bg);color:#fff;border:1px solid var(--accent)}
+body.radar-v34 .v34-vault-pill{color:#fff;background:#7c5a1233;border:1px solid #f2b84b;border-radius:8px;min-height:44px}
+
+/* Three columns: research | map | detail */
+body.radar-v34 .radar-split{grid-template-columns:minmax(340px,400px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:calc(100dvh - var(--v34-header-height,72px));gap:0;min-height:0}
+body.radar-v34 .workspace-drawer{grid-column:1;grid-row:1;border:0;border-right:1px solid var(--line);border-radius:0;background:var(--bg);color:#fff;padding:14px;overflow:auto}
+body.radar-v34 .workspace-map-slot{grid-column:2;grid-row:1}
+body.radar-v34 .workspace-map-slot .map-column{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,380px);grid-template-rows:minmax(0,1fr);gap:0;position:relative;height:100%}
+body.radar-v34 .workspace-map-slot #mapPanel{grid-column:1;grid-row:1;border:0;border-radius:0;background:#111a27}
+body.radar-v34 .v34-detail-col{grid-column:2;grid-row:1;min-height:0;height:100%;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:0 0 16px}
+body.radar-v34 .workspace-map-slot #details:not([hidden]){position:static;inset:auto;width:auto;max-width:none;max-height:none;height:auto;overflow:visible;z-index:1;border:0!important;border-radius:0;box-shadow:none;background:transparent!important;color:#fff;padding:16px!important}
+body.radar-v34 .v34-detail-col>.v34-dossier{margin:0 16px}
+.v34-detail-empty{padding:24px 16px;background:transparent;color:var(--muted)}
+.v34-detail-empty[hidden]{display:none}
+.v34-detail-empty h2{color:#fff;margin-top:0}
+
+/* Map toolbar */
+body.radar-v34 .map-actions{background:var(--panel);border-bottom:1px solid var(--line);padding:5px}
+body.radar-v34 .map-actions button,body.radar-v34 .map-actions select{background:var(--panel2);color:#fff;border:1px solid var(--line);border-radius:7px;min-height:44px}
+
+/* One Ask Radar box */
+body.radar-v34 .v34-ask{background:linear-gradient(150deg,#0d2a3d,#0b1b30)!important;color:#fff;border:1px solid #1f6f6a;border-radius:12px;padding:14px!important;box-shadow:none}
+body.radar-v34 .v34-ask .agent-top :is(h2,p,span){color:#fff!important}
+.v34-ask .agent-tag,.v34-ask .eyebrow{display:none}
+body.radar-v34 #agentForm{display:flex;flex-wrap:wrap;gap:6px}
+body.radar-v34 #agentPrompt{flex:1 1 100%;background:#0a0e14;color:#fff;border:1px solid var(--accent);border-radius:8px;font-size:18px;min-height:48px}
+body.radar-v34 #agentPrompt::placeholder{color:#b8c4d2}
+body.radar-v34 #agentForm button{min-height:48px;border-radius:8px;font-weight:800}
+body.radar-v34 #agentForm button[type=submit]{background:var(--accent);color:#04201c;border:0;flex:1}
+body.radar-v34 .agent-suggestions{display:flex;flex-wrap:wrap;gap:6px}
+body.radar-v34 .agent-suggestions button{border:1px solid #ffffff40;background:#ffffff12;color:#fff;border-radius:999px;padding:6px 11px;min-height:44px}
+body.radar-v34 .assistant-status,body.radar-v34 .assistant-disclosure{color:var(--muted)!important}
+body.radar-v34 .agent-log{background:#0a0e14;border-color:var(--line)!important;color:#fff}
+body.radar-v34 .v34-legacy-ask{display:none!important}
+.v34-section-title h2{margin:0;color:#fff}
+.v34-section-title p{color:var(--muted);margin:6px 0 12px}
+
+/* Folded sections (closed by default, count in the title) */
+body.radar-v34 :is(.v34-fold,#filterDrawer,#workspaceLayers){background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:10px 0;padding:0;color:#fff}
+body.radar-v34 :is(.v34-fold,#filterDrawer,#workspaceLayers)>summary{padding:12px 14px;background:var(--panel2);color:#fff;cursor:pointer;font-weight:800;font-size:17px;min-height:44px;border-radius:10px;list-style-position:inside}
+body.radar-v34 :is(.v34-fold,#filterDrawer,#workspaceLayers)[open]>summary{border-radius:10px 10px 0 0;border-bottom:1px solid var(--line)}
+body.radar-v34 .v34-fold>:not(summary){margin:0!important;border:0!important;border-radius:0 0 10px 10px!important;background:transparent!important;padding:10px!important}
+body.radar-v34 .v34-fold .v34-folded-title{display:none}
+/* Simple view keeps the tabs and the folded drawers (closed, with counts). Ids raise specificity over simple-mode's id list. */
+body.radar-v34[data-radar-mode=simple] :is(.v34-nav,#v34-boost){display:flex!important}
+body.radar-v34[data-radar-mode=simple] :is(.v34-fold,#filterDrawer,#v34-boost){display:block!important}
+body.radar-v34[data-radar-mode=simple] #workspaceDrawer .v34-fold>:not(summary){display:block!important}
+
+/* Dark surfaces for every legacy panel */
+body.radar-v34 :is(.panel,.research-tools,.research-panel,.note,.source-coverage,.acquisition-grid article,.assembly-tray,.workspace-status){background:var(--panel)!important;color:#fff!important;border-color:var(--line)!important}
+body.radar-v34 :is(.panel-sub,.muted,small,.workspace-status,.scan-status){color:var(--muted)!important}
+body.radar-v34 :is(h1,h2,h3,h4,label,legend,dt,dd,p,li,td,th,summary){color:#fff}
+body.radar-v34 :is(input,select,textarea){background:#0a0e14;color:#fff;border:1px solid var(--line);border-radius:7px}
+body.radar-v34 :is(button.secondary,.secondary){background:var(--panel2);color:#fff;border:1px solid var(--line)}
+body.radar-v34 :is(button.primary,.primary){background:var(--accent-bg);color:#fff;border:1px solid var(--accent)}
+body.radar-v34 table{color:#fff}
+body.radar-v34 :is(th){background:var(--panel2)!important}
+body.radar-v34 :is(td,th){border-color:var(--line)!important}
+
+/* Property card in the detail column */
+body.radar-v34 .executive-parcel{background:var(--panel2)!important;color:#fff!important;border:1px solid var(--line)!important;box-shadow:none}
+body.radar-v34 .executive-parcel .executive-card-heading :is(h2,h3),body.radar-v34 .executive-parcel .executive-use{color:#fff!important}
+body.radar-v34 .executive-identity{background:#0d2622;border:2px solid #1f8f84;border-radius:11px;color:#fff}
+body.radar-v34 .executive-identity strong{color:#fff!important;font-size:22px}
+body.radar-v34 .executive-label{color:#fff!important;opacity:.9;letter-spacing:.4px}
+body.radar-v34 .executive-role-note{color:var(--muted)!important}
+body.radar-v34 .executive-parcel .executive-contact-actions :is(a,button){background:#1d2a3c;color:#fff;border:1px solid var(--line)}
+body.radar-v34 .executive-parcel a[href^='tel:']{background:#047857!important;color:#fff!important;border-radius:8px;min-height:48px;padding:10px;text-decoration:none}
+body.radar-v34 .executive-parcel a[href^='mailto:']{background:#1e40af!important;color:#fff!important;border-radius:8px;min-height:48px;padding:10px;text-decoration:none}
+body.radar-v34 .executive-needs-review{color:#fff;background:#78350f;padding:4px 6px;border-radius:4px}
+body.radar-v34 .executive-parcel .executive-acreage{background:#0d2622;color:#fff!important;border:1px solid #1f8f84;justify-self:start}
+body.radar-v34 .executive-oz{color:#fff!important;background:#2a2108;border:1px solid #fbbf24}
+body.radar-v34 .executive-metrics{background:var(--panel);border:1px solid var(--line);border-radius:9px}
+body.radar-v34 .executive-metrics span{color:var(--muted)!important}
+body.radar-v34 .executive-parcel .executive-metrics strong{color:#fff!important}
+body.radar-v34 .executive-parcel :is(.executive-technical,.card-source-box){background:var(--panel);border:1px solid var(--line);border-radius:9px;margin-top:8px;padding:0}
+body.radar-v34 .executive-parcel :is(.executive-technical,.card-source-box)>summary{padding:11px 12px;font-weight:800;font-size:16px;color:#fff;cursor:pointer;min-height:44px}
+body.radar-v34 .executive-parcel :is(.executive-technical,.card-source-box)[open]>summary{border-bottom:1px solid var(--line)}
+body.radar-v34 .executive-parcel :is(.executive-technical,.card-source-box)>:not(summary){padding:8px 12px}
+body.radar-v34 .executive-parcel .executive-technical :is(p,span,div,dt,dd){color:#fff}
+body.radar-v34 .executive-parcel .executive-technical :is(.public-owner-section,.detail-grid>div){background:var(--panel2)!important;color:#fff!important}
+
+/* Research dossier inside the detail column */
+.v34-dossier{margin-top:12px;background:var(--panel2);border:1px solid #1f8f84;border-radius:10px;color:#fff}
+.v34-dossier>summary{padding:12px;font-weight:800;font-size:17px;cursor:pointer;min-height:44px}
+.v34-dossier[open]>summary{border-bottom:1px solid var(--line)}
+.v34-dossier>:not(summary){padding:8px 12px}
+.v34-dossier-lookup{display:block;width:calc(100% - 24px);margin:10px 12px;background:var(--accent-bg);color:#fff;border:1px solid var(--accent);border-radius:8px;min-height:44px;font-weight:700}
+
+/* Ownership, starred, data */
+.v34-kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.v34-kpis>div{display:grid;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.v34-kpis strong{font-size:26px;color:#fff}
+.v34-kpis span{color:var(--muted)}
+.v34-table-wrap{overflow:auto;margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.v34-table-wrap table{border-collapse:collapse;width:100%}
+.v34-table-wrap th,.v34-table-wrap td{padding:8px;border-bottom:1px solid var(--line);text-align:left;color:#fff}
+.v34-table-wrap button,.v34-list-view button,.v34-star{background:var(--panel2);color:#fff;border:1px solid var(--line);border-radius:8px;min-height:44px;padding:8px;cursor:pointer}
+.v34-list-view{color:#fff}
+.v34-list-view>button{display:block;width:100%;margin:8px 0;text-align:left}
+.v34-saved-row{display:flex;gap:8px;margin:8px 0}
+.v34-saved-row button:first-child{flex:1}
+.v34-downloads{display:grid;gap:8px;margin-top:14px}
+.v34-ownership input{width:100%;padding:10px}
+
+@media(max-width:1100px) and (min-width:901px){body.radar-v34 .radar-split{grid-template-columns:330px minmax(0,1fr)}
+ body.radar-v34 .workspace-map-slot .map-column{grid-template-columns:minmax(0,1fr)}
+ body.radar-v34 .v34-detail-col{position:absolute;right:0;bottom:0;width:360px;height:60%;z-index:600}
+ body.radar-v34 .v34-detail-col:not(.has-selection){display:none}
+ .v34-detail-empty{display:none}}
+
+@media(max-width:900px){body.radar-v34 header.top{gap:6px;padding:8px}
+ .v34-brand{min-width:140px;flex:1}
+ .v34-brand strong{font-size:18px}
+ body.radar-v34 .v34-nav{order:5;flex-basis:100%;flex-wrap:nowrap;overflow:auto}
+ body.radar-v34 .v34-nav button{flex:none;font-size:15px!important;min-height:44px}
+ body.radar-v34 .text-size-controls{margin:0}
+ body.radar-v34 .radar-mode-toggle-btn{font-size:15px;min-height:44px;padding:5px 8px}
+ body.radar-v34 .radar-split{display:block;height:calc(100dvh - var(--v34-header-height,180px))}
+ body.radar-v34 .workspace-map-slot .map-column{display:flex}
+ .v34-detail-empty{display:none}
+ body.radar-v34 .v34-detail-col{position:absolute;right:0;top:var(--executive-map-top,130px);width:min(390px,96vw);height:auto;max-height:45dvh;z-index:650;padding-bottom:8px}
+ body.radar-v34 .v34-detail-col:not(.has-selection){display:none}
+ /* While a property card is open on a phone, hide the zoom buttons so they never cover the address; pinch-zoom still works. */
+ body.radar-v34 .map-column:has(.v34-detail-col.has-selection) .leaflet-control-zoom{display:none!important}
+ body.radar-v34 .workspace-drawer{padding:8px}
+ body.radar-v34 .workspace-map-slot #mapPanel{flex:1}
+ .v34-vault-pill{font-size:15px!important}
+ body.radar-v34 .workspace-map-slot #mapPanel .map-actions{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;padding:3px;gap:4px}
+ body.radar-v34 .workspace-map-slot #mapPanel .map-actions>*{flex:none;width:auto!important;max-width:none;min-height:44px;font-size:15px!important;padding:6px!important}
+ body.radar-v34 .workspace-map-slot #mapPanel .map-actions #basemap{max-width:130px}
+ body.radar-v34 .workspace-map-slot #mapPanel .panel-head{padding:3px}}
+
+body.radar-v34.map-expanded .workspace-map-slot #mapPanel{position:fixed;inset:0;width:100vw;height:100dvh;z-index:10000}
+body.radar-v34.map-expanded .v34-detail-col.has-selection{position:fixed;right:0;top:auto;bottom:0;width:min(350px,96vw);height:45dvh;z-index:10001}
+body.radar-v34 .shell,body.radar-v34 .main{height:100dvh;min-height:0;overflow:hidden}
+body.radar-v34 .main{display:flex;flex-direction:column}
+body.radar-v34 .content{flex:1;min-height:0;overflow:hidden}
+body.radar-v34.map-expanded header.top{visibility:hidden;pointer-events:none}
+
+/* Leaflet controls on the dark map */
+body.radar-v34 .leaflet-bar a{background:#0f1724!important;color:#fff!important;border-color:#26364b!important;text-decoration:none;width:40px;height:40px;line-height:40px;font-size:22px}
+body.radar-v34 .leaflet-bar{border:1px solid #26364b!important}
+body.radar-v34 .leaflet-control-attribution{background:#0a0e14cc!important;color:#d6dde6!important}
+/* Phone bottom sheet in the dark theme */
+body.radar-v34 .workspace-sheet{background:#0a0e14!important;border-color:#26364b!important}
+body.radar-v34 .workspace-sheet-controls button{background:#152031!important;color:#fff!important;border-color:#26364b!important}
+body.radar-v34 .workspace-sheet-controls button:is([aria-pressed=true],[aria-selected=true],.active){background:#0f5f58!important;border-color:#2dd4bf!important}
+@media(max-width:900px){body.radar-v34 .workspace-sheet{z-index:1050}}

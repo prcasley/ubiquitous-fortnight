@@ -63,7 +63,7 @@ try:
         page.wait_for_function('document.getElementById("researchToolsStatus").textContent.includes("previous records preserved")')
         assert '$200.00/building SF' in page.locator('#localCompResults').inner_text()
         map_box=page.locator('#map').bounding_box()
-        assert map_box['width']>600 and map_box['height']>=300, map_box
+        assert map_box['width']>=500 and map_box['height']>=300, map_box
         page.click('#expandMap')
         assert page.locator('#expandMap').get_attribute('aria-expanded')=='true'
         page.keyboard.press('Escape')
@@ -141,8 +141,7 @@ try:
         page.click('#scanButton')
         page.wait_for_function('window.PublicRadarBridge.getMeta().status==="partial" && !document.getElementById("scanButton").textContent.includes("Cancel")')
         assert not page.evaluate('window.PublicRadarBridge.getMeta().ready')
-        page.fill('#askInput','How many parcels?')
-        page.locator('#askForm button').click()
+        page.evaluate("()=>{document.getElementById('askInput').value='How many parcels?';document.getElementById('askForm').requestSubmit();}")
         assert 'partial' in page.locator('#answers').inner_text()
         mode['partial'] = False
         mode['collision'] = True
@@ -301,6 +300,7 @@ try:
         assert map_box['y']>=0 and map_box['y']+map_box['height']<844,map_box
         assert phone.get_by_role('tab').count()==3
         phone.click('#workspace-tab-owners')
+        phone.evaluate("()=>document.querySelectorAll('.v34-fold').forEach(d=>d.open=true)")
         assert phone.locator('#ownershipWorkbench').is_visible() and phone.locator('#fieldTripPanel').is_visible()
         phone.click('#workspace-tab-scan')
         phone.fill('#agentPrompt','Find industrial over 5 acres near Edison NJ')

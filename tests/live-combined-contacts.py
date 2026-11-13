@@ -20,7 +20,8 @@ CARD = """() => {const a=[...document.querySelectorAll('.chat-properties:not(.pr
  return {address:a.querySelector('h3')?.innerText||'',owner:a.querySelector('.executive-identity')?.innerText||'',
   vault:a.querySelector('.executive-vault-contact')?.innerText||'',
   calls:[...a.querySelectorAll('a.executive-call')].filter(vis).map(x=>({text:x.innerText.trim(),href:x.getAttribute('href')})),
-  review:[...a.querySelectorAll('.executive-needs-review')].filter(vis).map(x=>x.innerText.trim()),
+  review:[...a.querySelectorAll('.executive-needs-review')].filter(vis).map(x=>x.textContent.replace(/\s+/g,' ').trim()),
+  all:a.textContent.replace(/\s+/g,' '),
   live:a.querySelector('.executive-live-contacts')?.innerText||null,
   liveButton:!!a.querySelector('.executive-live-contacts button'),
   mailing:[...a.querySelectorAll('.executive-contact-actions a')].some(x=>/mailing address/i.test(x.innerText)),
@@ -56,7 +57,7 @@ with sync_playwright() as p:
     c2 = page.evaluate(CARD); live = c2["live"] or ""
     check("live check: Transways listed once", live.upper().count("TRANSWAYS MOTOR EXPRESS") == 1, live[:400])
     check("live check: phone formatted", "Call 732-442-4630" in live, live[:400])
-    check("live check: filing age shown", re.search(r"filing (dated|date)|Old federal filing", live, re.I) is not None, live[:400])
+    check("live check: filing age shown (card or its Sources drawer)", re.search(r"filing (dated|date)|Old federal filing", live+" "+c2["all"], re.I) is not None, live[:400])
 
     # Carteret: Qualmax
     ask(page, "60 Grant Ave, Carteret, NJ"); c = page.evaluate(CARD)
