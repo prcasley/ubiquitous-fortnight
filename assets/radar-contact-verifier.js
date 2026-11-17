@@ -1,7 +1,24 @@
 /* Evidence-gated contact association. Syntax and URL presence never prove a contact. */
 (function(g){'use strict';
 const suffix={STREET:'ST',AVENUE:'AVE',ROAD:'RD',BOULEVARD:'BLVD',DRIVE:'DR',LANE:'LN',COURT:'CT',NORTH:'N',SOUTH:'S',EAST:'E',WEST:'W'};
-const town=s=>String(s||'').toUpperCase().replace(/\b(BOROUGH|BORO|TOWNSHIP|TWP|CITY|TOWN)\.?$/,'').trim();
+const TYPE=/\s+(BOROUGH|BORO|TOWNSHIP|TWP|CITY|TOWN|VILLAGE)\.?$/;
+// Postal/carrier city names that differ from the assessment municipality name.
+const ALIAS={'PARSIPPANY TR HLS':['PARSIPPANY'],'PARSIPPANY-TROY HILLS':['PARSIPPANY']};
+// Base names used by more than one NJ municipality: a street match alone cannot tell them apart.
+const SHARED=new Set(['WASHINGTON','FRANKLIN','HAMILTON','UNION','MONROE','GREENWICH','SPRINGFIELD','OCEAN','LAWRENCE','MANSFIELD','GLOUCESTER','EGG HARBOR','FAIRFIELD','HOPEWELL','BURLINGTON','PEMBERTON','CHESTER','MENDHAM','BOONTON','ROCKAWAY','FREEHOLD','LEBANON','CLINTON','BERLIN','MILLSTONE']);
+const upper=s=>String(s||'').toUpperCase().replace(/\s+/g,' ').trim();
+const town=s=>upper(s).replace(TYPE,'').trim();
+// Every city spelling a carrier filing may use for this municipality. "ORANGE CITY TWP" files as ORANGE;
+// "GLOUCESTER CITY" files as GLOUCESTER CITY; "JERSEY CITY CITY" files as JERSEY CITY.
+function towns(s){const raw=upper(s),base=town(raw),out=new Set(base?[base]:[]);
+ if(/\sCITY$/.test(raw))out.add(raw);
+ if(/\sCITY\s+(TWP|TOWNSHIP)\.?$/.test(raw))out.add(base.replace(/\s+CITY$/,''));
+ for(const a of ALIAS[base]||ALIAS[raw]||[])out.add(a);
+ return [...out].filter(Boolean);}
+// A bare name matches a municipality's aliases; two different municipality types never match through a shared base
+// (UNION TWP is not UNION CITY).
+const sameTown=(a,b)=>{const x=upper(a),y=upper(b);if(!x||!y)return false;return towns(x).includes(y)||towns(y).includes(x)||(town(x)===town(y)&&!/\sCITY$/.test(x)&&!/\sCITY$/.test(y));};
+const sharedTown=s=>SHARED.has(town(s));
 const street=s=>String(s||'').split(',')[0].toUpperCase().replace(/\b(UNIT|SUITE|STE|APT)\b.*$/,'').replace(/[.]/g,'').split(/\s+/).map(x=>suffix[x]||x).join(' ').trim();
 const phone=s=>String(s||'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
 const safe=u=>{try{return new URL(u).protocol==='https:'}catch{return false}};
@@ -9,15 +26,29 @@ function parcel(r){return {id:r.id||r.parcelId,address:r.original?.PROP_LOC||r.f
 // Age of the carrier's own filing (MCS-150), separate from when we downloaded it.
 function filingAge(value,now=Date.now()){const raw=String(value||'').trim();const iso=/^\d{8}$/.test(raw)?raw.slice(0,4)+'-'+raw.slice(4,6)+'-'+raw.slice(6,8):raw.slice(0,10);const t=Date.parse(iso);if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)||!Number.isFinite(t)||t>now)return {date:null,days:null,status:'unknown'};const days=Math.floor((now-t)/86400000);return {date:iso,days,status:days>730?'old':'current'};}
 function verify(p,c,now=Date.now()){
- p=parcel(p);const associated=!!p.id&&p.id===c.parcelId&&street(p.address)===street(c.address)&&!!town(p.city)&&town(p.city)===town(c.city)&&p.state===c.state;
+ p=parcel(p);const associated=!!p.id&&p.id===c.parcelId&&street(p.address)===street(c.address)&&!!town(p.city)&&sameTown(p.city,c.city)&&p.state===c.state;
  const fresh=Number.isFinite(Date.parse(c.checkedAt))&&Date.parse(c.checkedAt)<=now&&now-Date.parse(c.checkedAt)<=90*86400000;
  const fields=(c.fields||[]).filter(f=>associated&&fresh&&c.company&&c.role&&f.company===c.company&&safe(f.sourceUrl)&&f.evidenceValue===f.value&&['source-observed','human-reviewed'].includes(f.method)&&((f.type==='phone'&&/^[2-9]\d{2}[2-9]\d{6}$/.test(phone(f.value)))||(f.type==='email'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value))));
  const filing=filingAge(c.filingDate,now);return {associated,fields,filing,status:!associated?'Address or parcel mismatch':!fresh?'Needs a fresh source check':fields.length?'Source-supported business contact':'Needs verification'};
 }
-function fromCarrier(p,row,sourceUrl,checkedAt){p=parcel(p);const company=row.legal_name||row.dba_name||'';return {parcelId:p.id,address:row.phy_street,city:row.phy_city,state:row.phy_state,company,role:'On-site carrier — ownership unconfirmed',checkedAt,filingDate:row.mcs150_date||null,fields:[['phone',row.phone],['email',row.email_address]].filter(x=>x[1]).map(([type,value])=>({type,value,evidenceValue:value,company,sourceUrl,method:'source-observed'}))};}
-async function lookup(r,fetcher=g.fetch){const p=parcel(r);if(p.state!=='NJ'||!p.city)return {status:'Source unavailable: municipality missing',contacts:[]};const contacts=[];const city=town(p.city).replaceAll("'","''");let complete=false;
- for(let offset=0;offset<10000;offset+=1000){const q=new URLSearchParams({$where:"phy_state='NJ' AND upper(phy_city)='"+city+"'",$order:'dot_number',$limit:'1000',$offset:String(offset),$select:'dot_number,legal_name,dba_name,phy_street,phy_city,phy_state,phone,email_address,mcs150_date,status_code'});const url='https://data.transportation.gov/resource/az4n-8mr2.json?'+q;const res=await fetcher(url,{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!res.ok)throw Error('Carrier source unavailable ('+res.status+')');const rows=await res.json();if(!Array.isArray(rows))throw Error('Unexpected carrier response');for(const row of rows){if(row.status_code!=='A'||street(row.phy_street)!==street(p.address)||town(row.phy_city)!==town(p.city)||row.phy_state!=='NJ')continue;contacts.push(fromCarrier(p,row,'https://data.transportation.gov/resource/az4n-8mr2.json?'+new URLSearchParams({$where:'dot_number='+Number(row.dot_number)}),new Date().toISOString()));}if(rows.length<1000){complete=true;break;}}
- return {status:complete?(contacts.length?'Carrier contacts found':'No active carrier match; other business sources still need research'):'Partial carrier search: source limit reached',contacts,complete};
+function fromCarrier(p,row,sourceUrl,checkedAt){p=parcel(p);const company=row.legal_name||row.dba_name||'';return {parcelId:p.id,address:row.phy_street,city:row.phy_city,state:row.phy_state,company,role:sharedTown(p.city)?'Carrier at a matching street address — this town name is used by more than one NJ municipality; confirm the location. Ownership unconfirmed':'On-site carrier — ownership unconfirmed',checkedAt,filingDate:row.mcs150_date||null,fields:[['phone',row.phone],['email',row.email_address]].filter(x=>x[1]).map(([type,value])=>({type,value,evidenceValue:value,company,sourceUrl,method:'source-observed'}))};}
+const SOURCE='https://data.transportation.gov/resource/az4n-8mr2.json?';
+const quote=v=>"'"+String(v).replaceAll("'","''")+"'";
+async function rowsFor(params,fetcher){const res=await fetcher(SOURCE+new URLSearchParams(params),{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!res.ok)throw Error('Carrier source unavailable ('+res.status+')');const rows=await res.json();if(!Array.isArray(rows))throw Error('Unexpected carrier response');return rows;}
+// One small query per property: the town and the house number are filtered at the source, so a phone no longer
+// downloads every carrier in the municipality. The exact street/town comparison below is unchanged.
+async function lookup(r,fetcher=g.fetch){const p=parcel(r);if(p.state!=='NJ'||!p.city)return {status:'Source unavailable: municipality missing',contacts:[]};const contacts=[],names=towns(p.city),wanted=street(p.address),first=wanted.split(' ')[0];
+ if(!names.length)return {status:'Source unavailable: municipality missing',contacts:[]};
+ const townWhere="phy_state='NJ' AND upper(phy_city) in ("+names.map(quote).join(',')+")",narrow=/^\d[0-9A-Z\/-]*$/.test(first)?" AND upper(phy_street) like "+quote(first+' %'):'';let complete=false;
+ for(let offset=0;offset<10000;offset+=1000){const rows=await rowsFor({$where:townWhere+narrow,$order:'dot_number',$limit:'1000',$offset:String(offset),$select:'dot_number,legal_name,dba_name,phy_street,phy_city,phy_state,phone,email_address,mcs150_date,status_code'},fetcher);
+  for(const row of rows){if(row.status_code!=='A'||street(row.phy_street)!==wanted||!sameTown(row.phy_city,p.city)||row.phy_state!=='NJ')continue;contacts.push(fromCarrier(p,row,SOURCE+new URLSearchParams({$where:'dot_number='+Number(row.dot_number)}),new Date().toISOString()));}
+  if(rows.length<1000){complete=true;break;}}
+ if(!complete)return {status:'Partial carrier search: source limit reached',contacts,complete};
+ if(contacts.length)return {status:sharedTown(p.city)?'Carrier contacts found — confirm the town, this name is shared by more than one NJ municipality':'Carrier contacts found',contacts,complete};
+ // No match: tell "nothing at this address" apart from "this town name is not used in carrier filings".
+ let listed=null;try{const count=await rowsFor({$select:'count(*) as n',$where:townWhere},fetcher);listed=Number(count[0]?.n);}catch{}
+ if(listed===0)return {status:'No carrier records are filed under '+names.join(' / ')+'. Filings use postal city names, so this is not a confirmed absence; research other business sources.',contacts,complete:false,townListed:false};
+ return {status:'No active carrier match; other business sources still need research',contacts,complete,townListed:listed>0?true:null};
 }
-const api={parcel,street,town,verify,fromCarrier,lookup,filingAge};g.RadarContactVerifier=api;if(typeof module!=='undefined')module.exports=api;
+const api={parcel,street,town,towns,sameTown,sharedTown,verify,fromCarrier,lookup,filingAge};g.RadarContactVerifier=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

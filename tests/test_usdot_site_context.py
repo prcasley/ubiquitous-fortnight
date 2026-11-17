@@ -17,6 +17,9 @@ class UsdotSiteContext(unittest.TestCase):
     def test_town_names_drop_municipal_suffix(self):
         self.assertEqual(U.town_name("CARTERET BORO"), "CARTERET")
         self.assertEqual(U.town_name("Sayreville Borough"), "SAYREVILLE")
+        self.assertEqual(U.town_name("ORANGE CITY TWP"), "ORANGE")
+        self.assertEqual(U.town_name("JERSEY CITY CITY"), "JERSEY CITY")
+        self.assertEqual(U.town_name("PARSIPPANY TR HLS"), "PARSIPPANY")
 
     def test_matches_physical_street_only_and_prefers_active_recent(self):
         rows = U.enrich([{"MUNICIPALITY": "CARTERET BORO", "PROPERTY_ADDRESS": "351 ROOSEVELT AVE", "OWNER": "X"}], {"CARTERET": CARRIERS}, "t")

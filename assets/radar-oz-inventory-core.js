@@ -18,23 +18,40 @@
   if(!rings.length)throw Error('Published tract boundary is empty');
   return {rings,spatialReference:{wkid:4326}};
  }
- async function json(url,params,{fetcher=globalThis.fetch,signal}={}){
-  const controller=new AbortController(),stop=()=>controller.abort();signal?.addEventListener('abort',stop,{once:true});if(signal?.aborted)stop();const timer=setTimeout(stop,30000);
-  try{const response=await fetcher(url+(params?'/query':'?f=json'),{method:params?'POST':'GET',...(params?{headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params).toString()}:{}),signal:controller.signal,credentials:'omit',mode:'cors'});
-   if(!response.ok)throw Error('Public GIS returned HTTP '+response.status);const data=await response.json();if(data.error)throw Error('Public GIS could not complete this inventory query');return data;
-  }finally{clearTimeout(timer);signal?.removeEventListener('abort',stop);}
+ // Bounded retry for read-only queries: a single dropped connection or 429/5xx no longer downgrades a whole tract.
+ // Cancelled runs and definite source errors are never retried.
+ const RETRY_STATUS=new Set([408,429,500,502,503,504]);
+ const wait=(ms,signal)=>new Promise(resolve=>{if(!ms||signal?.aborted)return resolve();const done=()=>{clearTimeout(timer);signal?.removeEventListener('abort',done);resolve();};const timer=setTimeout(done,ms);signal?.addEventListener('abort',done,{once:true});});
+ async function json(url,params,{fetcher=globalThis.fetch,signal,attempts=3,backoffMs=600}={}){
+  let failure;
+  for(let attempt=0;attempt<attempts;attempt++){
+   if(signal?.aborted)throw Error('Inventory stopped');
+   const controller=new AbortController(),stop=()=>controller.abort();signal?.addEventListener('abort',stop,{once:true});const timer=setTimeout(stop,30000);let retry=false;
+   try{const response=await fetcher(url+(params?'/query':'?f=json'),{method:params?'POST':'GET',...(params?{headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params).toString()}:{}),signal:controller.signal,credentials:'omit',mode:'cors'});
+    if(!response.ok){retry=RETRY_STATUS.has(response.status);throw Error('Public GIS returned HTTP '+response.status);}const data=await response.json();
+    if(data.error){retry=RETRY_STATUS.has(Number(data.error.code));throw Error('Public GIS could not complete this inventory query');}return data;
+   }catch(error){if(signal?.aborted)throw error;if(controller.signal.aborted||error instanceof TypeError)retry=true;failure=controller.signal.aborted?Error('Public GIS response timed out'):error;}
+   finally{clearTimeout(timer);signal?.removeEventListener('abort',stop);}
+   if(!retry||attempt===attempts-1)throw failure;
+   await wait(backoffMs*2**attempt,signal);
+  }
+  throw failure;
  }
- async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,onProgress=()=>{},classes=[],minAcres=0,boundaryFeature=null}={}){
+ // The parcel layer schema is the same for every tract: read it once per fetcher (10 minutes), not once per tract.
+ const schemaCache=new WeakMap();
+ function schema(options){const key=options.fetcher||globalThis.fetch,hit=schemaCache.get(key);if(hit&&Date.now()-hit.at<600000)return hit.value;
+  const value=json(parcelURL,null,options).catch(error=>{if(schemaCache.get(key)?.value===value)schemaCache.delete(key);throw error;});schemaCache.set(key,{at:Date.now(),value});return value;}
+ async function collectTract(tract,{fetcher=globalThis.fetch,signal,geo=globalThis.turf,limit=5000,pageSize=250,concurrency=3,attempts=3,backoffMs=600,onProgress=()=>{},classes=[],minAcres=0,boundaryFeature=null}={}){
   if(!/^34\d{9}$/.test(tract))throw Error('An exact 11-digit NJ tract is required');
   if(!Number.isInteger(limit)||limit<1||limit>5000)throw Error('Parcel retrieval limit must be 1–5,000');
   if(!Array.isArray(classes)||classes.some(c=>!['1','2','4A','4B','4C'].includes(c))||!Number.isFinite(minAcres)||minAcres<0||minAcres>99999)throw Error('Invalid published assessment class/acreage filter');
   const report={tract,boundarySource:boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service',criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
-  const options={fetcher,signal};
+  const options={fetcher,signal,attempts,backoffMs};
   try{
    const boundary=boundaryFeature?{features:[boundaryFeature]}:await json(nominationURL,{f:'geojson',where:"Geography = '"+tract+"'",outFields:'Geography',returnGeometry:'true',outSR:'4326',resultRecordCount:'2'},options);
    if(boundary.exceededTransferLimit||boundary.features?.length!==1||String(boundary.features[0].properties?.Geography)!==tract)throw Error('Nomination boundary did not return one exact tract');
    const geometry=boundary.features[0].geometry,polygon=esriPolygon(geometry);report.boundarySource=boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service';
-   const meta=await json(parcelURL,null,options),available=new Set((meta.fields||[]).map(f=>f.name));
+   const meta=await schema(options),available=new Set((meta.fields||[]).map(f=>f.name));
    const oid=meta.objectIdField||meta.fields?.find(f=>f.type==='esriFieldTypeOID')?.name;
    if(!oid||!available.has(oid)||!fields.every(f=>available.has(f))||meta.geometryType!=='esriGeometryPolygon')throw Error('NJ parcel schema could not be verified');
    const predicates=[];if(classes.length)predicates.push("PROP_CLASS IN ("+classes.map(c=>"'"+c+"'").join(',')+")");if(minAcres>0)predicates.push('CALC_ACRE >= '+minAcres);
@@ -43,19 +60,24 @@
    if(!Number.isSafeInteger(counted.count)||counted.count<0)throw Error('Parcel count was not verified');report.expected=counted.count;
    const listed=await json(parcelURL,{...base,f:'json',returnIdsOnly:'true',returnGeometry:'false'},options),ids=listed.objectIds;
    if(!Array.isArray(ids)||ids.length!==report.expected||new Set(ids).size!==ids.length||ids.some(id=>!Number.isSafeInteger(id)||id<0))throw Error('Parcel ID list did not reconcile with the source count');ids.sort((a,b)=>a-b);
-   const seen=new Set(),size=Math.max(1,Math.min(250,pageSize));
-   for(let offset=0;offset<Math.min(report.expected,limit);){
+   const seen=new Set(),size=Math.max(1,Math.min(250,pageSize)),total=Math.min(report.expected,limit),batches=[];
+   for(let offset=0;offset<total;offset+=size)batches.push(ids.slice(offset,offset+Math.min(size,total-offset)));
+   // Explicit ID batches are independent, so a few run at once. Results are still checked strictly in order,
+   // and the first bad batch stops the tract with everything before it retained.
+   const lanes=Math.max(1,Math.min(4,Math.floor(concurrency)||1)),pending=new Map();let started=0;
+   const page=wanted=>json(parcelURL,{...base,objectIds:wanted.join(','),f:'geojson',outFields:[oid,...fields].join(','),returnGeometry:'true',outSR:'4326',orderByFields:oid+' ASC',resultOffset:'0',resultRecordCount:String(wanted.length)},options);
+   for(let index=0;index<batches.length;index++){
     if(signal?.aborted)throw Error('Inventory stopped');
-    const take=Math.min(size,limit-offset,report.expected-offset);
-    const wanted=ids.slice(offset,offset+take);
-    const data=await json(parcelURL,{...base,objectIds:wanted.join(','),f:'geojson',outFields:[oid,...fields].join(','),returnGeometry:'true',outSR:'4326',orderByFields:oid+' ASC',resultOffset:'0',resultRecordCount:String(take)},options);
+    while(started<batches.length&&started<index+lanes){const i=started++;pending.set(i,page(batches[i]).then(data=>({data}),error=>({error})));}
+    const wanted=batches[index],take=wanted.length,settled=await pending.get(index);pending.delete(index);if(settled.error)throw settled.error;const data=settled.data;
     if(!Array.isArray(data.features)||!data.features.length||data.features.length>take)throw Error('Parcel paging returned an empty or oversized page');
+    const allowed=new Set(wanted);
     for(const feature of data.features){
-     const id=feature.properties?.[oid];if(!Number.isSafeInteger(id)||!wanted.includes(id)||seen.has(String(id)))throw Error('Parcel paging repeated or omitted source record identities');seen.add(String(id));report.received++;
+     const id=feature.properties?.[oid];if(!Number.isSafeInteger(id)||!allowed.has(id)||seen.has(String(id)))throw Error('Parcel paging repeated or omitted source record identities');seen.add(String(id));report.received++;
      const pin=String(feature.properties?.PAMS_PIN||'').trim();
      try{if(!pin||pin.length>200)throw Error();esriPolygon(feature.geometry);if(!geo.booleanIntersects(feature,{type:'Feature',geometry,properties:{}}))throw Error();report.features.push({type:'Feature',geometry:feature.geometry,properties:{...Object.fromEntries([oid,...fields].map(key=>[key,feature.properties[key]])),PAMS_PIN:pin}});}catch{report.rejected++;}
     }
-    offset+=data.features.length;if(data.exceededTransferLimit)throw Error('Source truncated an explicit ID batch');onProgress({tract,received:report.received,expected:report.expected});
+    if(data.exceededTransferLimit)throw Error('Source truncated an explicit ID batch');onProgress({tract,received:report.received,expected:report.expected});
     if(data.features.length<take)throw Error('Parcel response ended before the reported count');
    }
    const after=await json(parcelURL,{...base,f:'json',returnCountOnly:'true',returnGeometry:'false'},options);
