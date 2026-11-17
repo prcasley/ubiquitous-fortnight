@@ -11,7 +11,7 @@
     url:"https://services6.arcgis.com/BAJNi3EgCdtQ1BCG/ArcGIS/rest/services/Opportunity_Zone_2_Eligible_Tracts/FeatureServer/0",
     source:"https://www.irs.gov/newsroom/treasury-irs-provide-guidance-to-states-for-nominating-census-tracts-as-qualified-opportunity-zones-under-the-one-big-beautiful-bill",
     color:"#b4752e",limit:280},
-  ozNJ:{label:"OZ 2 · NJ state-nominated tracts (Oct 2026) — federal certification not verified",
+  ozNJ:{label:"OZ 2.0 · NJ tracts designated by U.S. Treasury (SB0682, effective Jan 1, 2027)",
     url:"https://services.arcgis.com/Aur8tCo478N3VovT/arcgis/rest/services/2026_Opportunity_Zone_2_0_Nominations/FeatureServer/0",
     source:"https://www.nj.gov/dca/news/news/2026/approved/20261029.shtml",color:"#7b3fd1",limit:280,states:['NJ'],idField:'Geography',fields:'Geography,County,Municipality,Rural'},
   ozFL:{label:"OZ 2 · FL eligible per FloridaCommerce (eligibility, not nominations)",

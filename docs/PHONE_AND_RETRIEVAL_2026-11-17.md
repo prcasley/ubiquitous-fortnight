@@ -45,3 +45,16 @@ The welcome code and contact vault are unchanged in this pass.
   of `scripts/usdot_site_context.py` on a network that reaches data.transportation.gov.
 - Live services and physical phones were not tested from the build environment.
 - Scripts still load in sequence; bundling them is a separate change.
+
+## Follow-up the same day: Find tab and All tools
+
+- **Find** holds the search box, three quick chips (Warehouse, IOS, Designated OZ 2.0), one "Area, filters & OZ gates"
+  drawer and the results. At 1440×900 the panel went from about 1,850px of content to one screen.
+- The industrial area scan sits inside that one drawer instead of its own fold.
+- OZ 2.0 evidence, the NJ tract inventory and coverage table, map overlays, Parcel Data, sources and research limits are
+  shown under **Data & Export**. They stay in the same panel in the DOM, so ids, anchors and listeners are unchanged.
+- **All tools** is reached from Data & Export. While it is on, its switch sits in the header. The choice lasts for the
+  browser tab only; a preference saved by an older build is ignored and cleared.
+- Remaining "not certified" wording (inventory note, map legend, toggle label, loading placeholders, chat reply) now
+  states the Treasury designation.
+- `tests/find-declutter-browser.py` covers the standard view; the other suites still run in All tools.

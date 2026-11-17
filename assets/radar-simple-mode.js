@@ -10,7 +10,8 @@
       const urlParams = new URLSearchParams(global.location?.search || '');
       const qMode = urlParams.get('mode');
       if (qMode === 'simple' || qMode === 'advanced') return qMode;
-      const saved = global.localStorage?.getItem(STORAGE_KEY);
+      // "All tools" lasts for this browser tab only, so every new visit opens in the clean five-tab view.
+      const saved = global.sessionStorage?.getItem(STORAGE_KEY);
       if (saved === 'simple' || saved === 'advanced') return saved;
     } catch (_e) {
       // Ignore storage access errors
@@ -27,7 +28,8 @@
     doc.documentElement.dataset.radarMode = cleanMode;
 
     try {
-      global.localStorage?.setItem(STORAGE_KEY, cleanMode);
+      global.sessionStorage?.setItem(STORAGE_KEY, cleanMode);
+      global.localStorage?.removeItem(STORAGE_KEY);
     } catch (_e) {
       // Ignore storage errors
     }

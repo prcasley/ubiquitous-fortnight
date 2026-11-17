@@ -33,7 +33,7 @@ try:
   page.evaluate('PublicRadarBridge.getMap().setView([40.51,-74.27],13,{animate:false})')
   page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1',timeout=5000)
   check('panning FL to Perth Amboy loads nominations without changing the Florida search',page.input_value('#stateSelect')=='FL' and page.evaluate('({criteria:PublicRadarBridge.getSearch(),keys:PublicRadarBridge.getResults().map(r=>r.key)})')==florida)
-  check('NJ nomination layer is separate from eligibility',page.is_checked('#oz2Toggle') and 'federal certification not verified' in page.locator('#ozNJLegendStatus').locator('..').inner_text())
+  check('NJ nomination layer is separate from eligibility',page.is_checked('#oz2Toggle') and 'designated by U.S. Treasury' in page.locator('#ozNJLegendStatus').locator('..').inner_text())
   page.evaluate('PublicRadarBridge.getMap().setZoom(7,{animate:false})');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===130')
   check('all 130 nomination reference boundaries survive zoom out',page.is_checked('#ozNJToggle'))
   page.evaluate('PublicRadarBridge.getMap().setZoom(13,{animate:false})');page.wait_for_function('PublicRadarGeo.getOverlayState("ozNJ").count===1')
