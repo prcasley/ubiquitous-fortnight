@@ -25,6 +25,9 @@ python3 scripts/nj_enrichment_pipeline.py --scan-dir .radar/nj-enrichment/scans
 # Review local full.json/full.csv, coverage and business-filing-queue.json, then publish data.
 python3 scripts/nj_enrichment_pipeline.py --scan-dir .radar/nj-enrichment/scans --publish
 
+# Always finish a publication with the acreage step: mapped area replaces unreliable CALC_ACRE values and lots under 2 acres are removed.
+node scripts/apply-mapped-acreage.mjs
+
 # Force a source refresh; the filing limit is explicit and remaining companies stay pending.
 python3 scripts/nj_enrichment_pipeline.py --refresh --max-filings-per-run 100
 

@@ -96,3 +96,23 @@ class CountyOwnerPage(unittest.TestCase):
         import nj_pull_rematch_inputs as I
         square = [(-74.0, 40.0), (-74.0, 40.001), (-73.999, 40.001), (-73.999, 40.0), (-74.0, 40.0)]
         self.assertAlmostEqual(I.ring_acres([square]), 2.33, delta=0.05)
+
+
+class VaultRecords(unittest.TestCase):
+    def test_vault_records_carry_roles_and_never_duplicate_or_promote(self):
+        import nj_build_vault_records as V
+        c = {"usdot": "9", "carrier": "HQ CARRIER", "officers": ["A OFFICER"], "phone": "7325550100", "email": "", "filingDate": "20260101", "sourceUrl": "https://data.transportation.gov/x"}
+        shown = dict(c, usdot="1", carrier="SHOWN CARRIER")
+        published = {p: {"facts": {"PROP_LOC": "1 MAIN ST", "MUN_NAME": "TOWN"}, "usdotContext": {"dotNumber": "1"}} for p in ("a", "b", "c")}
+        matches = [{"pin": "a", "onSite": [shown], "mailingHq": [c], "mailingHqSharedAddress": False},
+                   {"pin": "b", "onSite": [shown], "mailingHq": [c], "mailingHqSharedAddress": True},
+                   {"pin": "c", "onSite": [], "mailingHq": [], "mailingHqSharedAddress": False},
+                   {"pin": "gone", "onSite": [c], "mailingHq": [], "mailingHqSharedAddress": False}]
+        owners = {"c": {"owner": "EXAMPLE HOLDINGS LP", "dataAsOf": "11/16/26", "url": "https://taxrecords-nj.com/x"}, "b": {"owner": ""}}
+        out = V.build({"keep": {"company": "EXISTING"}}, {}, matches, owners, published)
+        self.assertEqual(set(out), {"keep", "a", "c"})
+        self.assertEqual(out["a"]["evidenceRole"], V.ROLE_MAILING)
+        self.assertEqual(out["a"]["fieldSources"], {"7325550100": "https://data.transportation.gov/x"})
+        self.assertEqual(out["c"]["evidenceRole"], V.ROLE_OWNER)
+        self.assertEqual(out["c"]["assessmentOwner"]["name"], "EXAMPLE HOLDINGS LP")
+        self.assertEqual(out["c"]["phones"], [])

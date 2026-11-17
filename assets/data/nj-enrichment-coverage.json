@@ -1447,13 +1447,13 @@
   "assessed_owner": 0,
   "business_filing_contact": 0,
   "business_filing_entity": 0,
-  "epa_facility_reference": 1868,
-  "njdep_program_interest": 22301,
-  "njdep_regulatory_site": 10323,
+  "epa_facility_reference": 1785,
+  "njdep_program_interest": 20416,
+  "njdep_regulatory_site": 9249,
   "state_registered_agent": 0,
-  "tax_mailing_recipient": 1943,
-  "usdot_carrier": 328,
-  "usdot_carrier_officer": 386
+  "tax_mailing_recipient": 1743,
+  "usdot_carrier": 307,
+  "usdot_carrier_officer": 363
  },
  "businessFilingPendingEntities": 2695,
  "carrierRefresh": {
@@ -1478,5 +1478,15 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>"
   }
  },
- "partial": true
+ "partial": true,
+ "acreage": {
+  "rule": "Mapped polygon area replaces the published CALC_ACRE when the two differ by more than 25%; records under 2 effective acres are removed unless they carry a reviewed contact.",
+  "records": 1949,
+  "kept": 1749,
+  "dropped": 200,
+  "corrected": 150,
+  "keptBelowMinimum": 0,
+  "acresPublishedField": 787598,
+  "acres": 18849
+ }
 }

@@ -79,96 +79,6 @@
    ]
   },
   {
-   "entityName": "LINESTAR TRADING CO INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=894890"
-   ]
-  },
-  {
-   "entityName": "RUG WASH INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+220990+AND+PI_ID+%3D+288592&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "NEW ENGLAND BEDDING TRANSPORT, INC.",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+459576+AND+PI_ID+%3D+580011&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "RDM BEDDING INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+482446+AND+PI_ID+%3D+608606&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "IMPERIAL FOODS\tINC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+513827+AND+PI_ID+%3D+645767&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "GLOBAL STRUCTURES OF NEW JERSEY, LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_23"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+595625+AND+PI_ID+%3D+739606&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "BEDROCK STONE INC",
    "sourceRoles": [
     "usdot_carrier"
@@ -241,36 +151,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+367661+AND+PI_ID+%3D+454774&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TUDOR PRODUCTS CO., INC.",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_32"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+20393+AND+PI_ID+%3D+27181&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TUDOR PRODUCTS COMPANY INCORPORATED",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0907_242_32"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+20393+AND+PI_ID+%3D+111204&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -2983,51 +2863,6 @@
    ]
   },
   {
-   "entityName": "NATCHILL TRANSPORTATION LLC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "2004_182_8"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=4071652"
-   ]
-  },
-  {
-   "entityName": "ODD JOB VARIETY LLC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "2004_184_18"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=4406441"
-   ]
-  },
-  {
-   "entityName": "PRINCE AUTO COLLISION LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "2004_184_16"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+432593+AND+PI_ID+%3D+542986&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "HANAA TRUCKING INC",
    "sourceRoles": [
     "usdot_carrier"
@@ -5386,21 +5221,6 @@
    ]
   },
   {
-   "entityName": "M&H RUBBER & SUPPLY INC",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1216_88_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110030536873"
-   ]
-  },
-  {
    "entityName": "THE CELOTEX CORP.",
    "sourceRoles": [
     "njdep_program_interest"
@@ -5571,36 +5391,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+5493+AND+PI_ID+%3D+5944&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TRI STATE SHIP REPAIR & DRY DOCK CORP FORMER",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1216_137_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+55174+AND+PI_ID+%3D+82615&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TRI STATE SHIP REPAIR & DRY DOCK CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1216_137_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+55174+AND+PI_ID+%3D+572923&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -6696,8 +6486,7 @@
    ],
    "parcelIds": [
     "1216_484_1.02",
-    "1225_25_1.01",
-    "0427_1004_4"
+    "1225_25_1.01"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
    "status": "unavailable",
@@ -10480,21 +10269,6 @@
    ]
   },
   {
-   "entityName": "VERTO INSTITUTE LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1213_117.01_3.02"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+40437+AND+PI_ID+%3D+501966&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "JOHNSON & JOHNSON CO",
    "sourceRoles": [
     "epa_facility_reference"
@@ -10522,186 +10296,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+40843+AND+PI_ID+%3D+431453&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "SASSON BROTHERS EMBROIDERY CORP",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110030669159"
-   ]
-  },
-  {
-   "entityName": "BROTHER SEALING INC.",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+369489+AND+PI_ID+%3D+457191&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "INTERNATIONAL BELLOWS INC",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110031987633"
-   ]
-  },
-  {
-   "entityName": "SASSON BROS EMBROIDERY CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+20631+AND+PI_ID+%3D+27419&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "A & Z MANUFACTURING CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+29002+AND+PI_ID+%3D+35911&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "GEOFFREY EMBROIDERY CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+33585+AND+PI_ID+%3D+41315&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "BRIAMONTE EMBROIDERY CORPORATION",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+67504+AND+PI_ID+%3D+104924&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "INTERNATIONAL BELLOWS INCORPORATED",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+81440+AND+PI_ID+%3D+118865&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "GEOFFREY EMBROIDERY CO",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+33585+AND+PI_ID+%3D+135863&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "WEISS INDUSTRIES INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+81440+AND+PI_ID+%3D+159303&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "DAGALI EMBROIDERY CO LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+33585+AND+PI_ID+%3D+159305&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TONE EMBROIDERY CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0218_722_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+20631+AND+PI_ID+%3D+159224&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -11319,36 +10913,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+364089+AND+PI_ID+%3D+449910&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TILCON NEW YORK INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0908_464_1.01"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+231440+AND+PI_ID+%3D+302716&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "NORTH BERGEN ASPHALT PRODUCTS CORP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0908_464_1.01"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+231440+AND+PI_ID+%3D+560720&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -13240,66 +12804,6 @@
    ]
   },
   {
-   "entityName": "H&B ENTERPRISE CORP",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1102_8_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110029603579"
-   ]
-  },
-  {
-   "entityName": "UNLIMITED SILK SCREEN PRODUCTS INC",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1102_8_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110030789751"
-   ]
-  },
-  {
-   "entityName": "KUHN & JACOB MOLDING & TOOL CO",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1102_19_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+6631+AND+PI_ID+%3D+7158&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "KUHN & JACOB MOLDING CO",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1102_19_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+6631+AND+PI_ID+%3D+58700&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "ABI TRANSPORT CORP",
    "sourceRoles": [
     "usdot_carrier"
@@ -13372,51 +12876,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+53664+AND+PI_ID+%3D+80939&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "PCI RA AUCTIONS INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "1102_21_14"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=3003589"
-   ]
-  },
-  {
-   "entityName": "RHEIN CHEMIE CORP",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1102_21_14"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110030646068"
-   ]
-  },
-  {
-   "entityName": "TRENTON INTERNATIONAL WAREHOUS",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1102_21_14"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110054940766"
    ]
   },
   {
@@ -15152,21 +14611,6 @@
    ]
   },
   {
-   "entityName": "19 BLOOMFIELD MEAT FARM LLC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0702_603_16"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=4293680"
-   ]
-  },
-  {
    "entityName": "ENES LLC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -15179,21 +14623,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+56352+AND+PI_ID+%3D+83991&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "K HOVNANIAN AT NEWARK UR REN CORP II",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0714_235_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110007949907"
    ]
   },
   {
@@ -15359,21 +14788,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110029350636"
-   ]
-  },
-  {
-   "entityName": "90 SOMERS POINT/ MAYS LANDING RD II LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0121_2032_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+203487+AND+PI_ID+%3D+554790&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -16033,8 +15447,7 @@
    ],
    "parcelIds": [
     "0108_901_29",
-    "0108_901_12",
-    "0108_901_31"
+    "0108_901_12"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
    "status": "unavailable",
@@ -16219,8 +15632,7 @@
     "njdep_program_interest"
    ],
    "parcelIds": [
-    "0108_406_5",
-    "0614_604_404_C1C"
+    "0108_406_5"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
    "status": "unavailable",
@@ -16408,36 +15820,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110031618079"
-   ]
-  },
-  {
-   "entityName": "INTERSTATE BRANDS CORPORATION",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0108_1101_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+32393+AND+PI_ID+%3D+39970&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "CONTINENTAL BAKING CO (FORMER)",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0108_1101_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+32393+AND+PI_ID+%3D+57163&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -16648,36 +16030,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110029622326"
-   ]
-  },
-  {
-   "entityName": "MASSETT BUILDING CO",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0108_903_11"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110004263939"
-   ]
-  },
-  {
-   "entityName": "MASSETT BUILDING COMPANY",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0108_903_11"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+150727+AND+PI_ID+%3D+199168&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -19548,66 +18900,6 @@
    ]
   },
   {
-   "entityName": "TK TRANSPORT INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0427_1004_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=535505"
-   ]
-  },
-  {
-   "entityName": "HESS PENNSAUKEN TERMINAL BLOCK 1004",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0427_1004_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+42824+AND+PI_ID+%3D+62619&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TK TRANSPORT",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0427_1004_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+42824+AND+PI_ID+%3D+234794&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "MATLACK INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0427_1004_4"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+42824+AND+PI_ID+%3D+370719&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "PURATOS CORP",
    "sourceRoles": [
     "njdep_program_interest"
@@ -21189,21 +20481,6 @@
    ]
   },
   {
-   "entityName": "MIDATLANTIC CONSTRUCTION & DESIGN ASSOCIATES INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "1111_11203_1.01"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=2835350"
-   ]
-  },
-  {
    "entityName": "PSEG NEW JERSEY PROPERTIES INC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -21357,42 +20634,11 @@
    ]
   },
   {
-   "entityName": "ITT CONTINENTAL BAKING CO",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "1103_2244_3"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110030781759"
-   ]
-  },
-  {
-   "entityName": "CONTINENTAL BAKING COMPANY",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1103_2244_3"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+30825+AND+PI_ID+%3D+37925&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "CONTINENTAL BAKING CO",
    "sourceRoles": [
     "njdep_program_interest"
    ],
    "parcelIds": [
-    "1103_2244_3",
     "0262_303_1"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
@@ -21595,8 +20841,7 @@
     "usdot_carrier"
    ],
    "parcelIds": [
-    "0614_604_7",
-    "0614_604_701_C1A"
+    "0614_604_7"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
    "status": "unavailable",
@@ -21612,8 +20857,7 @@
     "epa_facility_reference"
    ],
    "parcelIds": [
-    "0614_604_7",
-    "0614_604_701_C1A"
+    "0614_604_7"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
    "status": "unavailable",
@@ -21780,12 +21024,6 @@
     "epa_facility_reference"
    ],
    "parcelIds": [
-    "0614_604_404_C1C",
-    "0614_604_401_C1F",
-    "0614_604_403_C1D",
-    "0614_604_402_C1E",
-    "0614_604_406_C1A",
-    "0614_604_405_C1B",
     "0614_604_4"
    ],
    "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
@@ -21794,21 +21032,6 @@
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+37071+AND+PI_ID+%3D+18118&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false",
     "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110015032418"
-   ]
-  },
-  {
-   "entityName": "FEDERAL EXPRESS CORP (MIVA)",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0614_604_404_C1C"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+37071+AND+PI_ID+%3D+49853&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -22933,21 +22156,6 @@
    ]
   },
   {
-   "entityName": "SPRINT COMMUNICATIONS COMPANY LP",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0614_604_701_C1A"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+62694+AND+PI_ID+%3D+97196&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "ITALIANO BROTHERS TRUCK REPAIR INC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -23172,21 +22380,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+750976+AND+PI_ID+%3D+1112053&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "CUMBERLAND DENTISTRY CENTER LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0614_2605_6_CA1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+560370+AND+PI_ID+%3D+971286&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -24272,21 +23465,6 @@
    ]
   },
   {
-   "entityName": "C R CHARLEY INC/MAACO AUTO P",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0614_2706_6"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+300536+AND+PI_ID+%3D+405882&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "TP BERT GROUP LLC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -24419,51 +23597,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+63845+AND+PI_ID+%3D+416292&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "DONOVANS AUTOMOTIVE INC",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0330_804_14"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110031884548"
-   ]
-  },
-  {
-   "entityName": "ELITE CONTRACTORS INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0330_502_9"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=781489"
-   ]
-  },
-  {
-   "entityName": "JE ENTERPRISES",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0330_502_9"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110042109991"
    ]
   },
   {
@@ -31681,21 +30814,6 @@
    ]
   },
   {
-   "entityName": "LAKEWOOD PETROLEUM LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1515_73_5"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+118216+AND+PI_ID+%3D+3225&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "RECYCLED PAPERBOARD INC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -31753,51 +30871,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=4443918"
-   ]
-  },
-  {
-   "entityName": "PASSAIC PETROLEUM LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1048_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+39411+AND+PI_ID+%3D+61462&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "PASSAIC NJPO LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1048_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+39411+AND+PI_ID+%3D+244271&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "BP PRODUCTS NORTH AMERICA",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1048_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+39411+AND+PI_ID+%3D+342200&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -32680,21 +31753,6 @@
    ]
   },
   {
-   "entityName": "ML INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1027_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+592328+AND+PI_ID+%3D+743983&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "ATLANTIC COAST FIBERS, LLC",
    "sourceRoles": [
     "njdep_program_interest"
@@ -32767,81 +31825,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+27509+AND+PI_ID+%3D+982209&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "ETHAN ALLEN INC-COORDINATES DIVISION",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1030.01_53"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+13410+AND+PI_ID+%3D+14349&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "ETHAN ALLEN INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1030.01_53"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+13410+AND+PI_ID+%3D+25369&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "FINETEX INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1030.01_53"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+21111+AND+PI_ID+%3D+27900&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "ETHAN ALLEN OPERATIONS INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_1030.01_53"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+13410+AND+PI_ID+%3D+162877&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "WORLDWIDE EDUCATING SERVICES INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1607_4128_20"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+352057+AND+PI_ID+%3D+434525&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -33615,66 +32598,6 @@
    ]
   },
   {
-   "entityName": "UNIVAR USA INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_2002_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+2278+AND+PI_ID+%3D+2526&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "VOPAK USA",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_2002_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+2278+AND+PI_ID+%3D+22274&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "UNIVAR SOLUTIONS USA INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_2002_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+2278+AND+PI_ID+%3D+93480&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "VOPAK USA INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_2002_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+2278+AND+PI_ID+%3D+88167&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "ATMOS SERVICE CO",
    "sourceRoles": [
     "epa_facility_reference"
@@ -33702,36 +32625,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+260107+AND+PI_ID+%3D+403626&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "SMART CONSTRUCTION INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_4505_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+199273+AND+PI_ID+%3D+262273&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "TSI HOME IMPROVEMENT LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "1608_4505_2"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+190435+AND+PI_ID+%3D+250220&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -34860,21 +33753,6 @@
    ]
   },
   {
-   "entityName": "BRIDGETON CRUMB RUBBER CO",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0601_146_1.02"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+9517+AND+PI_ID+%3D+132083&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "TEXAS EASTERN TRANSMISSION LP",
    "sourceRoles": [
     "njdep_program_interest"
@@ -35085,51 +33963,6 @@
    ]
   },
   {
-   "entityName": "H A METZGER INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0906_13605_11"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=39723"
-   ]
-  },
-  {
-   "entityName": "SIXTH BORO REALTY INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0906_13605_11"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+435488+AND+PI_ID+%3D+547158&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "GRAND STORAGE LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0906_13605_11"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+435488+AND+PI_ID+%3D+574193&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
    "entityName": "METCON CONSOLIDATION INC",
    "sourceRoles": [
     "epa_facility_reference"
@@ -35172,21 +34005,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=2966573"
-   ]
-  },
-  {
-   "entityName": "CITY ELECTRIC SUPPLY LLC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0906_15501_3"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=2994712"
    ]
   },
   {
@@ -35487,66 +34305,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+21009+AND+PI_ID+%3D+92248&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "ALLIED METER SERVICE INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0305_145_60"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=814398"
-   ]
-  },
-  {
-   "entityName": "FISHER CANVAS PRODUCTS INC.",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0305_145_60"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+29706+AND+PI_ID+%3D+36623&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "LESTER FELLOWS CO INC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0305_127_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+38278+AND+PI_ID+%3D+47869&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "LESTER FELLOWS CO",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0305_127_1"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+38278+AND+PI_ID+%3D+55878&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -36061,23 +34819,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+39051+AND+PI_ID+%3D+50696&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "SHADOW RIDGE CONSTRUCTION CO INC",
-   "sourceRoles": [
-    "usdot_carrier"
-   ],
-   "parcelIds": [
-    "0223_318_3_C000C",
-    "0223_318_3_C000A",
-    "0223_318_3_C000B"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string=837506"
    ]
   },
   {
@@ -36708,36 +35449,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110004156528"
-   ]
-  },
-  {
-   "entityName": "FASTBOLT CORPORATION",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0259_2.01_6.03"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+348918+AND+PI_ID+%3D+430987&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "SECAS5 LLC",
-   "sourceRoles": [
-    "njdep_program_interest"
-   ],
-   "parcelIds": [
-    "0259_2.01_6.03"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+481220+AND+PI_ID+%3D+606985&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
    ]
   },
   {
@@ -39123,21 +37834,6 @@
    "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
    "sourceReferences": [
     "https://services1.arcgis.com/QWdNfRs7lkPq4g4Q/arcgis/rest/services/New_Jersey_Environmental_Management_System_Sites/FeatureServer/148/query?f=pjson&where=SITE_ID+%3D+375945+AND+PI_ID+%3D+465929&outFields=SITE_ID%2CPI_ID%2CPI_NAME%2CPROGRAM_DESC%2CACTIVE&returnGeometry=false"
-   ]
-  },
-  {
-   "entityName": "ELMWOOD SUPPLY CO",
-   "sourceRoles": [
-    "epa_facility_reference"
-   ],
-   "parcelIds": [
-    "0221_80_2.03"
-   ],
-   "searchURL": "https://www.njportal.com/DOR/BusinessNameSearch/Search/BusinessName",
-   "status": "unavailable",
-   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>",
-   "sourceReferences": [
-    "https://frs-public.epa.gov/ords/frs_public2/fii_query_detail.disp_program_facility?p_registry_id=110004192463"
    ]
   },
   {

@@ -23,7 +23,7 @@ python3 scripts/prepare-recovered-reference.py /path/to/recovered-complete.json
 npm run preview:local
 ```
 
-The preview serves only `dist/` on loopback port 8090. The existing courtesy password is `WP123`. Recovered data appears in its own **Recovered map data** section, accessible from navigation or the top scan controls. It does not enter live results, acquisition rankings, saved company records or hosted-assistant payloads. Changing archive filters or fitting its map does not move the explicit live search anchor.
+The preview serves only `dist/` on loopback port 8090. The welcome passphrase is kept outside the repository. Recovered data appears in its own **Recovered map data** section, accessible from navigation or the top scan controls. It does not enter live results, acquisition rankings, saved company records or hosted-assistant payloads. Changing archive filters or fitting its map does not move the explicit live search anchor.
 
 `npm run build` includes `assets/data/recovered-reference.json`, the reviewed parcel-fact/reference-layer bundle. `npm run build:local` can override it with the ignored `.radar/recovered-reference.json` for local review. Full source archives, rankings and the other held categories are not included in either standard build or published dataset.
 

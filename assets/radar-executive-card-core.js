@@ -4,7 +4,7 @@
  const https=value=>{try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:null;}catch{return null;}};
  // Plain-language role badges. Each role stays explicit so a tenant, permit holder or tax-bill
  // recipient is never presented as the landowner.
- const ROLES={owner:'OWNER · county tax record',carrier:'ON-SITE CARRIER (USDOT)',historical:'OLDER OWNER RECORD',site:'ON-SITE PERMIT HOLDER',facility:'ON-SITE FACILITY (EPA)',mailing:'TAX-BILL MAILING ADDRESS',research:'OWNER NOT PUBLISHED'};
+ const ROLES={owner:'OWNER · county tax record',carrier:'ON-SITE CARRIER (USDOT)',historical:'OLDER OWNER RECORD',site:'ON-SITE PERMIT HOLDER',facility:'ON-SITE FACILITY (EPA)',mailing:'TAX-BILL MAILING ADDRESS',research:'OWNER NOT PUBLISHED',inactiveCarrier:'INACTIVE CARRIER FILING · potential transitional site'};
  function mailingText(m){if(!m?.street)return null;const street=String(m.street).trim(),parts=[street];
   // Some sources already fold city/state/ZIP into the street line; do not repeat them.
   const up=street.toUpperCase();if(m.cityState&&!up.includes(String(m.cityState).split(',')[0].trim().toUpperCase()))parts.push(m.cityState);
@@ -13,19 +13,23 @@
   const o=record.publishedOwner||record.ownership;
   const isProtected=!!(o?.protectedName||research?.protectedName||/protected|confidential/i.test(o?.message||''));
   // On-site businesses (federal carrier, environmental permit) can lead when no owner name is published.
-  const carrier=usdot?.carrierName&&https(usdot.sourceURL)?{name:usdot.carrierName+(usdot.officers?.length?' — '+usdot.officers.join(', '):''),role:ROLES.carrier,url:https(usdot.sourceURL),note:'Not confirmed owner — on-site business'+(usdot.status?' · '+usdot.status:'')+(usdot.filingDate?' · filed '+String(usdot.filingDate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'):''),tier:'carrier',phone:usdot.businessPhone||null,email:/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(usdot.email||'')?usdot.email:null,company:usdot.carrierName}:null;
+  // An inactive federal filing is a business that stopped filing: a site signal, never a contact. No phone or email leaves this function.
+  const inactive=!!usdot?.status&&String(usdot.status).toUpperCase()!=='ACTIVE',filed=usdot?.filingDate?' · last filed '+String(usdot.filingDate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'):'';
+  const stale=inactive&&usdot?.carrierName&&https(usdot.sourceURL)?{name:usdot.carrierName,role:ROLES.inactiveCarrier,url:https(usdot.sourceURL),note:'Inactive federal carrier filing — not a current contact'+filed,tier:'carrier-inactive',phone:null,email:null,company:usdot.carrierName}:null;
+  const carrier=!inactive&&usdot?.carrierName&&https(usdot.sourceURL)?{name:usdot.carrierName+(usdot.officers?.length?' — '+usdot.officers.join(', '):''),role:ROLES.carrier,url:https(usdot.sourceURL),note:'Not confirmed owner — on-site business'+(usdot.status?' · '+usdot.status:'')+(usdot.filingDate?' · filed '+String(usdot.filingDate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'):''),tier:'carrier',phone:usdot.businessPhone||null,email:/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(usdot.email||'')?usdot.email:null,company:usdot.carrierName}:null;
   const fac=(epa||[]).find(f=>f.name&&https(f.sourceURL));
   const facility=fac?{name:fac.name,role:ROLES.facility,url:https(fac.sourceURL),note:'Not confirmed owner — operator recorded by EPA'+(fac.industry?' · '+fac.industry.replace(/^\d+:\s*/,''):'')+(fac.active===false?' · inactive':''),tier:'facility',company:fac.name}:null;
   const site=regulatory?.sites?.find(s=>s.siteName&&https(s.sourceURL));
   const permit=site?{name:site.siteName,role:ROLES.site,url:https(site.sourceURL),note:'Not confirmed owner — may be a tenant',tier:'site'}:null;
   // A protected record never falls through to older names or mailing addresses.
-  if(isProtected)return carrier||facility||permit||{name:'Open official property record',role:'Property research',url:null,note:'Protected record',tier:'protected'};
+  if(isProtected)return carrier||facility||permit||stale||{name:'Open official property record',role:'Property research',url:null,note:'Protected record',tier:'protected'};
   if(o?.status==='published'&&(o.publishedName||o.entityName))return {name:o.publishedName||o.entityName,role:ROLES.owner,url:https(o.sourceURL),note:'Assessment record — title unverified',tier:'owner'};
   const old=historical.find(r=>r.owner&&https(r.sourceURL));
   if(old)return {name:old.owner,role:ROLES.historical,url:https(old.sourceURL),note:'Older file — current ownership unverified',tier:'historical'};
   if(carrier)return carrier;
   if(facility)return facility;
   if(permit)return permit;
+  if(stale)return stale;
   const mail=mailingText(research?.mailing);
   if(mail&&https(research?.sourceURL))return {name:mail,role:ROLES.mailing,url:https(research.sourceURL),note:'Lead only — verify the deed'+(sharedCount>0?' · same address on '+sharedCount+' other researched parcel'+(sharedCount===1?'':'s'):''),tier:'mailing'};
   return {name:'Open official property record',role:'Find the recorded owner',url:null,note:'',tier:'none'};

@@ -491,7 +491,7 @@
     }
    }
   },
-  "tractsWithParcels": 103,
+  "tractsWithParcels": 96,
   "municipalities": 90,
   "enrichmentScanReports": [
    {
@@ -4406,36 +4406,51 @@
     }
    },
    "partial": true
+  },
+  "acreage": {
+   "rule": "Mapped polygon area replaces the published CALC_ACRE when the two differ by more than 25%; records under 2 effective acres are removed unless they carry a reviewed contact.",
+   "records": 1949,
+   "kept": 1749,
+   "dropped": 200,
+   "corrected": 150,
+   "keptBelowMinimum": 0,
+   "acresPublishedField": 787598,
+   "acres": 18849
   }
  },
  "totals": {
-  "records": 1949,
+  "records": 1749,
   "assessmentNames": 0,
-  "regulatorySites": 10323,
-  "onSiteCarriers": 328,
-  "epaFacilityParcels": 933,
-  "namedOnSiteBusiness": 1005
+  "regulatorySites": 9249,
+  "onSiteCarriers": 307,
+  "epaFacilityParcels": 879,
+  "namedOnSiteBusiness": 943,
+  "activeOnSiteCarriers": 194,
+  "inactiveCarrierFilings": 113,
+  "mappedAcres": 18849
  },
  "shards": {
   "1102": {
    "file": "nj-research/1102.json",
-   "records": 63,
+   "records": 56,
    "municipality": "EWING TWP",
    "county": "MERCER",
-   "onSiteCarriers": 7,
-   "epaFacilityParcels": 37,
-   "regulatorySites": 437,
-   "sha256": "564112d8c21e4b243e598e327689789fb21b56c522e85fffb8d133907b319786"
+   "onSiteCarriers": 6,
+   "epaFacilityParcels": 33,
+   "regulatorySites": 406,
+   "sha256": "c742d004801c8d154bb2e98b49e4eca1a767acdab8b37c59dfd67d4854456e1d",
+   "activeOnSiteCarriers": 3
   },
   "1103": {
    "file": "nj-research/1103.json",
-   "records": 16,
+   "records": 15,
    "municipality": "HAMILTON TWP",
    "county": "MERCER",
    "onSiteCarriers": 2,
-   "epaFacilityParcels": 6,
-   "regulatorySites": 61,
-   "sha256": "3f4262a5eb7866c3e8cea4a64ebd3ceb77365986a610cdbb8d22f98ae474a307"
+   "epaFacilityParcels": 5,
+   "regulatorySites": 52,
+   "sha256": "cb56ccb8bbd41d3c1fb9b96996a5a45604fb55c0e9954ee8977341b96796f624",
+   "activeOnSiteCarriers": 1
   },
   "1106": {
    "file": "nj-research/1106.json",
@@ -4445,27 +4460,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "292528f2cd0eaa5e2527a218eb5e2422b9c09480eddd08251603dc1a997cca0d"
+   "sha256": "b5389b04ffba60e4c46d8b0ce383de2d14a4cd3e963affcd80b1dea0158623d1",
+   "activeOnSiteCarriers": 0
   },
   "1111": {
    "file": "nj-research/1111.json",
-   "records": 37,
+   "records": 13,
    "municipality": "TRENTON CITY",
    "county": "MERCER",
-   "onSiteCarriers": 1,
-   "epaFacilityParcels": 8,
-   "regulatorySites": 196,
-   "sha256": "b77c0f60df74f1e0c96505762753a960ad8600e94fcd5089ac1a7cf128919f1d"
+   "onSiteCarriers": 0,
+   "epaFacilityParcels": 5,
+   "regulatorySites": 86,
+   "sha256": "ed7a2e3a42f7e2c76a03de5fe72890d6779406dae7f15be13ffbe461d3135eec",
+   "activeOnSiteCarriers": 0
   },
   "1201": {
    "file": "nj-research/1201.json",
-   "records": 44,
+   "records": 40,
    "municipality": "CARTERET BORO",
    "county": "MIDDLESEX",
-   "onSiteCarriers": 18,
-   "epaFacilityParcels": 31,
-   "regulatorySites": 212,
-   "sha256": "9a3ae0cc5506313cc93ea1088636517fbbb4b675248ea5726da58837025e623f"
+   "onSiteCarriers": 17,
+   "epaFacilityParcels": 29,
+   "regulatorySites": 203,
+   "sha256": "cfc59b367d915ebd6e13708ffc3f80a3d5563ea446e90dbdfca26859ce75233b",
+   "activeOnSiteCarriers": 14
   },
   "1203": {
    "file": "nj-research/1203.json",
@@ -4475,7 +4493,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 9,
-   "sha256": "96df67d0ff680fe3dabe83735185bbecb98c07f6295087148d4b5766e4ff76f2"
+   "sha256": "db9d5bea963500c6400957c122ad0069d0a7bf2fbf8691536c86ed8fff11c0d5",
+   "activeOnSiteCarriers": 0
   },
   "1210": {
    "file": "nj-research/1210.json",
@@ -4485,17 +4504,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 1,
    "regulatorySites": 19,
-   "sha256": "d535a0066cc32526ec32a5104b4b9d67e1b7ffc5fd4a3944cd1f539bbc36cceb"
+   "sha256": "c23c855fe0278b42308f63ded10aca9ecca812601998397eafd8012bff5c8109",
+   "activeOnSiteCarriers": 1
   },
   "1213": {
    "file": "nj-research/1213.json",
-   "records": 77,
+   "records": 75,
    "municipality": "NEW BRUNSWICK CITY",
    "county": "MIDDLESEX",
    "onSiteCarriers": 29,
-   "epaFacilityParcels": 62,
-   "regulatorySites": 664,
-   "sha256": "cf6d7b32d1bc8bd4fc14c97461996c8190c1dcd65fb61ac1d6cbedcf3ae5240f"
+   "epaFacilityParcels": 60,
+   "regulatorySites": 609,
+   "sha256": "24c849eec4ab3fe9c8bfb4013bc33ebde245166c064571fb9a6b4ac3f266bfea",
+   "activeOnSiteCarriers": 15
   },
   "1215": {
    "file": "nj-research/1215.json",
@@ -4505,17 +4526,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 0,
    "regulatorySites": 9,
-   "sha256": "fbadf14612fbbbbfb5422b6352933fd0eb9ba28625963c2ebdd3f1b70da4ab1d"
+   "sha256": "9e6806938e78036b4af3a75345090cb5a034d0c5822b44d1cef3cba47000f6af",
+   "activeOnSiteCarriers": 0
   },
   "1216": {
    "file": "nj-research/1216.json",
-   "records": 52,
+   "records": 50,
    "municipality": "PERTH AMBOY CITY",
    "county": "MIDDLESEX",
-   "onSiteCarriers": 8,
-   "epaFacilityParcels": 32,
-   "regulatorySites": 292,
-   "sha256": "7d2fd51191b5f4b76a34f8bc9ce84d8a3fec5b52f49a59d1d4198cc6084e8077"
+   "onSiteCarriers": 7,
+   "epaFacilityParcels": 30,
+   "regulatorySites": 284,
+   "sha256": "2c85d9cdc1fd6dcfeee07b436deecf114e66a89ab5c20f2579c0764b4a2d2c9a",
+   "activeOnSiteCarriers": 5
   },
   "1217": {
    "file": "nj-research/1217.json",
@@ -4525,17 +4548,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 1,
    "regulatorySites": 16,
-   "sha256": "e3b59997bbe4f85b4ead25715ba09e78cb04bd9a33777f7b807f66379a77fcdd"
+   "sha256": "966581354c73c3ff9e1066434b8cbb8b76739a1bf2a75f2350c42db6411d4585",
+   "activeOnSiteCarriers": 1
   },
   "1219": {
    "file": "nj-research/1219.json",
-   "records": 55,
+   "records": 48,
    "municipality": "SAYREVILLE BORO",
    "county": "MIDDLESEX",
-   "onSiteCarriers": 10,
-   "epaFacilityParcels": 30,
-   "regulatorySites": 261,
-   "sha256": "13ec921ce30fd6f7141c569c2c4161b1b4e71b3b5c94397b935d03b963924d8f"
+   "onSiteCarriers": 8,
+   "epaFacilityParcels": 29,
+   "regulatorySites": 243,
+   "sha256": "299fadf3200ce92bc3e8c2154f03cebe17a012a643bb69989174b491c182a9e7",
+   "activeOnSiteCarriers": 7
   },
   "1225": {
    "file": "nj-research/1225.json",
@@ -4545,7 +4570,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 2,
    "regulatorySites": 15,
-   "sha256": "8558daaa6a92ce11c59f5cf37469671130d226e117bb12378be51e5c569525d1"
+   "sha256": "86c2b5b1691e033eb7b508ed18c61cad906795248db8f054e3379512deeb6776",
+   "activeOnSiteCarriers": 0
   },
   "1318": {
    "file": "nj-research/1318.json",
@@ -4555,7 +4581,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 13,
-   "sha256": "72d96b3d6d6bef0d15796c353c171938e6213dda99794f11b1ff7d81765c8a4f"
+   "sha256": "f58391da73d32c2805e68b14922655d9642ded996ec095514d0d7ca0b4e519b7",
+   "activeOnSiteCarriers": 0
   },
   "1321": {
    "file": "nj-research/1321.json",
@@ -4565,7 +4592,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 2,
-   "sha256": "85f8e3b7799c763970cccacc5c3dde42ed0c725c76afbab60c63bfd748452b21"
+   "sha256": "5cc47d1aa8d3b9733271e6d407fd239d0c42dac40ac8e8a34957edeb74021dda",
+   "activeOnSiteCarriers": 0
   },
   "1323": {
    "file": "nj-research/1323.json",
@@ -4575,7 +4603,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 23,
-   "sha256": "50ce405c34bd88cb255196f4ad5b39f9fdcd1acd3030bae07d50c8b6b6af47eb"
+   "sha256": "559defa944aa6a607973aef676d4fad54a616164183c93019969bcec7102d038",
+   "activeOnSiteCarriers": 0
   },
   "1327": {
    "file": "nj-research/1327.json",
@@ -4585,17 +4614,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
    "regulatorySites": 25,
-   "sha256": "8be20a73640f0ed2b61399f8171a805fded5cd28d845c8ee80674c0fb0fb3dc7"
+   "sha256": "f8bddfad8d6e15a38b2d15cd3d3210440447299539047d5ba654d4ebaac29c44",
+   "activeOnSiteCarriers": 1
   },
   "1335": {
    "file": "nj-research/1335.json",
-   "records": 32,
+   "records": 31,
    "municipality": "NEPTUNE TWP",
    "county": "MONMOUTH",
    "onSiteCarriers": 3,
    "epaFacilityParcels": 15,
-   "regulatorySites": 229,
-   "sha256": "6fb41f7a321eb46349fcd2bd3b99cdf962ac03a876db6dfa9e0c9f31d92bdf99"
+   "regulatorySites": 218,
+   "sha256": "0a3eb79f0074c97ce00c221119687c97520cec88b1e5804f32614f69c8f5170a",
+   "activeOnSiteCarriers": 2
   },
   "1422": {
    "file": "nj-research/1422.json",
@@ -4605,7 +4636,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 14,
-   "sha256": "3dbeda21f11132a531146f84584e012df6316356e15ff83fbea90eb535406a47"
+   "sha256": "a077be03b35cc2a4862f61dbd6791e8112cfa5c6163612473e4115c65103b406",
+   "activeOnSiteCarriers": 0
   },
   "1424": {
    "file": "nj-research/1424.json",
@@ -4615,7 +4647,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 2,
    "regulatorySites": 38,
-   "sha256": "dde2fc0e09a85537009808163ae39ddce4260d951e490eb9df0a606f0caae1ef"
+   "sha256": "7949d269c40094debc38e07bbc12ed3465d7232eb11200361170e73dd3ee402b",
+   "activeOnSiteCarriers": 0
   },
   "1427": {
    "file": "nj-research/1427.json",
@@ -4625,17 +4658,19 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 3,
    "regulatorySites": 39,
-   "sha256": "07720a6d829fe2763d16a93949de5c89fc44737f74727249c4b636e2d38ca4bb"
+   "sha256": "92003ac69d146a7fc8608eb0a9d19e45a262e52b6c4bacbed865b50860ff144a",
+   "activeOnSiteCarriers": 0
   },
   "1429": {
    "file": "nj-research/1429.json",
-   "records": 5,
+   "records": 4,
    "municipality": "PARSIPPANY TR HLS TWP",
    "county": "MORRIS",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 3,
-   "regulatorySites": 44,
-   "sha256": "d66c35bd3194ed47d7b34847e5b25a6c7bcc3317a45117de0fbd6752c15f4efd"
+   "regulatorySites": 39,
+   "sha256": "03e7b43824348085d4a7f966151a69ad55aaeec0289a9d69e9ef34b62573cf11",
+   "activeOnSiteCarriers": 0
   },
   "1506": {
    "file": "nj-research/1506.json",
@@ -4645,7 +4680,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "91b6bafc2ba478fdf8b982209d6c895b6aa0131bbbe78690b59eae0b419c9d6b"
+   "sha256": "51948be14ccb16079cc5c14cb202a99c9f050b054e5cc20842b8f9351511f130",
+   "activeOnSiteCarriers": 0
   },
   "1507": {
    "file": "nj-research/1507.json",
@@ -4655,17 +4691,19 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 2,
-   "sha256": "348462d4f05933116ab4bdcf8bfff9bed87cc95d23f0a0d1e2aebe1c845b54f3"
+   "sha256": "e936446e7f2cb74496b1688b3eba33e3def6bb269fea95e000af51dec78c52f7",
+   "activeOnSiteCarriers": 0
   },
   "1512": {
    "file": "nj-research/1512.json",
-   "records": 19,
+   "records": 18,
    "municipality": "JACKSON TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
-   "epaFacilityParcels": 6,
-   "regulatorySites": 80,
-   "sha256": "44374901e868c51e9026ddaab861bfc88b78430fb34ec7bd671f843de6b1dbcf"
+   "epaFacilityParcels": 5,
+   "regulatorySites": 73,
+   "sha256": "b6b0ac47878903f525bb489aaa3714f2d6e6b0c80da2a6487964f6d8b65d32a5",
+   "activeOnSiteCarriers": 0
   },
   "1514": {
    "file": "nj-research/1514.json",
@@ -4675,27 +4713,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 2,
-   "sha256": "8ee590b4ccfc2b01ea036c5fb674a5bcdb1dddbe3f23992f60e4e79dc3109a9a"
+   "sha256": "8b5347e6d45bbac0a83d9733a60a391c0f89da2cf91c8d9161c54e281d2ec4dc",
+   "activeOnSiteCarriers": 0
   },
   "1515": {
    "file": "nj-research/1515.json",
-   "records": 266,
+   "records": 259,
    "municipality": "LAKEWOOD TWP",
    "county": "OCEAN",
    "onSiteCarriers": 68,
-   "epaFacilityParcels": 147,
-   "regulatorySites": 1390,
-   "sha256": "78e0fd60eaea65adb40675bca44519dea33dc2bc6244a014fb9aaafdc863d825"
+   "epaFacilityParcels": 145,
+   "regulatorySites": 1365,
+   "sha256": "0ba1a2f3bb09de2b28bd8ffd8459467b02d8490057355154fa2b4fef0cf450ec",
+   "activeOnSiteCarriers": 52
   },
   "1519": {
    "file": "nj-research/1519.json",
-   "records": 96,
+   "records": 94,
    "municipality": "MANCHESTER TWP",
    "county": "OCEAN",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 11,
-   "regulatorySites": 110,
-   "sha256": "8143bb0e70db3edeefe085f22b033d6c0c4e7b44b7a59e98b9f2e78917049724"
+   "regulatorySites": 108,
+   "sha256": "33c0a4f2fe572a8f58eb6d82fce90f3f2304032662b979cd217f9e8fe02210df",
+   "activeOnSiteCarriers": 0
   },
   "1527": {
    "file": "nj-research/1527.json",
@@ -4705,7 +4746,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 14,
-   "sha256": "92a527cdb242f87cbda4fe2e5b57fd2cc3ea01d54900e68bc880943612009fe3"
+   "sha256": "1cb53711d190623b1eca7fff7a2ce8ad9c98c0ffd57221fdc92d17240ab5d663",
+   "activeOnSiteCarriers": 0
   },
   "1528": {
    "file": "nj-research/1528.json",
@@ -4715,7 +4757,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 4,
-   "sha256": "f8eaa0af053b782d4d2192480027d9293c6d756a05a5e294497ba9894e840942"
+   "sha256": "8b8c0c09afd5da81df4a6bf87508ddb011d1751084918bde6ee97c19f3e18226",
+   "activeOnSiteCarriers": 0
   },
   "1602": {
    "file": "nj-research/1602.json",
@@ -4725,27 +4768,30 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 1,
    "regulatorySites": 32,
-   "sha256": "dd5cc3b9cb2582d9743ca819804d58fbc4fd1151669c76e718d65e8b98674145"
+   "sha256": "ad10c024aab5734f9ebdb8a036a29c9a0b7000c9e2ed526f363ae38e5fdb33ed",
+   "activeOnSiteCarriers": 1
   },
   "1607": {
    "file": "nj-research/1607.json",
-   "records": 21,
+   "records": 11,
    "municipality": "PASSAIC CITY",
    "county": "PASSAIC",
-   "onSiteCarriers": 3,
+   "onSiteCarriers": 2,
    "epaFacilityParcels": 5,
-   "regulatorySites": 226,
-   "sha256": "ceb5f56d382dcbba5afbfeabae2ad378ccdca65ebbd38dffca6ea408a66e8a3d"
+   "regulatorySites": 153,
+   "sha256": "114a7f0b538526c2a50ae03888984682b724b4261becfdab95493085b80f9d70",
+   "activeOnSiteCarriers": 2
   },
   "1608": {
    "file": "nj-research/1608.json",
-   "records": 16,
+   "records": 13,
    "municipality": "PATERSON CITY",
    "county": "PASSAIC",
    "onSiteCarriers": 3,
-   "epaFacilityParcels": 8,
-   "regulatorySites": 229,
-   "sha256": "e2bda8869a911ebb3232137dc22c731127a00ef958fd0372ed47f8c7a8bb1bf8"
+   "epaFacilityParcels": 7,
+   "regulatorySites": 186,
+   "sha256": "85c1a7c1e0fe129bfa545bdb2b1da804e3ecb28c9ebca3bb60ea460ece248c79",
+   "activeOnSiteCarriers": 2
   },
   "1704": {
    "file": "nj-research/1704.json",
@@ -4755,7 +4801,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "a6ff5bb4afdbd5c6e011a2e63f16ced762c9c6b2577d218e6ad113f27047df1a"
+   "sha256": "cb70c6a296dca9f2b9e2d47b6480ffe857e978e2b6b3dabe8c0021d62767b0c0",
+   "activeOnSiteCarriers": 0
   },
   "1708": {
    "file": "nj-research/1708.json",
@@ -4765,7 +4812,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 10,
-   "sha256": "2e17965af6f5c3d2bcb363b05a2a04e8734d6e873fb0961674504d1b676bf697"
+   "sha256": "982d1de0916bd1d68edce615e40090804e9f1af077136c52556f27fdf7169a61",
+   "activeOnSiteCarriers": 0
   },
   "1711": {
    "file": "nj-research/1711.json",
@@ -4775,17 +4823,19 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "1a9d99655e8a9129de5db0d08b01214491c853b33f28b32bfce5438cbb0ac896"
+   "sha256": "c43463599985b696b156fc7868f094a67df4d854a7dea5a780b2ac7a0b85dad2",
+   "activeOnSiteCarriers": 0
   },
   "1713": {
    "file": "nj-research/1713.json",
-   "records": 22,
+   "records": 19,
    "municipality": "SALEM CITY",
    "county": "SALEM",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 7,
-   "regulatorySites": 71,
-   "sha256": "1d2e4cf3f1a409ffd1f88b1115496e02e672b8f8dd65c68f0d12e7fff86c4204"
+   "regulatorySites": 63,
+   "sha256": "89dc46fb5cd968c8838dc3bcac3f25b89ca1405f1c7750ebf1bf74b1da1ad0e3",
+   "activeOnSiteCarriers": 0
   },
   "1804": {
    "file": "nj-research/1804.json",
@@ -4795,7 +4845,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 1,
-   "sha256": "8643429bbfd82e384ddb1fa0cd04bb64bd6994becd386c26600b896cba15cd9b"
+   "sha256": "9681ed3ce0bfebcfa1ebb2db4e99e0e8a2b78c0675fd9c87e05b05b7af0163d9",
+   "activeOnSiteCarriers": 0
   },
   "1809": {
    "file": "nj-research/1809.json",
@@ -4805,27 +4856,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 8,
-   "sha256": "c7ebb9e517891aca7aa405687124a8f41911c3e2cb62f9a18be03fd11e564b09"
+   "sha256": "623fb029429809f4e97e902d39e322aad71a96d244eece5c2a593ae79009b995",
+   "activeOnSiteCarriers": 0
   },
   "1915": {
    "file": "nj-research/1915.json",
-   "records": 22,
+   "records": 21,
    "municipality": "NEWTON TOWN",
    "county": "SUSSEX",
    "onSiteCarriers": 1,
    "epaFacilityParcels": 11,
-   "regulatorySites": 113,
-   "sha256": "668972ec8077300c3b82fa2fffb8a3451ab6c6bb5a54ae062f378daa8931c277"
+   "regulatorySites": 111,
+   "sha256": "e10d81b8c2207504da62adeff8a67c3bf91bb32a74f2f5c6f68d7830eb3e62c8",
+   "activeOnSiteCarriers": 1
   },
   "2004": {
    "file": "nj-research/2004.json",
-   "records": 48,
+   "records": 27,
    "municipality": "ELIZABETH CITY",
    "county": "UNION",
-   "onSiteCarriers": 12,
-   "epaFacilityParcels": 16,
-   "regulatorySites": 403,
-   "sha256": "a7318a51186b0961a19e6409a826013ada4b68bfed0fd732ccf4a5e64ce5e619"
+   "onSiteCarriers": 9,
+   "epaFacilityParcels": 13,
+   "regulatorySites": 240,
+   "sha256": "90eaba553f21c6d636ab824c51dacc4d4312a5a42a5f21d7243bb948d13933e8",
+   "activeOnSiteCarriers": 8
   },
   "2007": {
    "file": "nj-research/2007.json",
@@ -4835,7 +4889,8 @@
    "onSiteCarriers": 14,
    "epaFacilityParcels": 26,
    "regulatorySites": 448,
-   "sha256": "2f7f9f81e21daa80c409ae5cb481bd971b06d8ac77fe1d2c2a27d6f815faab97"
+   "sha256": "af9143dfdd6ac1eb8afa9ebec3dafed12b1db026b9ab883d30795c06595fde86",
+   "activeOnSiteCarriers": 9
   },
   "2019": {
    "file": "nj-research/2019.json",
@@ -4845,7 +4900,8 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 1,
    "regulatorySites": 7,
-   "sha256": "3cf961870639e2832cbf780456532ce2f45ff3aa27b5374f9fc86ad2d07af5a7"
+   "sha256": "a9e1edc4f809c7416ba8d8df0348b0ff86e6d88baea38e47a2699c73c91431d8",
+   "activeOnSiteCarriers": 0
   },
   "2119": {
    "file": "nj-research/2119.json",
@@ -4855,7 +4911,8 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
    "regulatorySites": 19,
-   "sha256": "4607a5a98d19bd599a294e7b7b408d20a815a2243a94d50fddd17063dea7125f"
+   "sha256": "655605d8e3fab7131afa78b7d19d2d4593a01b93d49c93135e8007d26faefbbf",
+   "activeOnSiteCarriers": 1
   },
   "0101": {
    "file": "nj-research/0101.json",
@@ -4865,7 +4922,8 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 3,
    "regulatorySites": 15,
-   "sha256": "c712d6c78032d4dd18449bc7a16664406b956c825aa0adab5b123dfd154c89d7"
+   "sha256": "b5f6acf02ad09538059c9dce1ff4a766c16c995205acbcc938e3aa64ee18eb4d",
+   "activeOnSiteCarriers": 1
   },
   "0102": {
    "file": "nj-research/0102.json",
@@ -4875,17 +4933,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 6,
    "regulatorySites": 74,
-   "sha256": "97a8219acce1048b4c1bd9ba0a373decb9e61f9fdb7fe5e0ecab3e93be05a225"
+   "sha256": "b3f201125782aa39211edac32d00096287a2a5fede4bb3f4075c7556de849235",
+   "activeOnSiteCarriers": 0
   },
   "0108": {
    "file": "nj-research/0108.json",
-   "records": 197,
+   "records": 189,
    "municipality": "EGG HARBOR TWP",
    "county": "ATLANTIC",
    "onSiteCarriers": 0,
-   "epaFacilityParcels": 83,
-   "regulatorySites": 564,
-   "sha256": "5c0ee785840363864553f3f880209714b6026dce167cb622b6778d90b0b9fd27"
+   "epaFacilityParcels": 79,
+   "regulatorySites": 542,
+   "sha256": "e689b7e64a9488980e4c0114b33f1d6cfd2a267313dfaafab8873dd425768cad",
+   "activeOnSiteCarriers": 0
   },
   "0111": {
    "file": "nj-research/0111.json",
@@ -4895,67 +4955,74 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 9,
-   "sha256": "2fc3c7dc9d411f1bf50155813942f775bd021211481df3e011f4fa14dfe58ba6"
+   "sha256": "2ef56d2faa5125da2be8f099871b08abf8f26495579250e8b738d5bc9156f50c",
+   "activeOnSiteCarriers": 0
   },
   "0112": {
    "file": "nj-research/0112.json",
-   "records": 2,
+   "records": 1,
    "municipality": "HAMILTON TWP",
    "county": "ATLANTIC",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "6df7008d836b181135eb2233eb94f027ffb0520a35aeb7ce28bfaea262e735a7"
+   "sha256": "a6e73147c6623b4b8e5c256b3c3266672de47be31c472755c5175701bc6ef431",
+   "activeOnSiteCarriers": 0
   },
   "0119": {
    "file": "nj-research/0119.json",
-   "records": 13,
+   "records": 11,
    "municipality": "PLEASANTVILLE CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 2,
    "epaFacilityParcels": 5,
    "regulatorySites": 26,
-   "sha256": "6ce8a87c0e4afa4b373584ded8aea01a8fff746261afb701a8240d2b6e32f3b9"
+   "sha256": "3628c8d37ad608d94041fb3fd3ca53c2e400322155960d370432e45f8dad8b88",
+   "activeOnSiteCarriers": 1
   },
   "0121": {
    "file": "nj-research/0121.json",
-   "records": 4,
+   "records": 2,
    "municipality": "SOMERS POINT CITY",
    "county": "ATLANTIC",
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
-   "regulatorySites": 33,
-   "sha256": "952355fcabc8047db657a335914ff193a7c99fbd2de5d36de5f709031652935a"
+   "regulatorySites": 28,
+   "sha256": "4a4aa93eb333d810e330a2b4424c9c1a7132c156372785a80a7d0f553c920073",
+   "activeOnSiteCarriers": 0
   },
   "0218": {
    "file": "nj-research/0218.json",
-   "records": 13,
+   "records": 12,
    "municipality": "FAIRVIEW BORO",
    "county": "BERGEN",
    "onSiteCarriers": 5,
-   "epaFacilityParcels": 11,
-   "regulatorySites": 158,
-   "sha256": "15d74eab78be542d3950a827bfd2a570253ae2e325bc4eef3f6fef6ab91e4d31"
+   "epaFacilityParcels": 10,
+   "regulatorySites": 141,
+   "sha256": "76bfd59b9cf463ea6dabf498a381a924bab0f4aefc69fab7756293d48d190111",
+   "activeOnSiteCarriers": 4
   },
   "0221": {
    "file": "nj-research/0221.json",
-   "records": 2,
+   "records": 1,
    "municipality": "GARFIELD CITY",
    "county": "BERGEN",
    "onSiteCarriers": 0,
-   "epaFacilityParcels": 2,
-   "regulatorySites": 26,
-   "sha256": "97be1b410503c3541b73c414624457e353a568b970167c6337d9f172547e8120"
+   "epaFacilityParcels": 1,
+   "regulatorySites": 14,
+   "sha256": "38eed2ea9ddaa560e681b539bf5f34e4ee4e4cac34a207e07beea7d3cbc848a7",
+   "activeOnSiteCarriers": 0
   },
   "0223": {
    "file": "nj-research/0223.json",
-   "records": 13,
+   "records": 6,
    "municipality": "HACKENSACK CITY",
    "county": "BERGEN",
-   "onSiteCarriers": 4,
-   "epaFacilityParcels": 9,
-   "regulatorySites": 98,
-   "sha256": "155f1746abbce45633e6621c8669c1f99d715709b654f58547d4d66ff2147b52"
+   "onSiteCarriers": 1,
+   "epaFacilityParcels": 4,
+   "regulatorySites": 62,
+   "sha256": "aece9f59b8bb84ab5406843c4c316880b205ec36725367b099caad9bbc6308e4",
+   "activeOnSiteCarriers": 0
   },
   "0230": {
    "file": "nj-research/0230.json",
@@ -4965,7 +5032,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 8,
-   "sha256": "42945de9c7539617e1dc886d80d9b3344322545bc68ae2c392198a935829255d"
+   "sha256": "738927a337bacab21dce744cb4ab07c0c642a094ae192be5e216382eec589e33",
+   "activeOnSiteCarriers": 0
   },
   "0249": {
    "file": "nj-research/0249.json",
@@ -4975,17 +5043,19 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
    "regulatorySites": 16,
-   "sha256": "a83e0b3c035e0a9246227cc1e92a71922e5b81412cae5eb6c4a3ce55734e1b5d"
+   "sha256": "a2714b79c3ffdb09bd77198a50b9ffe877692594d6da0bdbf41ed469ed9fae93",
+   "activeOnSiteCarriers": 0
   },
   "0259": {
    "file": "nj-research/0259.json",
-   "records": 17,
+   "records": 15,
    "municipality": "SO HACKENSACK TWP",
    "county": "BERGEN",
    "onSiteCarriers": 2,
-   "epaFacilityParcels": 16,
-   "regulatorySites": 190,
-   "sha256": "e6672de6704e63f41aca0bb4418471483114cf5dbe86013927d5e068337b11ec"
+   "epaFacilityParcels": 14,
+   "regulatorySites": 171,
+   "sha256": "410b936477908eade88ae130427bcf5575dc508fc4df8ad47606dae82abbcc09",
+   "activeOnSiteCarriers": 0
   },
   "0262": {
    "file": "nj-research/0262.json",
@@ -4995,17 +5065,19 @@
    "onSiteCarriers": 13,
    "epaFacilityParcels": 25,
    "regulatorySites": 357,
-   "sha256": "157bc7ebf5454876669034b776cf7169bb2c51c49f9c874d83c177419aca93ff"
+   "sha256": "c0ecdc88904ac4b5ea8dd372e35d387c40d81060ca5ec4812be47ececff8e16b",
+   "activeOnSiteCarriers": 8
   },
   "0305": {
    "file": "nj-research/0305.json",
-   "records": 19,
+   "records": 13,
    "municipality": "BURLINGTON CITY",
    "county": "BURLINGTON",
-   "onSiteCarriers": 1,
+   "onSiteCarriers": 0,
    "epaFacilityParcels": 7,
-   "regulatorySites": 66,
-   "sha256": "ed92fd8215e5166da546b488cc90500205ec0702453d6576add7dc52a333b06d"
+   "regulatorySites": 45,
+   "sha256": "f9dd39eb0665a8aadf994d83bbec9ba92330b91e2822c1d7cb6c8b3981dd439d",
+   "activeOnSiteCarriers": 0
   },
   "0306": {
    "file": "nj-research/0306.json",
@@ -5015,7 +5087,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 10,
-   "sha256": "89dcec5e218cc304c477d5d46b974e19d4a659529b74724a5969b9ca982785a2"
+   "sha256": "60e22c32d7b6a1c0658e9e78b1d3a0fafae2b424f901d86a18345beac83861e3",
+   "activeOnSiteCarriers": 0
   },
   "0312": {
    "file": "nj-research/0312.json",
@@ -5025,27 +5098,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 6,
-   "sha256": "ec14865159245213b13f3b5e71a6b229a5efe1c6bd04d4d2cbae3bb287994edb"
+   "sha256": "e9283ffdb39c2aa077cc6b19eaa8b0c4e9eb93e119ecd119a886e64dd45b405e",
+   "activeOnSiteCarriers": 0
   },
   "0330": {
    "file": "nj-research/0330.json",
-   "records": 7,
+   "records": 4,
    "municipality": "RIVERSIDE TWP",
    "county": "BURLINGTON",
-   "onSiteCarriers": 2,
-   "epaFacilityParcels": 4,
-   "regulatorySites": 67,
-   "sha256": "5299d0268c027e9b64947fb6bf98b903ed2c8a349e456798700182bba616138b"
+   "onSiteCarriers": 1,
+   "epaFacilityParcels": 2,
+   "regulatorySites": 55,
+   "sha256": "7960bce7428c38b516ce49158fafcda81b111f0bf177290e0939257a6b697f38",
+   "activeOnSiteCarriers": 0
   },
   "0408": {
    "file": "nj-research/0408.json",
-   "records": 33,
+   "records": 31,
    "municipality": "CAMDEN CITY",
    "county": "CAMDEN",
    "onSiteCarriers": 6,
-   "epaFacilityParcels": 19,
-   "regulatorySites": 224,
-   "sha256": "68cdbb687f8705a2368121ad88af60b1c2af33536b4bc4dcb110c13e7a5684a6"
+   "epaFacilityParcels": 18,
+   "regulatorySites": 216,
+   "sha256": "2ebd4be2d6a22257b97369adc4463ccff7ea4d9353abe64b83ccbcd0b18d1ca0",
+   "activeOnSiteCarriers": 2
   },
   "0414": {
    "file": "nj-research/0414.json",
@@ -5055,27 +5131,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 15,
-   "sha256": "5b2899dd56a77e912b20f5b9a3b3c1dc2832c3967ddc5ac219081591ac713a8e"
+   "sha256": "ec2101d0aa2d4ab01b5f0ad03cdcb48d191c77d8376e64a22e9d29a8a7da102d",
+   "activeOnSiteCarriers": 0
   },
   "0415": {
    "file": "nj-research/0415.json",
-   "records": 28,
+   "records": 27,
    "municipality": "GLOUCESTER TWP",
    "county": "CAMDEN",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 16,
    "regulatorySites": 79,
-   "sha256": "8452a53729f46c4a564e5e07133fbdcb4aac7f9a11ec9aed5db927c24b575a62"
+   "sha256": "642214afa5f825db43959e310f235302290078f27300c62e2123cc9450b07875",
+   "activeOnSiteCarriers": 0
   },
   "0427": {
    "file": "nj-research/0427.json",
-   "records": 102,
+   "records": 98,
    "municipality": "PENNSAUKEN TWP",
    "county": "CAMDEN",
-   "onSiteCarriers": 34,
-   "epaFacilityParcels": 60,
-   "regulatorySites": 562,
-   "sha256": "0a665c2e2bfc09490a6f40184613c05de28767cfcb375883007f5859adc7b5d5"
+   "onSiteCarriers": 33,
+   "epaFacilityParcels": 59,
+   "regulatorySites": 553,
+   "sha256": "c220e9c49d43b3c10e2174208bd9e8ee97f1181c818bec97074f08d5fa3dedd2",
+   "activeOnSiteCarriers": 14
   },
   "0437": {
    "file": "nj-research/0437.json",
@@ -5085,7 +5164,8 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 0,
    "regulatorySites": 18,
-   "sha256": "db3ea151b54a151f5ba9e3ff12563ebf3c7daf5aa5969a2e75d10eaf470ce927"
+   "sha256": "c0582eceb2848fa8d2b9c1e189cc0ebe5c864a1fcf0cf7eafcab976c1b7f123d",
+   "activeOnSiteCarriers": 0
   },
   "0504": {
    "file": "nj-research/0504.json",
@@ -5095,7 +5175,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 2,
-   "sha256": "57ea2eb6294de8620560aff5cbc8496f1e575c4f7a8b16044dda522a41d9da6b"
+   "sha256": "0e10a04e77ae717977e8555a00aceeae62c6e77504e8190321978130dbdd3680",
+   "activeOnSiteCarriers": 0
   },
   "0511": {
    "file": "nj-research/0511.json",
@@ -5105,27 +5186,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 0,
    "regulatorySites": 0,
-   "sha256": "012657bfbd72ab8dc280a19a6fa791432e7cbced69fcd06db992dd7615ca200d"
+   "sha256": "3d2e2c431c7008e13c38a8a434d2d052e2db16fe7054aad768d35c411cc63d7a",
+   "activeOnSiteCarriers": 0
   },
   "0516": {
    "file": "nj-research/0516.json",
-   "records": 75,
+   "records": 67,
    "municipality": "WOODBINE BORO",
    "county": "CAPE MAY",
    "onSiteCarriers": 1,
    "epaFacilityParcels": 6,
    "regulatorySites": 43,
-   "sha256": "5274fac14bf6a87fb960c355cdb171694b9b68559a51855935152df5e4d36496"
+   "sha256": "f9a6a11a8d94f1bda70f83c8ac64a5bd0264773f879427c8a0a6f00c64e22a3b",
+   "activeOnSiteCarriers": 1
   },
   "0601": {
    "file": "nj-research/0601.json",
-   "records": 27,
+   "records": 26,
    "municipality": "BRIDGETON CITY",
    "county": "CUMBERLAND",
    "onSiteCarriers": 1,
-   "epaFacilityParcels": 10,
-   "regulatorySites": 62,
-   "sha256": "da92aaeb7d32148a4aa5758c41208c249dc107d60fccb096f8e9b2077009c01f"
+   "epaFacilityParcels": 9,
+   "regulatorySites": 60,
+   "sha256": "cbd4ecbbcbef80606bcb93ff6c91d01935bf42cdfcbbdfb13fcfd832e7878d7a",
+   "activeOnSiteCarriers": 1
   },
   "0605": {
    "file": "nj-research/0605.json",
@@ -5135,27 +5219,30 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 5,
-   "sha256": "60237c44b081a09ead631451228e1c146cd56f2a217e5d181ec3612df3b693b3"
+   "sha256": "1e2f0f5b457a8af2bdc8d7d722772fb457ade9cd65cfb642dfdc07fa064516a0",
+   "activeOnSiteCarriers": 0
   },
   "0610": {
    "file": "nj-research/0610.json",
-   "records": 5,
+   "records": 4,
    "municipality": "MILLVILLE CITY",
    "county": "CUMBERLAND",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
-   "regulatorySites": 35,
-   "sha256": "c2947c354de02c150a4d9a60f6a42a3d0325edb105ddbca1a0afa18d4b430cd4"
+   "regulatorySites": 30,
+   "sha256": "44162e8c7c873c34b71094ebb4ea856d4edbcdadc76333332f4f493f3230ce73",
+   "activeOnSiteCarriers": 0
   },
   "0614": {
    "file": "nj-research/0614.json",
-   "records": 192,
+   "records": 181,
    "municipality": "VINELAND CITY",
    "county": "CUMBERLAND",
-   "onSiteCarriers": 45,
-   "epaFacilityParcels": 100,
-   "regulatorySites": 569,
-   "sha256": "46390e9aa1c3049b1eae63d1c015353df756ac2a4167266b427f8dff7a182b07"
+   "onSiteCarriers": 44,
+   "epaFacilityParcels": 91,
+   "regulatorySites": 543,
+   "sha256": "7edbe52a9c9bcd24568b4dd330868957931302a6f7ba47559cd9ba364d1e24e6",
+   "activeOnSiteCarriers": 30
   },
   "0701": {
    "file": "nj-research/0701.json",
@@ -5165,17 +5252,19 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 10,
-   "sha256": "05514fb069cbea510921331341ffac0cdd13bcdc90bcc306a8cfec6ef555955a"
+   "sha256": "046001034f5259367e035ef57a6e871a6eb5b6ce8a70e5d3bfae4e45df09f561",
+   "activeOnSiteCarriers": 0
   },
   "0702": {
    "file": "nj-research/0702.json",
-   "records": 12,
+   "records": 11,
    "municipality": "BLOOMFIELD TWP",
    "county": "ESSEX",
-   "onSiteCarriers": 3,
+   "onSiteCarriers": 2,
    "epaFacilityParcels": 7,
-   "regulatorySites": 126,
-   "sha256": "37b2a1198b865e9291e1ac4ba0a05204802c51d1fb96d740fd5491c7587dd948"
+   "regulatorySites": 118,
+   "sha256": "06aa5cc2083e80a3cfe78e3eebf87af7efadc2aa5802b23c0aa031bbd4c442f5",
+   "activeOnSiteCarriers": 1
   },
   "0705": {
    "file": "nj-research/0705.json",
@@ -5185,27 +5274,30 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
    "regulatorySites": 29,
-   "sha256": "b103f19d3840e01fff935a728861db864d6f667e3d3e9beaa7f92add1483366e"
+   "sha256": "23bb483d76a82dcaf7ba422dbd9cb911a35c30ebb1b0ac941910a19180d155c2",
+   "activeOnSiteCarriers": 0
   },
   "0714": {
    "file": "nj-research/0714.json",
-   "records": 19,
+   "records": 14,
    "municipality": "NEWARK CITY",
    "county": "ESSEX",
    "onSiteCarriers": 2,
-   "epaFacilityParcels": 4,
-   "regulatorySites": 245,
-   "sha256": "1516bb47c6bf65e1e69e06fb3d31c14964447ffbcdf61956155d75e15d528a4e"
+   "epaFacilityParcels": 3,
+   "regulatorySites": 194,
+   "sha256": "086b53611877fd5e56e51c730c969ebc3db67544fc852ef3280125a8baf1ee8d",
+   "activeOnSiteCarriers": 0
   },
   "0717": {
    "file": "nj-research/0717.json",
-   "records": 30,
+   "records": 7,
    "municipality": "ORANGE CITY TWP",
    "county": "ESSEX",
    "onSiteCarriers": 0,
    "epaFacilityParcels": 5,
-   "regulatorySites": 198,
-   "sha256": "7825d7ceee339e524c0921b0834ce85093ccac95fd218ecb6eb1e9fbc538fdee"
+   "regulatorySites": 61,
+   "sha256": "7750bd6a95fb13033620e68b918243dd3bed5c783b37e1b4940562e591cc87cc",
+   "activeOnSiteCarriers": 0
   },
   "0722": {
    "file": "nj-research/0722.json",
@@ -5215,7 +5307,8 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 1,
    "regulatorySites": 8,
-   "sha256": "e08bdcabcfda1ec8aa58ec332df2007284d23663a37b2c0c21f3098663627a6c"
+   "sha256": "f55120e5dcd3322fc3af40c46bfe3e0ec360b3224698c42660c70741054df5de",
+   "activeOnSiteCarriers": 1
   },
   "0803": {
    "file": "nj-research/0803.json",
@@ -5225,7 +5318,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 12,
-   "sha256": "9a3db0a321e78e41efe98a27412f8cbca0d7b41a129b84d6b96ccb9b473226d1"
+   "sha256": "c9449bed4bef3e6901028d76df90e677f2de442d2b72a634e4f7f0bd2ec0350f",
+   "activeOnSiteCarriers": 0
   },
   "0807": {
    "file": "nj-research/0807.json",
@@ -5235,7 +5329,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 10,
-   "sha256": "8783aa811d9db593dc4e446f7836d7c85873575e30d9eafb0bb6b9ec650be566"
+   "sha256": "1d7192d62df96c7d5dd8c69fc4d3f7e5a44258d6825e3b8947f7dc39bdab3150",
+   "activeOnSiteCarriers": 0
   },
   "0814": {
    "file": "nj-research/0814.json",
@@ -5245,7 +5340,8 @@
    "onSiteCarriers": 2,
    "epaFacilityParcels": 6,
    "regulatorySites": 78,
-   "sha256": "960b7790e400ad6ed86ee4f3305333c14bbb3f945db7f843c3d96d77390d5c29"
+   "sha256": "95fec420f773673b415f1ca98a8629913a94a5481915e57feede759ed4721962",
+   "activeOnSiteCarriers": 0
   },
   "0818": {
    "file": "nj-research/0818.json",
@@ -5255,7 +5351,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 21,
-   "sha256": "58f5a2e5088d64e74de823d0c9fc6fc432f4e356fe796cb2d8062692247b6c41"
+   "sha256": "b3b205fe2bfaa17dac1c7188fc0dafc5ea5d835846ac1d15fc234c49b9f04007",
+   "activeOnSiteCarriers": 0
   },
   "0820": {
    "file": "nj-research/0820.json",
@@ -5265,7 +5362,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 2,
    "regulatorySites": 11,
-   "sha256": "64235829ef4ce68e3f1012e1bddf18ec2e684ded0f13cf990a4422be7162f1eb"
+   "sha256": "951845b9b12f245417c55a2df3b55561119aba1968cf617209ba19bb5615c415",
+   "activeOnSiteCarriers": 0
   },
   "0902": {
    "file": "nj-research/0902.json",
@@ -5275,37 +5373,41 @@
    "onSiteCarriers": 1,
    "epaFacilityParcels": 2,
    "regulatorySites": 48,
-   "sha256": "260992bae8856a95e5f8752ee6725b16c642fda58fa80b5ad25ce4894e6b6c82"
+   "sha256": "3dadac3b4aea9721c7432a4448024f00ecc7596b2c4305cca34dc5e86a1c0009",
+   "activeOnSiteCarriers": 0
   },
   "0906": {
    "file": "nj-research/0906.json",
-   "records": 18,
+   "records": 12,
    "municipality": "JERSEY CITY CITY",
    "county": "HUDSON",
-   "onSiteCarriers": 7,
-   "epaFacilityParcels": 11,
-   "regulatorySites": 214,
-   "sha256": "bfa64aabe76d6a37bd7ae41b7d001bae65f6c3d5feb27283f077989ce8360cc6"
+   "onSiteCarriers": 5,
+   "epaFacilityParcels": 10,
+   "regulatorySites": 160,
+   "sha256": "4ced54c1cb4c6907104dfdddbaa5a8314b26916c6905f63e61319c7b064affae",
+   "activeOnSiteCarriers": 3
   },
   "0907": {
    "file": "nj-research/0907.json",
-   "records": 18,
+   "records": 12,
    "municipality": "KEARNY TOWN",
    "county": "HUDSON",
-   "onSiteCarriers": 3,
-   "epaFacilityParcels": 12,
-   "regulatorySites": 154,
-   "sha256": "85a6dd7bef67b1e0c66ddb15a156662412f0a6264e38026540caecc532b9b82b"
+   "onSiteCarriers": 2,
+   "epaFacilityParcels": 10,
+   "regulatorySites": 110,
+   "sha256": "5d006f2ff624436958ab33fc0764e8d3bf6d4bdae9f9b4927be2ed976dc97784",
+   "activeOnSiteCarriers": 1
   },
   "0908": {
    "file": "nj-research/0908.json",
-   "records": 2,
+   "records": 1,
    "municipality": "NORTH BERGEN TWP",
    "county": "HUDSON",
    "onSiteCarriers": 1,
-   "epaFacilityParcels": 2,
-   "regulatorySites": 27,
-   "sha256": "a580ceb9df458f4733a9d51f7dd6680d1e0caf7470327014f7be005722672e37"
+   "epaFacilityParcels": 1,
+   "regulatorySites": 20,
+   "sha256": "56a2a300cd4936f064a9fddff44a089bc461c6157ce0e9474ea75692eb46022d",
+   "activeOnSiteCarriers": 0
   },
   "0910": {
    "file": "nj-research/0910.json",
@@ -5315,7 +5417,8 @@
    "onSiteCarriers": 0,
    "epaFacilityParcels": 1,
    "regulatorySites": 8,
-   "sha256": "42831f61b96edfb3761f042c2ae22233f023db3b541950347d0638dbaadc2cc1"
+   "sha256": "f626c53f00a84287e4a6bf122cd2871632f2234b331f131007fad91f53ccccd5",
+   "activeOnSiteCarriers": 0
   }
  },
  "quickPicks": [
@@ -5453,13 +5556,6 @@
    "status": "ACTIVE"
   },
   {
-   "parcelId": "0218_501_8",
-   "address": "61 BROAD AVE",
-   "municipality": "FAIRVIEW BORO",
-   "carrierName": "VISION TRANSPORT INC",
-   "status": "ACTIVE"
-  },
-  {
    "parcelId": "1213_597.04_5",
    "address": "15 HOME NEWS ROW",
    "municipality": "NEW BRUNSWICK CITY",
@@ -5474,10 +5570,10 @@
    "status": "ACTIVE"
   },
   {
-   "parcelId": "0614_314_5",
-   "address": "1759 GALLAGHER DR",
-   "municipality": "VINELAND CITY",
-   "carrierName": "LANDIS FIRE PROTECTION INCORPORATED",
+   "parcelId": "0218_501_8",
+   "address": "61 BROAD AVE",
+   "municipality": "FAIRVIEW BORO",
+   "carrierName": "VISION TRANSPORT INC",
    "status": "ACTIVE"
   },
   {
@@ -5495,10 +5591,10 @@
    "status": "ACTIVE"
   },
   {
-   "parcelId": "0262_307_29",
-   "address": "111 CENTRAL AVE.",
-   "municipality": "TETERBORO BORO",
-   "carrierName": "NORTHERN ARCHITECTURAL SYSTEMS INC",
+   "parcelId": "0614_314_5",
+   "address": "1759 GALLAGHER DR",
+   "municipality": "VINELAND CITY",
+   "carrierName": "LANDIS FIRE PROTECTION INCORPORATED",
    "status": "ACTIVE"
   },
   {
@@ -5506,6 +5602,13 @@
    "address": "185 LEHIGH AVENUE",
    "municipality": "LAKEWOOD TWP",
    "carrierName": "KLARR TRANSPORT SERVICES INC",
+   "status": "ACTIVE"
+  },
+  {
+   "parcelId": "0262_307_29",
+   "address": "111 CENTRAL AVE.",
+   "municipality": "TETERBORO BORO",
+   "carrierName": "NORTHERN ARCHITECTURAL SYSTEMS INC",
    "status": "ACTIVE"
   },
   {
@@ -5523,17 +5626,17 @@
    "status": "ACTIVE"
   },
   {
-   "parcelId": "0906_30304_18",
-   "address": "134 GARFIELD AVE.",
-   "municipality": "JERSEY CITY CITY",
-   "carrierName": "VJ DELIVERY SERVICE INC",
-   "status": "ACTIVE"
-  },
-  {
    "parcelId": "1201_5301_1",
    "address": "800 ROOSEVELT AVENUE",
    "municipality": "CARTERET BORO",
    "carrierName": "PRIME LUBE INC",
+   "status": "ACTIVE"
+  },
+  {
+   "parcelId": "0906_30304_18",
+   "address": "134 GARFIELD AVE.",
+   "municipality": "JERSEY CITY CITY",
+   "carrierName": "VJ DELIVERY SERVICE INC",
    "status": "ACTIVE"
   },
   {
@@ -5825,19 +5928,16 @@
    "parcelIds": [
     "0108_416_1",
     "0108_801_6",
-    "0108_801_114",
     "0108_400_1"
    ],
    "keys": [
     "0108_416_1",
     "0108_801_6",
-    "0108_801_114",
     "0108_400_1"
    ],
    "sourceDates": {
     "0108_416_1": "2026-11-17T18:52:17.893Z",
     "0108_801_6": "2026-11-17T18:52:17.893Z",
-    "0108_801_114": "2026-11-17T18:52:17.893Z",
     "0108_400_1": "2026-11-17T18:52:17.893Z"
    }
   },
@@ -5984,44 +6084,6 @@
    "sourceDates": {
     "0108_801_113": "2026-11-17T18:52:17.893Z",
     "0108_801_8": "2026-11-17T18:52:17.893Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "3010 SUNSET AVENUE",
-    "cityState": "ATLANTIC CITY, NJ",
-    "zip": "08401"
-   },
-   "parcelIds": [
-    "0108_901_14",
-    "0108_901_16"
-   ],
-   "keys": [
-    "0108_901_14",
-    "0108_901_16"
-   ],
-   "sourceDates": {
-    "0108_901_14": "2026-11-17T18:52:17.893Z",
-    "0108_901_16": "2026-11-17T18:52:17.893Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "601 W CLARKS LANDING RD",
-    "cityState": "EGG HARBOR CITY, NJ",
-    "zip": "08215"
-   },
-   "parcelIds": [
-    "0108_901_12",
-    "0108_901_31"
-   ],
-   "keys": [
-    "0108_901_12",
-    "0108_901_31"
-   ],
-   "sourceDates": {
-    "0108_901_12": "2026-11-17T18:52:17.893Z",
-    "0108_901_31": "2026-11-17T18:52:17.893Z"
    }
   },
   {
@@ -6439,17 +6501,14 @@
     "zip": "08215"
    },
    "parcelIds": [
-    "0119_4_21",
     "0119_4_4",
     "0119_4_5"
    ],
    "keys": [
-    "0119_4_21",
     "0119_4_4",
     "0119_4_5"
    ],
    "sourceDates": {
-    "0119_4_21": "2026-11-17T18:52:19.142Z",
     "0119_4_4": "2026-11-17T18:52:19.142Z",
     "0119_4_5": "2026-11-17T18:52:19.142Z"
    }
@@ -6522,44 +6581,6 @@
   },
   {
    "mailing": {
-    "street": "7 VISTA LANE",
-    "cityState": "EDGEWATER, NJ",
-    "zip": "07020"
-   },
-   "parcelIds": [
-    "0223_237_1.01_C001E",
-    "0223_237_1.01_C001F"
-   ],
-   "keys": [
-    "0223_237_1.01_C001E",
-    "0223_237_1.01_C001F"
-   ],
-   "sourceDates": {
-    "0223_237_1.01_C001E": "2026-11-17T18:52:58.384Z",
-    "0223_237_1.01_C001F": "2026-11-17T18:52:58.384Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "302 UNION ST",
-    "cityState": "HACKENSACK, NJ",
-    "zip": "07601"
-   },
-   "parcelIds": [
-    "0223_318_3_C000C",
-    "0223_318_3_C000A"
-   ],
-   "keys": [
-    "0223_318_3_C000C",
-    "0223_318_3_C000A"
-   ],
-   "sourceDates": {
-    "0223_318_3_C000C": "2026-11-17T18:53:18.361Z",
-    "0223_318_3_C000A": "2026-11-17T18:53:18.361Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "80 PARK PLAZA",
     "cityState": "NEWARK, NJ",
     "zip": "07102"
@@ -6587,17 +6608,14 @@
     "zip": "07631"
    },
    "parcelIds": [
-    "0259_2.01_6.03",
     "0259_25_1",
     "0259_55_2.02"
    ],
    "keys": [
-    "0259_2.01_6.03",
     "0259_25_1",
     "0259_55_2.02"
    ],
    "sourceDates": {
-    "0259_2.01_6.03": "2026-11-17T18:53:00.351Z",
     "0259_25_1": "2026-11-17T18:53:00.351Z",
     "0259_55_2.02": "2026-11-17T18:53:00.351Z"
    }
@@ -6686,25 +6704,6 @@
   },
   {
    "mailing": {
-    "street": "501 E PEARL ST",
-    "cityState": "BURLINGTON, NJ",
-    "zip": "08016"
-   },
-   "parcelIds": [
-    "0305_226_1.01",
-    "0305_201_1"
-   ],
-   "keys": [
-    "0305_226_1.01",
-    "0305_201_1"
-   ],
-   "sourceDates": {
-    "0305_226_1.01": "2026-11-17T18:52:53.482Z",
-    "0305_201_1": "2026-11-17T18:52:53.482Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "1011 RT 130 N",
     "cityState": "BURLINGTON, NJ",
     "zip": "08016"
@@ -6772,7 +6771,6 @@
     "0408_217_10",
     "0408_281_28",
     "0408_281_31",
-    "0408_281_35.01",
     "0408_351_8",
     "0408_461_15",
     "0408_1386_1.01"
@@ -6783,7 +6781,6 @@
     "0408_217_10",
     "0408_281_28",
     "0408_281_31",
-    "0408_281_35.01",
     "0408_351_8",
     "0408_461_15",
     "0408_1386_1.01"
@@ -6794,7 +6791,6 @@
     "0408_217_10": "2026-11-17T18:52:06.861Z",
     "0408_281_28": "2026-11-17T18:52:01.558Z",
     "0408_281_31": "2026-11-17T18:52:01.558Z",
-    "0408_281_35.01": "2026-11-17T18:52:01.558Z",
     "0408_351_8": "2026-11-17T18:52:01.558Z",
     "0408_461_15": "2026-11-17T18:52:01.558Z",
     "0408_1386_1.01": "2026-11-17T18:52:55.972Z"
@@ -6858,25 +6854,6 @@
    "sourceDates": {
     "0415_14009_3": "2026-11-17T18:52:08.373Z",
     "0415_14009_5": "2026-11-17T18:52:08.373Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "905 N KINGS HWY",
-    "cityState": "CHERRY HILL, NJ",
-    "zip": "08034"
-   },
-   "parcelIds": [
-    "0415_14001_5",
-    "0415_14001_3"
-   ],
-   "keys": [
-    "0415_14001_5",
-    "0415_14001_3"
-   ],
-   "sourceDates": {
-    "0415_14001_5": "2026-11-17T18:52:08.373Z",
-    "0415_14001_3": "2026-11-17T18:52:08.373Z"
    }
   },
   {
@@ -6986,8 +6963,6 @@
    "parcelIds": [
     "0427_1701_1",
     "0427_1201_1",
-    "0427_1302_1",
-    "0427_1303_1",
     "0427_1803_4",
     "0427_1306_1",
     "0427_1803_6",
@@ -6996,8 +6971,6 @@
    "keys": [
     "0427_1701_1",
     "0427_1201_1",
-    "0427_1302_1",
-    "0427_1303_1",
     "0427_1803_4",
     "0427_1306_1",
     "0427_1803_6",
@@ -7006,8 +6979,6 @@
    "sourceDates": {
     "0427_1701_1": "2026-11-17T18:52:21.051Z",
     "0427_1201_1": "2026-11-17T18:52:21.051Z",
-    "0427_1302_1": "2026-11-17T18:52:21.051Z",
-    "0427_1303_1": "2026-11-17T18:52:21.051Z",
     "0427_1803_4": "2026-11-17T18:52:21.051Z",
     "0427_1306_1": "2026-11-17T18:52:21.051Z",
     "0427_1803_6": "2026-11-17T18:52:21.051Z",
@@ -7132,25 +7103,6 @@
     "0427_2105_1": "2026-11-17T18:52:21.051Z",
     "0427_2105_2": "2026-11-17T18:52:21.051Z",
     "0427_2106_2.01": "2026-11-17T18:52:21.051Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "P.O. BOX 56169",
-    "cityState": "HOUSTON TX",
-    "zip": "77256"
-   },
-   "parcelIds": [
-    "0427_1104_1",
-    "0427_1004_4"
-   ],
-   "keys": [
-    "0427_1104_1",
-    "0427_1004_4"
-   ],
-   "sourceDates": {
-    "0427_1104_1": "2026-11-17T18:52:21.051Z",
-    "0427_1004_4": "2026-11-17T18:52:21.051Z"
    }
   },
   {
@@ -7315,18 +7267,15 @@
    },
    "parcelIds": [
     "0516_112_4",
-    "0516_112_5",
-    "0516_112_3_C0301"
+    "0516_112_5"
    ],
    "keys": [
     "0516_112_4",
-    "0516_112_5",
-    "0516_112_3_C0301"
+    "0516_112_5"
    ],
    "sourceDates": {
     "0516_112_4": "2026-11-17T18:53:06.898Z",
-    "0516_112_5": "2026-11-17T18:53:06.898Z",
-    "0516_112_3_C0301": "2026-11-17T18:53:06.898Z"
+    "0516_112_5": "2026-11-17T18:53:06.898Z"
    }
   },
   {
@@ -7390,28 +7339,6 @@
    "sourceDates": {
     "0516_127_1.03": "2026-11-17T18:53:06.898Z",
     "0516_127_1.02": "2026-11-17T18:53:06.898Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1573 DE HIRSCH AVE",
-    "cityState": "WOODBINE, NJ",
-    "zip": "08270"
-   },
-   "parcelIds": [
-    "0516_125_6_C0003",
-    "0516_125_6_C0002",
-    "0516_125_6_C0004"
-   ],
-   "keys": [
-    "0516_125_6_C0003",
-    "0516_125_6_C0002",
-    "0516_125_6_C0004"
-   ],
-   "sourceDates": {
-    "0516_125_6_C0003": "2026-11-17T18:53:06.898Z",
-    "0516_125_6_C0002": "2026-11-17T18:53:06.898Z",
-    "0516_125_6_C0004": "2026-11-17T18:53:06.898Z"
    }
   },
   {
@@ -7544,28 +7471,6 @@
    "sourceDates": {
     "0614_2708_1.02": "2026-11-17T18:52:25.930Z",
     "0614_1003_11.01": "2026-11-17T18:52:25.930Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "2106 W LANDIS AVE",
-    "cityState": "VINELAND, NJ",
-    "zip": "08360"
-   },
-   "parcelIds": [
-    "0614_2605_6",
-    "0614_2605_6_CA1",
-    "0614_2605_6_CB1"
-   ],
-   "keys": [
-    "0614_2605_6",
-    "0614_2605_6_CA1",
-    "0614_2605_6_CB1"
-   ],
-   "sourceDates": {
-    "0614_2605_6": "2026-11-17T18:52:25.930Z",
-    "0614_2605_6_CA1": "2026-11-17T18:52:25.930Z",
-    "0614_2605_6_CB1": "2026-11-17T18:52:25.930Z"
    }
   },
   {
@@ -7726,37 +7631,6 @@
    "sourceDates": {
     "0614_2605_2": "2026-11-17T18:52:25.930Z",
     "0614_2605_3": "2026-11-17T18:52:25.930Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1 RENEE COURT",
-    "cityState": "LAKEWOOD, NJ",
-    "zip": "08701"
-   },
-   "parcelIds": [
-    "0614_604_404_C1C",
-    "0614_604_401_C1F",
-    "0614_604_403_C1D",
-    "0614_604_402_C1E",
-    "0614_604_406_C1A",
-    "0614_604_405_C1B"
-   ],
-   "keys": [
-    "0614_604_404_C1C",
-    "0614_604_401_C1F",
-    "0614_604_403_C1D",
-    "0614_604_402_C1E",
-    "0614_604_406_C1A",
-    "0614_604_405_C1B"
-   ],
-   "sourceDates": {
-    "0614_604_404_C1C": "2026-11-17T18:52:25.930Z",
-    "0614_604_401_C1F": "2026-11-17T18:52:25.930Z",
-    "0614_604_403_C1D": "2026-11-17T18:52:25.930Z",
-    "0614_604_402_C1E": "2026-11-17T18:52:25.930Z",
-    "0614_604_406_C1A": "2026-11-17T18:52:25.930Z",
-    "0614_604_405_C1B": "2026-11-17T18:52:25.930Z"
    }
   },
   {
@@ -8267,25 +8141,6 @@
   },
   {
    "mailing": {
-    "street": "650 WEST PEACHTREE ST NW",
-    "cityState": "ATLANTA, GA",
-    "zip": "30308"
-   },
-   "parcelIds": [
-    "0906_8401_2",
-    "1216_427.01_2.01"
-   ],
-   "keys": [
-    "0906_8401_2",
-    "1216_427.01_2.01"
-   ],
-   "sourceDates": {
-    "0906_8401_2": "2026-11-17T18:52:39.814Z",
-    "1216_427.01_2.01": "2026-11-17T18:53:17.072Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "1 MEADOWLANDS PLAZA #802",
     "cityState": "EAST RUTHERFORD, NJ",
     "zip": "07073"
@@ -8310,17 +8165,14 @@
     "zip": "91352"
    },
    "parcelIds": [
-    "0907_226_3",
     "1515_1160.04_44",
     "1515_1160.04_45"
    ],
    "keys": [
-    "0907_226_3",
     "1515_1160.04_44",
     "1515_1160.04_45"
    ],
    "sourceDates": {
-    "0907_226_3": "2026-11-17T18:51:47.174Z",
     "1515_1160.04_44": "2026-11-17T18:52:42.276Z",
     "1515_1160.04_45": "2026-11-17T18:52:42.276Z"
    }
@@ -8380,25 +8232,6 @@
    "sourceDates": {
     "1102_13_4": "2026-11-17T18:52:10.487Z",
     "1102_13_8": "2026-11-17T18:52:10.487Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "74 DAVID DR",
-    "cityState": "NEWTOWN, PA",
-    "zip": "18940"
-   },
-   "parcelIds": [
-    "1102_365_10",
-    "1102_365_19"
-   ],
-   "keys": [
-    "1102_365_10",
-    "1102_365_19"
-   ],
-   "sourceDates": {
-    "1102_365_10": "2026-11-17T18:52:11.183Z",
-    "1102_365_19": "2026-11-17T18:52:11.183Z"
    }
   },
   {
@@ -8485,66 +8318,6 @@
   },
   {
    "mailing": {
-    "street": "441 E STATE ST",
-    "cityState": "TRENTON NJ",
-    "zip": "08608"
-   },
-   "parcelIds": [
-    "1111_902_14",
-    "1111_10402_12"
-   ],
-   "keys": [
-    "1111_902_14",
-    "1111_10402_12"
-   ],
-   "sourceDates": {
-    "1111_902_14": "2026-11-17T18:52:48.053Z",
-    "1111_10402_12": "2026-11-17T18:52:48.907Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1528 SE BALLANTRAE CT",
-    "cityState": "PORT ST LUCIE FL",
-    "zip": "34952"
-   },
-   "parcelIds": [
-    "1111_25003_1",
-    "1111_24501_7"
-   ],
-   "keys": [
-    "1111_25003_1",
-    "1111_24501_7"
-   ],
-   "sourceDates": {
-    "1111_25003_1": "2026-11-17T18:52:52.940Z",
-    "1111_24501_7": "2026-11-17T18:52:52.940Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "18 WILTSHIRE DR",
-    "cityState": "E WINDSOR NJ",
-    "zip": "08520"
-   },
-   "parcelIds": [
-    "1111_24603_1",
-    "1111_24603_1.02",
-    "1111_24603_1.01"
-   ],
-   "keys": [
-    "1111_24603_1",
-    "1111_24603_1.02",
-    "1111_24603_1.01"
-   ],
-   "sourceDates": {
-    "1111_24603_1": "2026-11-17T18:52:52.940Z",
-    "1111_24603_1.02": "2026-11-17T18:52:52.940Z",
-    "1111_24603_1.01": "2026-11-17T18:52:52.940Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "60 STATE STREET STE 2200",
     "cityState": "BOSTON, MA",
     "zip": "02109"
@@ -8619,25 +8392,6 @@
     "1201_503_2": "2026-11-12T15:53:05.535Z",
     "1201_604_4": "2026-11-12T15:53:05.535Z",
     "1201_5301_2": "2026-11-12T15:53:05.535Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1260 STELTON RD",
-    "cityState": "PISCATAWAY, NJ",
-    "zip": "08854"
-   },
-   "parcelIds": [
-    "1213_185.01_11.01",
-    "1213_596_2.02"
-   ],
-   "keys": [
-    "1213_185.01_11.01",
-    "1213_596_2.02"
-   ],
-   "sourceDates": {
-    "1213_185.01_11.01": "2026-11-17T18:51:58.129Z",
-    "1213_596_2.02": "2026-11-17T18:52:02.490Z"
    }
   },
   {
@@ -8820,25 +8574,6 @@
   },
   {
    "mailing": {
-    "street": "30A VREELAND RD. STE 220",
-    "cityState": "FLORHAM PARK, NJ",
-    "zip": "07932"
-   },
-   "parcelIds": [
-    "1216_135_1.01",
-    "1216_137_1"
-   ],
-   "keys": [
-    "1216_135_1.01",
-    "1216_137_1"
-   ],
-   "sourceDates": {
-    "1216_135_1.01": "2026-11-17T18:52:46.292Z",
-    "1216_137_1": "2026-11-17T18:52:46.292Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "90 WOODBRIDGE CTR DR #600",
     "cityState": "WOODBRIDGE, NJ",
     "zip": "07095"
@@ -8986,25 +8721,6 @@
   },
   {
    "mailing": {
-    "street": "80 PARK PL TAX DEPT T-6B",
-    "cityState": "NEWARK, NJ",
-    "zip": "07101"
-   },
-   "parcelIds": [
-    "1219_10.02_1.01",
-    "1219_10.02_2.05"
-   ],
-   "keys": [
-    "1219_10.02_1.01",
-    "1219_10.02_2.05"
-   ],
-   "sourceDates": {
-    "1219_10.02_1.01": "2026-11-12T15:53:05.498Z",
-    "1219_10.02_2.05": "2026-11-12T15:53:05.498Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "251 JERNEE MILL ROAD",
     "cityState": "SAYREVILLE, NJ",
     "zip": "08872"
@@ -9013,22 +8729,19 @@
     "1219_10.04_2.49",
     "1219_59.01_1.032",
     "1219_25_1.01",
-    "1219_10.04_2.50",
-    "1219_10.04_2.07"
+    "1219_10.04_2.50"
    ],
    "keys": [
     "1219_10.04_2.49",
     "1219_59.01_1.032",
     "1219_25_1.01",
-    "1219_10.04_2.50",
-    "1219_10.04_2.07"
+    "1219_10.04_2.50"
    ],
    "sourceDates": {
     "1219_10.04_2.49": "2026-11-12T15:53:05.498Z",
     "1219_59.01_1.032": "2026-11-12T15:53:05.498Z",
     "1219_25_1.01": "2026-11-12T15:53:05.498Z",
-    "1219_10.04_2.50": "2026-11-12T15:53:05.498Z",
-    "1219_10.04_2.07": "2026-11-09T15:00:04.123Z"
+    "1219_10.04_2.50": "2026-11-12T15:53:05.498Z"
    }
   },
   {
@@ -9074,25 +8787,6 @@
   },
   {
    "mailing": {
-    "street": "3141 BORDENTOWN AVENUE",
-    "cityState": "PARLIN, NJ",
-    "zip": "08859"
-   },
-   "parcelIds": [
-    "1219_29.04_3.01",
-    "1219_30_1.03"
-   ],
-   "keys": [
-    "1219_29.04_3.01",
-    "1219_30_1.03"
-   ],
-   "sourceDates": {
-    "1219_29.04_3.01": "2026-11-12T15:53:05.498Z",
-    "1219_30_1.03": "2026-11-09T15:00:04.123Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "% INTAX INC, PO BOX 55348",
     "cityState": "LEXINGTON, KY",
     "zip": "40555"
@@ -9130,27 +8824,21 @@
     "1219_60.07_4.01",
     "1219_60.07_5",
     "1219_60.06_3",
-    "1219_60.06_4",
-    "1219_60.07_1",
-    "1219_60.07_6"
+    "1219_60.06_4"
    ],
    "keys": [
     "1219_60.07_2.01",
     "1219_60.07_4.01",
     "1219_60.07_5",
     "1219_60.06_3",
-    "1219_60.06_4",
-    "1219_60.07_1",
-    "1219_60.07_6"
+    "1219_60.06_4"
    ],
    "sourceDates": {
     "1219_60.07_2.01": "2026-11-12T15:53:05.498Z",
     "1219_60.07_4.01": "2026-11-12T15:53:05.498Z",
     "1219_60.07_5": "2026-11-12T15:53:05.498Z",
     "1219_60.06_3": "2026-11-12T15:53:05.498Z",
-    "1219_60.06_4": "2026-11-12T15:53:05.498Z",
-    "1219_60.07_1": "2026-11-09T15:00:04.123Z",
-    "1219_60.07_6": "2026-11-09T15:00:04.123Z"
+    "1219_60.06_4": "2026-11-12T15:53:05.498Z"
    }
   },
   {
@@ -9170,25 +8858,6 @@
    "sourceDates": {
     "1219_58_8": "2026-11-12T15:53:05.498Z",
     "1219_36_1": "2026-11-12T15:53:05.498Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1 HIGHLAND AVENUE",
-    "cityState": "BETHLEHEM, PA",
-    "zip": "18017"
-   },
-   "parcelIds": [
-    "1219_4_131",
-    "1219_5_155"
-   ],
-   "keys": [
-    "1219_4_131",
-    "1219_5_155"
-   ],
-   "sourceDates": {
-    "1219_4_131": "2026-11-09T15:00:04.123Z",
-    "1219_5_155": "2026-11-09T15:00:04.123Z"
    }
   },
   {
@@ -9274,19 +8943,16 @@
     "zip": "605224747"
    },
    "parcelIds": [
-    "1335_704_4",
     "1335_816_20",
     "1335_816_1",
     "1512_6702_39"
    ],
    "keys": [
-    "1335_704_4",
     "1335_816_20",
     "1335_816_1",
     "1512_6702_39"
    ],
    "sourceDates": {
-    "1335_704_4": "2026-11-17T18:52:53.957Z",
     "1335_816_20": "2026-11-17T18:52:54.401Z",
     "1335_816_1": "2026-11-17T18:52:54.401Z",
     "1512_6702_39": "2026-11-17T18:52:20.409Z"
@@ -10132,25 +9798,6 @@
   },
   {
    "mailing": {
-    "street": "126 ARNOLD BOULEVARD",
-    "cityState": "HOWELL NJ",
-    "zip": "07731"
-   },
-   "parcelIds": [
-    "1515_1609_28.01",
-    "1515_1608_2.02"
-   ],
-   "keys": [
-    "1515_1609_28.01",
-    "1515_1608_2.02"
-   ],
-   "sourceDates": {
-    "1515_1609_28.01": "2026-11-17T18:53:14.901Z",
-    "1515_1608_2.02": "2026-11-17T18:53:14.901Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "3137 38TH ST NW",
     "cityState": "WASHINGTON DC",
     "zip": "20016"
@@ -10284,25 +9931,6 @@
     "1519_79_62": "2026-11-17T18:53:12.664Z",
     "1519_79_53": "2026-11-17T18:53:12.664Z",
     "1519_79_41.01": "2026-11-17T18:53:12.664Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "7 REYNOLDS DR",
-    "cityState": "EATONTOWN NJ",
-    "zip": "07724"
-   },
-   "parcelIds": [
-    "1519_82.03_29",
-    "1519_82.05_16"
-   ],
-   "keys": [
-    "1519_82.03_29",
-    "1519_82.05_16"
-   ],
-   "sourceDates": {
-    "1519_82.03_29": "2026-11-17T18:53:12.664Z",
-    "1519_82.05_16": "2026-11-17T18:53:12.664Z"
    }
   },
   {
@@ -10446,25 +10074,6 @@
   },
   {
    "mailing": {
-    "street": "3194 B HICKORY BLVD",
-    "cityState": "HUDSON, NC",
-    "zip": "28638"
-   },
-   "parcelIds": [
-    "1608_1904_1",
-    "1608_2002_1"
-   ],
-   "keys": [
-    "1608_1904_1",
-    "1608_2002_1"
-   ],
-   "sourceDates": {
-    "1608_1904_1": "2026-11-17T18:52:33.550Z",
-    "1608_2002_1": "2026-11-17T18:52:33.550Z"
-   }
-  },
-  {
-   "mailing": {
     "street": "1 LANDY LANE",
     "cityState": "CINCINNATI OH",
     "zip": "45215"
@@ -10483,25 +10092,6 @@
     "1704_30_1": "2026-11-17T18:51:54.751Z",
     "1713_7_3": "2026-11-17T18:51:54.751Z",
     "1713_94_1": "2026-11-17T18:53:23.792Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "ONE WATER STREET",
-    "cityState": "CAMDEN NJ",
-    "zip": "08102"
-   },
-   "parcelIds": [
-    "1713_46_1",
-    "1713_73_2"
-   ],
-   "keys": [
-    "1713_46_1",
-    "1713_73_2"
-   ],
-   "sourceDates": {
-    "1713_46_1": "2026-11-17T18:51:54.751Z",
-    "1713_73_2": "2026-11-17T18:53:23.792Z"
    }
   },
   {
@@ -10648,17 +10238,14 @@
    },
    "parcelIds": [
     "2004_769_4",
-    "2004_770_11.01",
     "2004_769_5"
    ],
    "keys": [
     "2004_769_4",
-    "2004_770_11.01",
     "2004_769_5"
    ],
    "sourceDates": {
     "2004_769_4": "2026-11-17T18:51:51.706Z",
-    "2004_770_11.01": "2026-11-17T18:51:51.706Z",
     "2004_769_5": "2026-11-17T18:51:51.706Z"
    }
   },
@@ -10679,44 +10266,6 @@
    "sourceDates": {
     "2004_770_5": "2026-11-17T18:51:51.706Z",
     "2004_769_1": "2026-11-17T18:51:51.706Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "248-250 MORRIS AVE",
-    "cityState": "ELIZABETH, N J",
-    "zip": "07208"
-   },
-   "parcelIds": [
-    "2004_180_13",
-    "2004_180_12"
-   ],
-   "keys": [
-    "2004_180_13",
-    "2004_180_12"
-   ],
-   "sourceDates": {
-    "2004_180_13": "2026-11-17T18:53:19.860Z",
-    "2004_180_12": "2026-11-17T18:53:19.860Z"
-   }
-  },
-  {
-   "mailing": {
-    "street": "1050 SHERMAN AVE",
-    "cityState": "ELIZABETH, N J",
-    "zip": "07208"
-   },
-   "parcelIds": [
-    "2004_130_3",
-    "2004_130_4"
-   ],
-   "keys": [
-    "2004_130_3",
-    "2004_130_4"
-   ],
-   "sourceDates": {
-    "2004_130_3": "2026-11-17T18:53:21.615Z",
-    "2004_130_4": "2026-11-17T18:53:21.615Z"
    }
   },
   {
