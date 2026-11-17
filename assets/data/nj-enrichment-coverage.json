@@ -1,0 +1,1482 @@
+{
+ "format": "RadarNJEnrichmentCoverage",
+ "version": 1,
+ "runAt": "2026-11-17T19:18:21+00:00",
+ "selectedTracts": 128,
+ "selectedParcels": 1846,
+ "sourceDatePolicy": "Dataset assembly time is not a source recheck. Per-role checkedAt is authoritative; failed attempts never renew evidence dates.",
+ "missingFieldCounts": {
+  "mailingRecipient": 6,
+  "assessedOwnerName": 1949
+ },
+ "requestedTracts": [
+  {
+   "tract": "34017012800",
+   "municipality": "Kearny town",
+   "county": "Hudson",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 18,
+   "scanStatus": "complete",
+   "zeroReason": null,
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:51.739Z",
+    "expected": 18,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   }
+  },
+  {
+   "tract": "34015500400",
+   "municipality": "Paulsboro borough",
+   "county": "Gloucester",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 26,
+   "scanStatus": "complete",
+   "zeroReason": null,
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:52.097Z",
+    "expected": 26,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   }
+  },
+  {
+   "tract": "34027046107",
+   "municipality": "Mount Olive township",
+   "county": "Morris",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 9,
+   "scanStatus": "complete",
+   "zeroReason": null,
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:52.626Z",
+    "expected": 9,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   }
+  },
+  {
+   "tract": "34039030400",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "98 class 1/4A/4B parcels exist below the 2-acre filter; zero does not mean no properties",
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:52.878Z",
+    "expected": 0,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   },
+   "allSizeCountCheck": {
+    "checkedAt": "2026-11-17T18:50:38.507Z",
+    "expected": 98,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 0
+    }
+   }
+  },
+  {
+   "tract": "34039030600",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 17,
+   "scanStatus": "complete",
+   "zeroReason": null,
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:53.074Z",
+    "expected": 17,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   }
+  },
+  {
+   "tract": "34039032300",
+   "municipality": "Hillside township",
+   "county": "Union",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 35,
+   "scanStatus": "complete",
+   "zeroReason": null,
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:53.248Z",
+    "expected": 35,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   }
+  },
+  {
+   "tract": "34017010900",
+   "municipality": "Bayonne city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "119 class 1/4A/4B parcels exist below the 2-acre filter; zero does not mean no properties",
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:53.443Z",
+    "expected": 0,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   },
+   "allSizeCountCheck": {
+    "checkedAt": "2026-11-17T18:50:40.054Z",
+    "expected": 119,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 0
+    }
+   }
+  },
+  {
+   "tract": "34017011000",
+   "municipality": "Bayonne city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": true,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "105 class 1/4A/4B parcels exist below the 2-acre filter; zero does not mean no properties",
+   "latestCountCheck": {
+    "checkedAt": "2026-11-17T18:44:53.614Z",
+    "expected": 0,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 2
+    }
+   },
+   "allSizeCountCheck": {
+    "checkedAt": "2026-11-17T18:50:41.029Z",
+    "expected": 105,
+    "criteria": {
+     "classes": [
+      "1",
+      "4A",
+      "4B"
+     ],
+     "minAcres": 0
+    }
+   }
+  },
+  {
+   "tract": "34033022100",
+   "municipality": "Salem city",
+   "county": "Salem",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 16,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023004800",
+   "municipality": "Perth Amboy city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 19,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023005300",
+   "municipality": "New Brunswick city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003018200",
+   "municipality": "Fairview borough",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 17,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007601800",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 17,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023005500",
+   "municipality": "New Brunswick city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 71,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34027043500",
+   "municipality": "Morristown town",
+   "county": "Morris",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007610300",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 10,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023007103",
+   "municipality": "Sayreville borough",
+   "county": "Middlesex",
+   "selected": false,
+   "priority": false,
+   "existingRecords": 57,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007608210",
+   "municipality": "Gloucester township",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 31,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031264200",
+   "municipality": "Paterson city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34023000300",
+   "municipality": "Dunellen borough",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 5,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021003400",
+   "municipality": "Ewing township",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 30,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021003707",
+   "municipality": "Ewing township",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 34,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017017700",
+   "municipality": "Union City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017017800",
+   "municipality": "Union City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013018300",
+   "municipality": "City of Orange township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013018400",
+   "municipality": "City of Orange township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013018600",
+   "municipality": "City of Orange township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 27,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013015900",
+   "municipality": "Bloomfield township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 11,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013001000",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34001012702",
+   "municipality": "Somers Point city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34001001400",
+   "municipality": "Atlantic City city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 6,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34001000400",
+   "municipality": "Atlantic City city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34001002300",
+   "municipality": "Atlantic City city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34001002400",
+   "municipality": "Atlantic City city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34001011702",
+   "municipality": "Egg Harbor township",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 209,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34001001900",
+   "municipality": "Atlantic City city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34001012100",
+   "municipality": "Pleasantville city",
+   "county": "Atlantic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 10,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029717002",
+   "municipality": "Jackson township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 19,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007610800",
+   "municipality": "Pennsauken township",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 102,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34025801700",
+   "municipality": "Keansburg borough",
+   "county": "Monmouth",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34025805700",
+   "municipality": "Long Branch city",
+   "county": "Monmouth",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039039200",
+   "municipality": "Plainfield city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34021002100",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021002701",
+   "municipality": "Hamilton township",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 15,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34011040901",
+   "municipality": "Vineland city",
+   "county": "Cumberland",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 193,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021001101",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34005700703",
+   "municipality": "Riverside township",
+   "county": "Burlington",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34005701002",
+   "municipality": "Edgewater Park township",
+   "county": "Burlington",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013005400",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34013006400",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013007900",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013008000",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 8,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023005602",
+   "municipality": "New Brunswick city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34029715600",
+   "municipality": "Lakewood township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013001400",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34021000100",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013011900",
+   "municipality": "Irvington township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34031125100",
+   "municipality": "Clifton city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031175200",
+   "municipality": "Passaic city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 5,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031175900",
+   "municipality": "Passaic city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 14,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031180900",
+   "municipality": "Paterson city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 11,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031181800",
+   "municipality": "Paterson city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031182900",
+   "municipality": "Paterson city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031183200",
+   "municipality": "Paterson city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039039302",
+   "municipality": "Plainfield city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34041030700",
+   "municipality": "Phillipsburg town",
+   "county": "Warren",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34011020503",
+   "municipality": "Bridgeton city",
+   "county": "Cumberland",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 32,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013000300",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34013015300",
+   "municipality": "Bloomfield township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013001500",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34013010600",
+   "municipality": "East Orange city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017016200",
+   "municipality": "Union City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017001202",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017001900",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013002800",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34013008100",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029715800",
+   "municipality": "Lakewood township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 141,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039031100",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023004600",
+   "municipality": "Perth Amboy city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 8,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021000800",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021000900",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 10,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34021001000",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 6,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039039801",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 13,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017002002",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017015003",
+   "municipality": "Guttenberg town",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017002001",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017003102",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34017015004",
+   "municipality": "Guttenberg town",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34021001700",
+   "municipality": "Trenton city",
+   "county": "Mercer",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 14,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34005701203",
+   "municipality": "Burlington city",
+   "county": "Burlington",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 16,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34025807600",
+   "municipality": "Neptune township",
+   "county": "Monmouth",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34025807700",
+   "municipality": "Neptune township",
+   "county": "Monmouth",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 25,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34005701204",
+   "municipality": "Burlington city",
+   "county": "Burlington",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007601500",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003023502",
+   "municipality": "Hackensack city",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013000500",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34013018900",
+   "municipality": "City of Orange township",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34007604100",
+   "municipality": "Woodlynne borough",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003036100",
+   "municipality": "South Hackensack twp./Teterboro borough",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 51,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34033020300",
+   "municipality": "Penns Grove borough",
+   "county": "Salem",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003021600",
+   "municipality": "Garfield city",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007600700",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017003000",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34009020500",
+   "municipality": "Woodbine borough",
+   "county": "Cape May",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 77,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013011300",
+   "municipality": "East Orange city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017006300",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029720105",
+   "municipality": "Manchester township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 102,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029728003",
+   "municipality": "Seaside Heights borough",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029715001",
+   "municipality": "Lakewood township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 122,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34029715404",
+   "municipality": "Lakewood township",
+   "county": "Ocean",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031175804",
+   "municipality": "Passaic city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 0,
+   "scanStatus": "complete",
+   "zeroReason": "No class 1/4A/4B parcels at least 2 acres in the recorded scan; not absence of property"
+  },
+  {
+   "tract": "34023004502",
+   "municipality": "Perth Amboy city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 30,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023980000",
+   "municipality": "Carteret borough",
+   "county": "Middlesex",
+   "selected": false,
+   "priority": false,
+   "existingRecords": 46,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003023501",
+   "municipality": "Hackensack city",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34013000900",
+   "municipality": "Newark city",
+   "county": "Essex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34003023602",
+   "municipality": "Hackensack city",
+   "county": "Bergen",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 8,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039039900",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 12,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017004600",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017013400",
+   "municipality": "East Newark borough",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 3,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34039031602",
+   "municipality": "Elizabeth city",
+   "county": "Union",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 4,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007601400",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34007610400",
+   "municipality": "Camden city",
+   "county": "Camden",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 1,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34035051100",
+   "municipality": "Bound Brook borough",
+   "county": "Somerset",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 2,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34033022000",
+   "municipality": "Salem city",
+   "county": "Salem",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 8,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34023009300",
+   "municipality": "New Brunswick city",
+   "county": "Middlesex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 5,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34027041705",
+   "municipality": "Parsippany-Troy Hills township",
+   "county": "Morris",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 5,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34031175402",
+   "municipality": "Passaic city",
+   "county": "Passaic",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34017006700",
+   "municipality": "Jersey City city",
+   "county": "Hudson",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 7,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34011030100",
+   "municipality": "Millville city",
+   "county": "Cumberland",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 5,
+   "scanStatus": "complete",
+   "zeroReason": null
+  },
+  {
+   "tract": "34037373700",
+   "municipality": "Newton town",
+   "county": "Sussex",
+   "selected": true,
+   "priority": false,
+   "existingRecords": 22,
+   "scanStatus": "complete",
+   "zeroReason": null
+  }
+ ],
+ "roleCounts": {
+  "assessed_owner": 0,
+  "business_filing_contact": 0,
+  "business_filing_entity": 0,
+  "epa_facility_reference": 1868,
+  "njdep_program_interest": 22301,
+  "njdep_regulatory_site": 10323,
+  "state_registered_agent": 0,
+  "tax_mailing_recipient": 1943,
+  "usdot_carrier": 328,
+  "usdot_carrier_officer": 386
+ },
+ "businessFilingPendingEntities": 2695,
+ "carrierRefresh": {
+  "EAST GREENWICH": {
+   "status": "unavailable",
+   "attemptedAt": "2026-11-17T19:18:21+00:00",
+   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  "MORRIS": {
+   "status": "unavailable",
+   "attemptedAt": "2026-11-17T19:18:21+00:00",
+   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  "DENNIS": {
+   "status": "unavailable",
+   "attemptedAt": "2026-11-17T19:18:22+00:00",
+   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  "UPPER": {
+   "status": "unavailable",
+   "attemptedAt": "2026-11-17T19:18:22+00:00",
+   "message": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+ },
+ "partial": true
+}
