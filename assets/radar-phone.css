@@ -63,10 +63,10 @@ body.radar-v34 .scan-status.danger{background:#3d1719!important;border-color:#a2
  body.radar-v34 .workspace-drawer table{display:block;max-width:100%;overflow-x:auto}
 }
 
-/* Narrow phones (iPhone SE, small Android): the two controls need the row, so the brand text is kept for
-   screen readers only. Type stays at the 15px floor the readability checks require. */
+/* Narrow phones (iPhone SE, small Android): when the All-tools switch is in the header the two controls need the row,
+   so the brand text is kept for screen readers only. Type stays at the 15px floor the readability checks require. */
 @media(max-width:360px){
- body.radar-v34 .v34-brand{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ body.radar-v34 header.top:has(>#radarModeToggleBtn) .v34-brand{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
  body.radar-v34 .radar-mode-toggle-btn{flex:1 1 0;min-width:0;max-width:none;white-space:normal}
  body.radar-v34 .radar-agent.v34-ask .agent-form button{font-size:15px!important}
 }

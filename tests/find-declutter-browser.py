@@ -1,0 +1,39 @@
+"""Standard (five-tab) view: Find holds search and results only; reference sections live under Data & Export."""
+from browser_fixture import *
+checks=[]
+def check(label,value):assert value,label;checks.append(label)
+VISIBLE="(id)=>{const e=document.getElementById(id);return !!e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=='hidden'&&!e.parentElement.closest('details:not([open])')}"
+try:
+ mode['workspaceManual']=True
+ with sync_playwright() as p:
+  browser=p.chromium.launch(executable_path=chromium_executable(p),headless=True,args=['--no-sandbox']);page=browser.new_page(viewport={'width':1440,'height':900});page.route('**/*',network);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+  # A preference saved by an older build must not reopen the long layout on a new visit.
+  page.add_init_script("try{sessionStorage.removeItem('radar_ui_mode');localStorage.setItem('radar_ui_mode','advanced')}catch(e){}")
+  base=f'http://127.0.0.1:{server.server_port}/';page.goto(base);unlock(page);page.wait_for_function('!!window.RadarWorkspace&&document.body.classList.contains("radar-v34")&&document.body.dataset.v34View==="scan"')
+  check('a new visit opens in the standard view',page.evaluate('document.body.dataset.radarMode')=='simple')
+  check('All tools switch is not in the header',page.evaluate("!document.querySelector('header.top #radarModeToggleBtn')"))
+  check('Find shows one search box, the filter drawer and results',all(page.evaluate(VISIBLE,i) for i in ['agentPrompt','filterDrawer','scanStatus']))
+  check('quick chips are Warehouse, IOS and Designated OZ 2.0',page.locator('.agent-suggestions button').all_inner_texts()==['Warehouse','IOS','Designated OZ 2.0'])
+  check('reference sections are not stacked in Find',page.evaluate("[...document.querySelectorAll('#workspace-mode-scan>.v34-data-item')].every(e=>e.getClientRects().length===0)") and page.locator('#workspace-mode-scan>.v34-data-item').count()>=8)
+  check('Find fits the panel without a long scroll',page.evaluate("(()=>{const d=document.getElementById('workspaceDrawer');return d.scrollHeight<=d.clientHeight+40})()"))
+  page.evaluate("window.__asked=[];document.getElementById('agentForm').addEventListener('submit',()=>window.__asked.push(document.getElementById('agentPrompt').value),true)")
+  page.locator('.agent-suggestions button',has_text='IOS').click();check('a chip searches the chosen area in plain language',page.evaluate('window.__asked[0]')=='outdoor storage in Edison, NJ')
+  page.locator('#filterDrawer > summary').click();check('area scan and filters share one drawer',page.evaluate(VISIBLE,'executiveMarket') and page.evaluate(VISIBLE,'scanButton') and page.locator('#v34Fold-executiveScan').count()==0)
+  page.select_option('#executiveMarket','newark');check('chips follow the chosen area','Newark, NJ' in page.locator('.v34-chip-area').inner_text())
+  page.locator('#filterDrawer > summary').click()
+  page.locator('.v34-nav button[data-view="data"]').click()
+  check('Data & Export lists the moved sections',all(page.evaluate("(id)=>document.getElementById(id).getClientRects().length>0",i) for i in ['v34Fold-ozDesignationResearch','v34Fold-ozInventory','v34Fold-localMapOverlays','v34Fold-recoveredReference','v34Fold-sources','researchNotice','v34ModeBox']) and not page.evaluate(VISIBLE,'agentPrompt'))
+  check('only the open tab is marked current',page.evaluate("[...document.querySelectorAll('.v34-nav button[aria-current=page]')].map(b=>b.dataset.view).join()")=='data')
+  page.locator('#v34Fold-ozInventory > summary').click();check('tract coverage opens under Data & Export','Tract-by-tract coverage' in page.locator('#ozInventory').inner_text())
+  page.locator('.v34-nav button[data-view="scan"]').click();check('returning to Find restores search only',page.evaluate(VISIBLE,'agentPrompt') and page.evaluate("document.getElementById('v34Fold-ozInventory').getClientRects().length===0"))
+  page.evaluate("RadarWorkspace.reveal('sources')");check('a link to a reference section opens Data & Export',page.evaluate('document.body.dataset.v34View')=='data' and page.evaluate("document.getElementById('v34Fold-sources').open"))
+  page.locator('#radarModeToggleBtn').click();check('All tools is reachable from Data & Export and moves its switch to the header',page.evaluate('document.body.dataset.radarMode')=='advanced' and page.evaluate("!!document.querySelector('header.top #radarModeToggleBtn')"))
+  page.locator('.v34-nav button[data-view="scan"]').click();check('All tools still lays every section out in Find',page.evaluate("document.getElementById('v34Fold-ozInventory').getClientRects().length>0"))
+  page.locator('#radarModeToggleBtn').click();check('switching back restores the standard view',page.evaluate('document.body.dataset.radarMode')=='simple' and page.evaluate("document.getElementById('v34Fold-ozInventory').getClientRects().length===0") and page.evaluate("!document.querySelector('header.top #radarModeToggleBtn')"))
+  check('pre-script markup states the Treasury designation',all(x not in page.content() for x in ['federal certification not verified','no federal certification or publication deadline','federal certification are not established']) and 'SB0682' in page.get_attribute('#ozNJToggle','aria-label'))
+  page.set_viewport_size({'width':390,'height':844});page.wait_for_timeout(400)
+  box=page.locator('#agentPrompt').bounding_box();check('phone: search box is on screen with a two-row header',box and box['y']+box['height']<844 and page.locator('header.top').bounding_box()['height']<=110 and page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
+  check('phone: quick chips are shown',page.locator('.agent-suggestions button').first.is_visible())
+  check('no uncaught errors',not errors);browser.close()
+ print('Find declutter browser suite passed:',len(checks),'checks.')
+finally:server.shutdown();server.server_close()
