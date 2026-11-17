@@ -1,0 +1,77 @@
+/* Phone layout (loaded last). Visible type never drops below 15px (sprint1 readability check).
+    The earlier sheets treat everything under 900px as one size;
+   this adds a real phone breakpoint so a 320–430px screen is not laid out like a tablet.
+   Tap targets stay at 44px. Nothing is removed: controls are regrouped and tightened. */
+
+/* All widths: the status line was light text on a light box (about 1.3:1). Use the dark panel. */
+body.radar-v34 .scan-status{background:var(--panel2,#152031)!important;border-color:var(--line,#26364b)!important;color:#fff!important}
+body.radar-v34 .scan-status.warning{background:#3a2c0d!important;border-color:#8a6a1c!important}
+body.radar-v34 .scan-status.success{background:#0f3327!important;border-color:#23805a!important}
+body.radar-v34 .scan-status.danger{background:#3d1719!important;border-color:#a24a50!important}
+
+/* The old bottom shortcut bar is hidden in this layout, but its 64px body padding remained and let the page scroll behind the app. */
+@media(max-width:900px){body.radar-v34.split-workspace{padding-bottom:0!important}}
+
+@media(max-width:600px){
+ /* Header: two rows instead of three. Row 1 brand + mode + lock, row 2 tabs + text size. */
+ body.radar-v34 header.top{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;
+  padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left))}
+ body.radar-v34 .v34-brand{order:1;flex:1 1 60px;min-width:0}
+ body.radar-v34 .v34-brand strong{font-size:17px;line-height:1.1}
+ body.radar-v34 .radar-mode-toggle-btn{order:2;flex:none;margin:0;max-width:150px;font-size:15px!important;line-height:1.1;padding:3px 8px!important}
+ body.radar-v34 .v34-vault-pill{order:3;flex:none;max-width:124px;font-size:15px!important;line-height:1.1;padding:3px 6px}
+ /* The tab strip's basis is the full row minus the text-size buttons, so it always starts row 2 and the buttons sit beside it. */
+ body.radar-v34 .v34-nav{order:4;flex:1 1 calc(100% - 96px);margin:0;min-width:0;scrollbar-width:none;padding-right:26px;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+ body.radar-v34 .text-size-controls{order:5;flex:none;margin:0}
+ body.radar-v34 .text-size-controls button{min-width:42px;padding:0 4px}
+ body.radar-v34 .v34-nav::-webkit-scrollbar{display:none}
+ body.radar-v34 .v34-nav button{padding:6px 9px}
+
+ /* Map toolbar: one tight scrolling row with a fade so hidden buttons are discoverable. */
+ body.radar-v34 .workspace-map-slot #mapPanel .panel-head{padding:0}
+ body.radar-v34 .workspace-map-slot #mapPanel .map-actions{padding:2px 26px 2px 4px!important;border-bottom:0;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+ body.radar-v34 .workspace-map-slot #mapPanel .map-actions::-webkit-scrollbar{display:none}
+
+ /* Map credit: one line, never a two-line band over a short map. */
+ body.radar-v34 .leaflet-control-attribution{font-size:15px!important;line-height:1.25;max-width:100vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 5px}
+ body.radar-v34 .leaflet-bar a{width:44px;height:44px;line-height:44px}
+
+ /* Research panel: search box first. The intro line goes; map layers move under the search. */
+ body.radar-v34 .workspace-sheet{padding-bottom:env(safe-area-inset-bottom)}
+ body.radar-v34 .workspace-sheet-controls{padding:2px 6px}
+ body.radar-v34 #workspace-mode-scan:not([hidden]){display:flex;flex-direction:column}
+ body.radar-v34 #workspace-mode-scan>*{order:3;min-width:0}
+ body.radar-v34 #workspace-mode-scan>.v34-section-title{order:0}
+ body.radar-v34 #workspace-mode-scan>#scanner{order:1}
+ body.radar-v34 #workspace-mode-scan>#workspaceLayers{order:2}
+ body.radar-v34 .v34-section-title p{display:none}
+ body.radar-v34 .v34-section-title h2{font-size:18px;margin:0 0 6px}
+ body.radar-v34 .radar-agent.v34-ask{padding:10px;margin:0 0 8px}
+ body.radar-v34 .radar-agent.v34-ask h2{font-size:17px!important;line-height:1.2;margin:0 0 8px}
+ body.radar-v34 .radar-agent.v34-ask .agent-form button{white-space:nowrap;padding-left:8px;padding-right:8px}
+
+ /* Tap targets: checkboxes and radios were 13–16px. */
+ body.radar-v34 input[type=checkbox],body.radar-v34 input[type=radio]{width:22px;height:22px;flex:none}
+ body.radar-v34 label:has(>input[type=checkbox]),body.radar-v34 label:has(>input[type=radio]){display:flex;align-items:center;gap:8px;min-height:44px}
+ body.radar-v34 .intro-disclaimer a{display:inline-block;padding:10px 0}
+
+ /* Long tables inside the panel: shorter window and no scroll trap at the ends. */
+ body.radar-v34 #ozInventoryCoverage{max-height:50dvh;overscroll-behavior:auto;-webkit-overflow-scrolling:touch}
+ body.radar-v34 .workspace-drawer{overscroll-behavior:contain}
+ body.radar-v34 .workspace-drawer table{display:block;max-width:100%;overflow-x:auto}
+}
+
+/* Narrow phones (iPhone SE, small Android): the two controls need the row, so the brand text is kept for
+   screen readers only. Type stays at the 15px floor the readability checks require. */
+@media(max-width:360px){
+ body.radar-v34 .v34-brand{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ body.radar-v34 .radar-mode-toggle-btn{flex:1 1 0;min-width:0;max-width:none;white-space:normal}
+ body.radar-v34 .radar-agent.v34-ask .agent-form button{font-size:15px!important}
+}
+
+/* Short screens: give the research panel the room so the search box is on screen at load. */
+@media(max-width:600px) and (max-height:700px){
+ body.radar-v34 .radar-split[data-sheet="50"]{--sheet-size:62%!important}
+}

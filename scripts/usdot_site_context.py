@@ -46,9 +46,20 @@ MAX_ROWS_PER_TOWN = 50000
 TOWN_SUFFIX = re.compile(r"\s+(BORO|BOROUGH|CITY|TOWNSHIP|TWP\.?|TOWN|VILLAGE)$", re.I)
 
 
+TOWN_ALIASES = {"PARSIPPANY TR HLS": "PARSIPPANY", "PARSIPPANY-TROY HILLS": "PARSIPPANY"}
+
+
 def town_name(municipality: str) -> str:
-    """'CARTERET BORO' -> 'CARTERET'; FMCSA stores plain city names."""
-    return TOWN_SUFFIX.sub("", str(municipality or "").strip()).upper()
+    """'CARTERET BORO' -> 'CARTERET'; FMCSA stores plain postal city names.
+
+    'ORANGE CITY TWP' (City of Orange Township) files as ORANGE, so a CITY left in front of a
+    township suffix is dropped too. 'JERSEY CITY CITY' keeps its real name, JERSEY CITY.
+    """
+    raw = re.sub(r"\s+", " ", str(municipality or "").strip()).upper()
+    name = TOWN_SUFFIX.sub("", raw)
+    if re.search(r"\sCITY\s+(TOWNSHIP|TWP\.?)$", raw):
+        name = re.sub(r"\s+CITY$", "", name)
+    return TOWN_ALIASES.get(name, name)
 
 
 def soql_quote(value: str) -> str:
@@ -163,7 +174,12 @@ def load_towns(towns, retries=3, sleep=time.sleep):
         for attempt in range(retries):
             try:
                 carriers_by_town[town] = fetch_town(town)
-                coverage[town] = {"status": "checked", "carriers": len(carriers_by_town[town])}
+                found = len(carriers_by_town[town])
+                # Zero rows for a whole town means the filings use a different (postal) city name,
+                # not that the town has no carriers. Do not report it as a clean check.
+                coverage[town] = ({"status": "checked", "carriers": found} if found else
+                                  {"status": "no-records-under-town-name", "carriers": 0,
+                                   "message": "No carrier filings use this city name; postal city may differ. Not a confirmed absence."})
                 break
             except Exception as exc:  # retry dropped connections; then mark the town not checked
                 coverage[town] = {"status": "unavailable", "message": str(exc)[:200]}

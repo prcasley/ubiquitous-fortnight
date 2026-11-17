@@ -93,7 +93,7 @@ def refresh(existing, *, reader=read_json, now=None):
     result = {**existing, 'sources': {**existing['sources'], SOURCE_ID: source},
               'records': [r for r in existing['records'] if r.get('sourceId') != SOURCE_ID] + records}
     result['notice'] = ('New Jersey state nominations (130 tracts, submitted to Treasury Oct 28, 2026) are connected from the official NJ DCA layer, checked '
-                        + iso(now)[:10] + '. Nomination is not Treasury certification. Florida and Pennsylvania nominations and all federal certifications are not connected.')
+                        + iso(now)[:10] + '. U.S. Treasury designated all 130 on Nov 5, 2026 (release SB0682, effective Jan 1, 2027); the federal list is published separately in oz2-designations.json. This file holds the state nomination records and boundaries only. Florida and Pennsylvania nomination layers are not connected.')
     # Do not overwrite a future multi-source notice with the NJ-only wording.
     if any(key != SOURCE_ID for key in existing['sources']):
         result['notice'] = existing.get('notice', 'State nomination evidence is not federal certification; review source dates.')
