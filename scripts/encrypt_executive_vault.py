@@ -12,10 +12,10 @@ Live Site:
 Encrypts unredacted NJ/FL/PA owner, human officer, direct phone, and email records
 into `assets/data/executive-vault.enc` using PBKDF2-HMAC-SHA256 (600,000 iterations)
 and AES-256-GCM so the public GitHub Pages repository (`prcasley/ubiquitous-fortnight`)
-never stores plaintext passwords (`WP123`) or unredacted personal contact data.
+never stores a plaintext passphrase or unredacted personal contact data.
 
 Usage:
-  RADAR_EXEC_PASSPHRASE="your-strong-passphrase" python3 scripts/encrypt_executive_vault.py \
+  RADAR_VAULT_PASSPHRASE="..." python3 scripts/encrypt_executive_vault.py \
     --init-seed \
     --input private_build/master_contacts.json \
     --output assets/data/executive-vault.enc
@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import getpass
 import json
 import os
 from datetime import datetime, timezone
@@ -42,8 +41,8 @@ IV_BYTES = 12
 
 def derive_aes_key(passphrase: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
     """Derives a 256-bit AES key from the executive passphrase using PBKDF2-HMAC-SHA256."""
-    if not passphrase or len(passphrase.strip()) < 5:
-        raise ValueError("Executive passphrase must be at least 5 characters long.")
+    if not passphrase or len(passphrase.strip()) < 16:
+        raise ValueError("Executive passphrase must be at least 16 characters long.")
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -231,7 +230,12 @@ def main() -> None:
         in_path.write_text(json.dumps(build_seed_contacts(), indent=2) + "\n", encoding="utf-8")
         print(f"Initialized seed contact file at {in_path}")
 
-    passphrase = os.environ.get("RADAR_EXEC_PASSPHRASE") or getpass.getpass("Enter Executive Passphrase: ")
+    # The passphrase comes only from the environment. It is never prompted for, defaulted or written to disk.
+    passphrase = os.environ.get("RADAR_VAULT_PASSPHRASE")
+    if not passphrase:
+        raise SystemExit("Set RADAR_VAULT_PASSPHRASE; the passphrase is never read from a file or an argument")
+    if passphrase != passphrase.strip() or passphrase != passphrase.upper():
+        raise SystemExit("Use a passphrase without lower-case letters or outer spaces: the entry screen upper-cases what is typed")
     out_path = encrypt_vault_file(in_path, args.output, passphrase)
     print(f"Encrypted {in_path} -> {out_path} (PBKDF2-SHA256 {PBKDF2_ITERATIONS} iterations, AES-256-GCM).")
 
