@@ -57,3 +57,11 @@ python3 scripts/nj_county_owner_lookup.py --parcels .radar/rematch/parcels.json 
 - **County owners.** 512 of 520 parcels in the seven counties now have an assessment owner name.
 - **Vault records.** `scripts/nj_build_vault_records.py` assembles the private contact file with an evidence role on
   every record. Cards show that role and the county assessment owner line when a vault record carries them.
+- **Vault.** The passphrase is read only from `RADAR_VAULT_PASSPHRASE`. No script, test, workflow or doc holds it, and a
+  test enforces that. Suites use a synthetic vault (`tests/data/test-vault.enc`) with a test-only code.
+
+```sh
+python3 scripts/nj_build_vault_records.py --base <decrypted existing vault> --contacts <role-labelled contacts> \
+  --matches .radar/rematch/out/carrier-matches.json --owners .radar/rematch/out/county-owners.json
+RADAR_VAULT_PASSPHRASE='…' node scripts/encrypt-executive-vault.mjs --input private_build/master_contacts.json
+```
