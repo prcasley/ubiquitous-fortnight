@@ -41,3 +41,19 @@ python3 scripts/nj_county_owner_lookup.py --parcels .radar/rematch/parcels.json 
 - The county search stops answering after a few hundred requests in a short period. The lookup script waits two
   seconds between requests, stops on the first empty page and resumes on the next run.
 - The Middlesex `msnj.us/ctb/12` link in `radar-ownership-research-core.js` returned 404 on this date.
+
+## Follow-up the same day
+
+- **Acreage.** `node scripts/apply-mapped-acreage.mjs` is now the final publication step. It measures each parcel polygon,
+  uses mapped area when the published figure is more than 25% away, and removes lots under 2 effective acres. Run it
+  after `nj_enrichment_pipeline.py --publish`; `tests/mapped-acreage.test.mjs` fails if it was skipped.
+  Result: 1,949 records to 1,749, 150 kept records corrected, 787,598 "acres" in the published field to 18,849 mapped.
+- **Inactive carriers.** A carrier whose federal filing is inactive is shown as "Inactive carrier filing · potential
+  transitional site" with its last filing date. It has no phone, no email and no call button, and quick picks list
+  active filings only.
+- **County links.** The app links straight to the county tax-list record for the exact block and lot in Bergen,
+  Burlington, Cumberland, Gloucester, Hudson, Salem and Union. The Middlesex and Cape May `msnj.us` links returned 404
+  and were removed; Middlesex keeps the county's own assessment search page.
+- **County owners.** 512 of 520 parcels in the seven counties now have an assessment owner name.
+- **Vault records.** `scripts/nj_build_vault_records.py` assembles the private contact file with an evidence role on
+  every record. Cards show that role and the county assessment owner line when a vault record carries them.
