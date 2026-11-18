@@ -69,9 +69,17 @@ body.radar-v34 .scan-status.danger{background:#3d1719!important;border-color:#a2
  body.radar-v34 header.top:has(>#radarModeToggleBtn) .v34-brand{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
  body.radar-v34 .radar-mode-toggle-btn{flex:1 1 0;min-width:0;max-width:none;white-space:normal}
  body.radar-v34 .radar-agent.v34-ask .agent-form button{font-size:15px!important}
+ body.radar-v34[data-v34-view="scan"] .v34-section-title{display:none}
 }
 
-/* Short screens: give the research panel the room so the search box is on screen at load. */
+/* Prioritize the search on phones. The Map and Details buttons can still change the split. */
+@media(max-width:600px){
+ body.radar-v34[data-radar-mode="simple"][data-v34-view="scan"] .radar-split[data-sheet="50"]{--sheet-size:66%!important}
+}
 @media(max-width:600px) and (max-height:700px){
  body.radar-v34 .radar-split[data-sheet="50"]{--sheet-size:62%!important}
 }
+
+/* Keep the key NJ research route visible from Find on phones and desktops. */
+body.radar-v34 .v34-tract-coverage{min-height:44px;max-width:100%;margin-top:6px;padding:7px 12px;font-size:1rem;white-space:normal}
+body.radar-v34 :is(.v34-tract-coverage,.v34-nav button,#agentPrompt,#agentForm button,#v34PublishedTractCoverage):focus-visible{outline:3px solid #5eead4;outline-offset:2px}
