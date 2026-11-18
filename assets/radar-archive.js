@@ -21,8 +21,33 @@
  function toggle(id,layer){if($(id).checked)layer.addTo(map());else map().removeLayer(layer);}
  function load(input){const data=C.validate(input);if(!map())throw Error('Map is not ready; reload after the map library is available.');bundle=data;selection?.clearLayers();$('archiveDetails').textContent='Select a recovered record to inspect its facts and source geometry.';$('archiveGroup').replaceChildren(new Option('All recovered groups',''),...bundle.groups.map(g=>new Option(g.label+' ('+bundle.records.filter(r=>r.group===g.id).length+')',g.id)));$('archiveState').value='';$('archiveQuery').value='';boundaries.clearLayers();oz.clearLayers();for(const r of bundle.municipalOverlays)outlines(boundaries,r.rings,'#268c85');for(const r of bundle.ozReference)outlines(oz,r.rings,'#d77b28');$('archiveLegend').textContent='Purple: recovered parcel pins. Teal: '+bundle.municipalOverlays.length+' recovered municipal boundaries. Orange: '+bundle.ozReference.length+' historical OZ eligibility references; nomination/designation NOT verified. All coverage is limited to the uploaded file.';$('archiveStatus').textContent='Loaded '+bundle.records.length+' historical parcel observations · file date '+bundle.fileGeneratedAt+'. Rankings, strategy, risk conclusions, lease/listing references, demo transactions and concept plans are held out. This reference bundle is not sent to the assistant or added to live search results.';for(const [id,layer] of [['archiveShowPoints',points],['archiveShowMunicipal',boundaries],['archiveShowOZ',oz]])toggle(id,layer);filter();}
  function init(){if(!map()){ $('archiveStatus').textContent='Recovered reference map needs the map library. Refresh when it is available.';return;}points=L.layerGroup();points._archiveRenderer=L.canvas();boundaries=L.layerGroup();oz=L.layerGroup();selection=L.layerGroup().addTo(map());$('archiveImport').addEventListener('change',async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>16000000)throw Error('Choose a prepared JSON bundle smaller than 16 MB');load(JSON.parse(await file.text()));}catch(error){$('archiveStatus').textContent='Reference import unavailable: '+error.message;}finally{e.target.value='';}});for(const id of ['archiveGroup','archiveState'])$(id).addEventListener('change',filter);let timer;$('archiveQuery').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(filter,150);});$('archiveMore').addEventListener('click',()=>{limit+=30;table();});for(const [id,layer] of [['archiveShowPoints',points],['archiveShowMunicipal',boundaries],['archiveShowOZ',oz]])$(id).addEventListener('change',()=>toggle(id,layer));$('archiveFit').addEventListener('click',()=>{const positions=visible.filter(r=>r.point).map(r=>[r.point[1],r.point[0]]);if(!positions.length){$('archiveCount').textContent='No mapped reference pins in this selection; no location was guessed.';return;}map().fitBounds(L.latLngBounds(positions),{maxZoom:16});$('mapPanel').scrollIntoView({block:'start'});});for(const b of document.querySelectorAll('[data-archive-group]'))b.addEventListener('click',()=>{$('archiveGroup').value=b.dataset.archiveGroup;$('archiveState').value='';$('archiveQuery').value=b.dataset.archiveQuery||'';filter();if(visible.length)$('archiveFit').click();});
-  if(window.__RADAR_STANDALONE_REFERENCE__){load(window.__RADAR_STANDALONE_REFERENCE__);return;}
-  fetch('assets/data/recovered-reference.json',{cache:'no-cache',credentials:'omit'}).then(r=>{if(r.ok)return r.json();return null;}).then(data=>{if(data)load(data);}).catch(()=>{$('archiveStatus').textContent='Recovered reference bundle could not load. Choose a prepared reference JSON file; no historical data was guessed.';});
+  const bridge=window.PublicRadarBridge,gate=document.documentElement;
+  let landing=null,navigated=false;
+  const interaction=new AbortController();
+  function skipLanding(){navigated=true;settleLanding();}
+  const options={signal:interaction.signal};
+  for(const event of ['pointerdown','wheel','keydown'])map().getContainer().addEventListener(event,skipLanding,options);
+  for(const event of ['radar:location','radar:parcel-selected','radar:center-selected'])document.addEventListener(event,skipLanding,options);
+  $('market').addEventListener('change',skipLanding,options);
+  const watchGate=new MutationObserver(settleLanding);
+  watchGate.observe(gate,{attributes:true,attributeFilter:['data-radar-locked']});
+  function settleLanding(){
+   if(!navigated&&(!landing||gate.hasAttribute('data-radar-locked')))return;
+   watchGate.disconnect();interaction.abort();
+   requestAnimationFrame(()=>{
+    if(navigated||gate.hasAttribute('data-radar-locked')||bridge.getSearch()||bridge.getSelected()||!landing.length)return;
+    map().invalidateSize({pan:false});
+    map().fitBounds(L.latLngBounds(landing),{padding:[20,20],maxZoom:13,animate:false});
+   });
+  }
+  function loadLanding(data){
+   load(data);
+   // Move only the map viewport. The existing manual search anchor is unchanged.
+   landing=visible.filter(r=>r.group==='lehigh'&&r.point).map(r=>[r.point[1],r.point[0]]);
+   settleLanding();
+  }
+  if(window.__RADAR_STANDALONE_REFERENCE__){loadLanding(window.__RADAR_STANDALONE_REFERENCE__);return;}
+  fetch('assets/data/recovered-reference.json',{cache:'no-cache',credentials:'omit'}).then(r=>{if(r.ok)return r.json();return null;}).then(data=>{if(data)loadLanding(data);else skipLanding();}).catch(()=>{skipLanding();$('archiveStatus').textContent='Recovered reference bundle could not load. Choose a prepared reference JSON file; no historical data was guessed.';});
  }
  window.RadarArchive={load,getBundle:()=>bundle,getVisible:()=>visible.slice()};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

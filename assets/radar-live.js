@@ -214,6 +214,7 @@
     }});
   }
   async function scan(request={}) {
+    if(request.signal?.aborted)return;
     if(scannerBusy) { clearResults();scanState="cancelled";status("Search cancelled.","warning");return; }
     if(!map||!domain||!window.turf){status("Map or spatial library unavailable. Reload after dependencies are available.","danger");return;}
     const state=$("stateSelect").value;
@@ -231,6 +232,8 @@
     const currentScan=scanId, controller=new AbortController();
     const checkCurrent=()=>{if(currentScan!==scanId||controller.signal.aborted)throw new DOMException("Cancelled","AbortError");};
     scannerBusy=true;scanState="loading"; scanAbort=controller;
+    const abortRequested=()=>controller.abort();
+    request.signal?.addEventListener('abort',abortRequested,{once:true});
     $("scanButton").disabled=false;
     $("scanButton").textContent="Cancel scan";
     let source=providerFor(state,center.lat,center.lon);const env=scanEnvelope(center,radius);
@@ -369,7 +372,7 @@
       scanComplete=false;scanState=controller.signal.aborted?"cancelled":records.length?"partial":"failed";
       if(controller.signal.aborted) status("Search cancelled.","warning");
       else {status((records.length?'Showing '+records.length+' retrieved parcels; the source stopped before the search finished.':'The parcel source could not complete this search. Try again or review recovered map data.')+' More properties may exist.','warning');const detail=document.createElement('details'),summary=document.createElement('summary'),message=document.createElement('p');summary.textContent='Source details';message.textContent=errText(e);detail.append(summary,message);$('statusText').append(detail);}
-    } finally {if(currentScan===scanId){scannerBusy=false;if(records.length)renderResults();$("scanButton").disabled=false;$("scanButton").textContent="Scan public parcels";scanAbort=null;document.dispatchEvent(new CustomEvent("radar:scan-state",{detail:{state:scanState,scanId}}));}}
+    } finally {request.signal?.removeEventListener('abort',abortRequested);if(currentScan===scanId){scannerBusy=false;if(records.length)renderResults();$("scanButton").disabled=false;$("scanButton").textContent="Scan public parcels";scanAbort=null;document.dispatchEvent(new CustomEvent("radar:scan-state",{detail:{state:scanState,scanId}}));}}
   }
   function currentFilters(){
     const q=$("textFilter").value.trim().toLowerCase();
@@ -584,7 +587,7 @@
     }else{inspected=item;choose(item.key,{inspection:true,navigation});}
     return item;
   }
-  window.PublicRadarBridge={scan,
+  window.PublicRadarBridge={scan,isScanning:()=>scannerBusy,
     mergeNearby:(rows,reports,primary)=>{sourceReports=reports;records=[...new Map(rows.map(r=>[r.key,r])).values()].sort((a,b)=>a.distance-b.distance);sourceState=primary.state;sourceCenter=primary.center;searchSnapshot=primary;sourceTime=new Date();countResult=records.length;scanComplete=reports.every(r=>r.complete);scanState=scanComplete?'complete':'partial';activeSource={name:reports.map(r=>r.name).join(' + '),url:reports[0]?.url||SOURCES[primary.state].url,date:'Combined live retrieval; see each parcel for source vintage',attribution:'Public county GIS / NJ Office of GIS; source provenance retained on every parcel'};selectedId=null;renderResults();renderMap();renderOwners();renderSource();status(reports.map(r=>r.name+': '+(r.complete?'complete':'PARTIAL / unavailable')+' ('+r.count+' accepted)'+(r.complete?'':': '+r.message)).join(' · '),scanComplete?'success':'warning');document.dispatchEvent(new CustomEvent('radar:scan-complete',{detail:{count:records.length,state:sourceState,complete:scanComplete}}));},normalizeRecord:(feature,state,center,provider)=>normalize(feature,state,center,provider),
     restoreOwnerObservations:observations=>{for(const r of records){const o=observations[r.key];if(['FL','NJ','PA'].includes(r.state)&&o&&o.property.provider===r.provider&&window.RadarPublicData.entity(o.entityName)){r.owner=o.entityName;r.ownership={...o,classification:'organization-style'};}}renderResults();renderOwners();},
     setOwnerObservation:(key,observation)=>{const record=(inspected?.key===key?inspected:null)||records.find(r=>r.key===key);if(record){record.owner=observation.entityName||null;record.ownership=observation.entityName?observation:null;renderResults();renderOwners();}},

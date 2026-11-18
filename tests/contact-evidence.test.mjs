@@ -11,3 +11,16 @@ test('town aliases follow carrier filing names without merging different municip
 test('carrier lookup filters town and house number at the source instead of downloading the town',async()=>{const urls=[];const row={dot_number:'1',legal_name:'Example Carrier',phy_street:'60 GRANT AVE',phy_city:'ORANGE',phy_state:'NJ',phone:'7325550100',status_code:'A'};const r=await V.lookup({id:'x',address:'60 Grant Avenue',municipality:'ORANGE CITY TWP',state:'NJ'},async u=>{urls.push(new URL(u).searchParams);return {ok:true,json:async()=>[row,{...row,dot_number:'2',phy_street:'60 GRANT ST'}]};});assert.equal(urls.length,1);assert.match(urls[0].get('$where'),/upper\(phy_city\) in \('ORANGE CITY','ORANGE'\) AND upper\(phy_street\) like '60 %'/);assert.equal(r.contacts.length,1);assert.equal(r.complete,true);assert.equal(V.verify({id:'x',address:'60 Grant Avenue',municipality:'ORANGE CITY TWP',state:'NJ'},r.contacts[0]).fields.length,1);});
 test('a town name absent from carrier filings is reported as unchecked, never as no carriers',async()=>{const r=await V.lookup({id:'x',address:'1 Main St',municipality:'UPPER TWP',state:'NJ'},async u=>({ok:true,json:async()=>new URL(u).searchParams.get('$select').startsWith('count')?[{n:'0'}]:[]}));assert.equal(r.complete,false);assert.equal(r.townListed,false);assert.match(r.status,/not a confirmed absence/);const listed=await V.lookup({id:'x',address:'1 Main St',municipality:'CARTERET BORO',state:'NJ'},async u=>({ok:true,json:async()=>new URL(u).searchParams.get('$select').startsWith('count')?[{n:'412'}]:[]}));assert.equal(listed.complete,true);assert.match(listed.status,/No active carrier match/);});
 test('shared NJ town names are flagged on the contact role',()=>{assert.match(V.fromCarrier({id:'x',address:'1 Main St',municipality:'WASHINGTON TWP',state:'NJ'},{legal_name:'A',phy_street:'1 MAIN ST',phy_city:'WASHINGTON',phy_state:'NJ'},'https://data.transportation.gov/x',new Date().toISOString()).role,/more than one NJ municipality/);});
+
+test('Florida and Pennsylvania carrier leads require exact state, city and street',async()=>{
+ for(const [state,city] of [['PA','EASTON'],['FL','WEST PALM BEACH']]){
+  const parcel={id:'source-key',state,municipality:city,address:'20 Market Street'};
+  const row={dot_number:1,legal_name:'Example Carrier',phy_street:'20 MARKET ST',phy_city:city,phy_state:state,phone:'7325550100',status_code:'A'};
+  const result=await V.lookup(parcel,async url=>{
+   assert.match(new URL(url).searchParams.get('$where'),new RegExp("phy_state='"+state+"'"));
+   return {ok:true,json:async()=>[row,{...row,phy_state:'NJ'},{...row,phy_city:city+' TOWNSHIP'}]};
+  });
+  assert.equal(result.contacts.length,1);
+  assert.equal(V.verify(parcel,result.contacts[0]).fields.length,1);
+ }
+});
