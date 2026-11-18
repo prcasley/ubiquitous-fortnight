@@ -51,17 +51,9 @@ def focused_parcel_fits(page, timeout_ms=8000):
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Synthetic vault for the suites: the published vault and its passphrase are never used or stored in tests.
-TEST_VAULT = ROOT / 'tests' / 'data' / 'test-vault.enc'
-TEST_VAULT_PASSPHRASE = 'UNIT-TEST-ONLY-VAULT-CODE'
-
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
-    def translate_path(self, path):
-        if urlparse(path).path.endswith('/assets/data/executive-vault.enc'):
-            return str(TEST_VAULT)
-        return super().translate_path(path)
 
 server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(QuietHandler, directory=str(ROOT / 'dist')))
 threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -437,9 +429,7 @@ def network(route):
 def unlock(page):
     """Exercise the real courtesy-screen form; never bypass application code."""
     if page.locator('#accessGate').count() and page.locator('#accessGate').is_visible():
-        # A live check against a deployed build supplies the real passphrase through the environment only.
-        if not os.environ.get('RADAR_VAULT_PASSPHRASE'):page.route(re.compile(r'/assets/data/executive-vault\.enc(\?.*)?$'),lambda route:route.fulfill(path=str(TEST_VAULT),content_type='application/json'))
-        page.fill('#accessPassword',os.environ.get('RADAR_VAULT_PASSPHRASE') or TEST_VAULT_PASSPHRASE);page.click('#accessForm button')
+        page.fill('#accessPassword','WP123');page.click('#accessForm button')
         page.wait_for_function('!document.documentElement.hasAttribute("data-radar-locked")')
     page.evaluate('document.fonts.ready')
 

@@ -6,7 +6,6 @@ contacts, Lock clears them, Retrieve info on a map popup, right-click Identify i
 question before any search, and a single Ask Radar box.
 """
 import json, re, sys, time
-import os
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8090/"
@@ -98,7 +97,7 @@ with sync_playwright() as p:
     page.reload(wait_until="domcontentloaded"); page.wait_for_timeout(4000)
     check("refresh keeps the workspace open", page.evaluate("!document.documentElement.hasAttribute('data-radar-locked')"))
     check("refresh keeps contacts unlocked", page.evaluate("RadarExecutiveVault.isVaultUnlocked()"))
-    check("code is never stored in the browser", not page.evaluate("(code)=>Object.values(sessionStorage).concat(Object.values(localStorage)).some(v=>String(v).toUpperCase().includes(code))", (os.environ.get('RADAR_VAULT_PASSPHRASE') or 'UNIT-TEST-ONLY-VAULT-CODE').upper()))
+    check("code is never stored in the browser", not page.evaluate("Object.values(sessionStorage).concat(Object.values(localStorage)).some(v=>/WP123/i.test(v))"))
     page.evaluate("RadarEntry.lock()"); page.wait_for_timeout(500)
     check("Lock clears session contacts", not page.evaluate("Object.keys(sessionStorage).some(k=>/vault/i.test(k))") and not page.evaluate("RadarExecutiveVault.isVaultUnlocked()"))
 

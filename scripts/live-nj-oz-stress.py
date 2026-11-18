@@ -75,8 +75,7 @@ def run_stress(pw, url=DEFAULT_URL, network=None, synthetic=False):
             if any(code in str(e) for code in ('ERR_TUNNEL_CONNECTION_FAILED','ERR_PROXY_CONNECTION_FAILED','ERR_NO_SUPPORTED_PROXIES')):raise EnvironmentBlocked('Cannot load requested site: '+str(e)) from e
             raise
         if page.locator('#accessGate').is_visible():
-            page.fill('#accessPassword',os.environ.get('RADAR_VAULT_PASSPHRASE') or 'UNIT-TEST-ONLY-VAULT-CODE'  # the fallback opens only the synthetic fixture vault
-            );page.click('#accessForm button')
+            page.fill('#accessPassword','WP123');page.click('#accessForm button')
         wait(page,lambda:page.evaluate('!!window.PublicRadarGeo && !document.documentElement.hasAttribute("data-radar-locked")'))
         page.evaluate('async()=>{await document.fonts.ready}')
         return ctx,page,errors
