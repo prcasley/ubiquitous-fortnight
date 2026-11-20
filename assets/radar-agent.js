@@ -510,6 +510,8 @@
        else putMessage('The address was geocoded, but no unique public parcel could be verified at that point. No parcel identity was guessed.');
        if(intent.secondAddress)chips('This address lists two street numbers. Check the other one too:',[[intent.secondAddress,intent.secondAddress]]);return;
      }
+     const paSource=state==="PA"?window.RadarPA?.sources?.[window.PublicRadarCounty]:null;
+     if(paSource?.noUseClass&&intent.type&&intent.type!=="all"){putMessage("I couldn't apply: the "+intent.type+" filter ("+paSource.name+" publishes parcel size and address but no land-use class). Showing all property types that match the size instead; land use is not inferred.");intent.type="all";}
      $("typeSelect").value=intent.type||"industrial";
      bridge().setAcreageFilter(intent.acres??0,intent.comparison==="under"?"<":intent.comparison||">=",intent.maxAcres);
      bridge().setRadius(intent.radius??preserved?.radius??5);
@@ -685,7 +687,7 @@
        lehigh:["PA","Lehigh"],northampton:["PA","Northampton"],broward:["FL","Broward"],miami:["FL","MiamiDade"],palm:["FL","PalmBeach"],treasure:["FL","Martin"],stlucie:["FL","StLucie"]}[id];
      if(m){applyCounty(m[0],m[1],{center:false});clearOldResults();}
    });
-   const lehighOption=$("market").querySelector('option[value="lehigh"]');if(lehighOption){lehighOption.disabled=true;lehighOption.textContent="Lehigh / Allentown · browser unavailable";lehighOption.title=window.RadarPA.sources.Lehigh.unavailableReason;}
+   const lehighOption=$("market").querySelector('option[value="lehigh"]');if(lehighOption&&window.RadarPA.sources.Lehigh.browserAvailable===false){lehighOption.disabled=true;lehighOption.textContent="Lehigh / Allentown · browser unavailable";lehighOption.title=window.RadarPA.sources.Lehigh.unavailableReason;}
    applyCounty($("stateSelect").value,"Middlesex",{center:false});
    document.addEventListener("radar:center-selected",()=>{locationKnown=true;});
    document.addEventListener("radar:scan-state",e=>{if(e.detail.state==='complete')locationKnown=true;});

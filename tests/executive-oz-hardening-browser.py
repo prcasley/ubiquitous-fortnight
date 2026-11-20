@@ -39,8 +39,8 @@ try:
   ctx,page=context(browser);mode['addressSearch']=True;ask(page,'industrial over 5 acres near 40 Hilton St Easton PA')
   check('address-centered cross-border search retains its PA subject',page.evaluate('PublicRadarBridge.getSubject()?.provider==="northampton"&&PublicRadarBridge.getResults().some(r=>r.state==="NJ")'));ctx.close();mode.pop('addressSearch');mode['crossBorder']=False
   ctx,page=context(browser);external_requests.clear();ask(page,'industrial over 10 acres in Lehigh County PA')
-  check('Lehigh is explicitly unavailable instead of Failed to fetch','Lehigh County blocks direct cross-site browser requests' in page.locator('#agentLog').inner_text() and not any('gis.lehighcounty.org' in u for u in external_requests))
-  check('unavailable Lehigh menu is disabled',page.locator('#countySelect option').evaluate_all('(nodes)=>nodes.some(n=>n.textContent.includes("Lehigh")&&n.disabled)') if page.locator('#stateSelect').input_value()=='PA' else True);ctx.close()
+  check('Lehigh returns parcels with an unapplied-filter note instead of Failed to fetch','I couldn\'t apply: the industrial filter' in page.locator('#agentLog').inner_text() and page.evaluate('PublicRadarBridge.getSearch()?.type==="all"') and '2 of 2 source records retrieved' in page.locator('#statusText').text_content() and not any('gis.lehighcounty.org' in u for u in external_requests))
+  check('Lehigh is selectable in the county and market menus',page.locator('#countySelect option').evaluate_all('(nodes)=>nodes.some(n=>n.textContent.includes("Lehigh")&&!n.disabled)') and page.locator('#market option[value="lehigh"]').evaluate('n=>!n.disabled&&!/unavailable/.test(n.textContent)'));ctx.close()
   # A transient zero NJ count must be independently verified before showing an empty scan.
   ctx,page=context(browser)
   page.evaluate("""()=>{const original=RadarGISTransport.request;window.injectedEmpty=false;RadarGISTransport.request=(u,o)=>{if(u.includes('services2.arcgis.com')&&u.includes('returnCountOnly')&&!window.injectedEmpty){window.injectedEmpty=true;return Promise.resolve({count:0});}return original(u,o);};return true}""")
