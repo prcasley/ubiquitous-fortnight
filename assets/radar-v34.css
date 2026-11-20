@@ -236,3 +236,24 @@ body.radar-v34:is([data-v34-view=data],[data-v34-view=stars]) .v34-nav button[ar
 body.radar-v34[data-radar-mode=simple] .v34-ask #assistantStatus{padding-block:0;border-block:8px solid transparent;background-clip:border-box}
 /* Chips stay available on phones (an older phone rule hid the suggestion row). */
 body.radar-v34 #scanner>.radar-agent.v34-ask .agent-suggestions{display:flex}
+
+.property-play{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px;margin:10px 0}
+.property-play h3,.property-play h4{margin:0 0 8px}
+.property-play-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.property-play :is(button,select,summary,input){min-height:44px;max-width:100%;font:inherit}
+.property-play :is(button,select){padding:6px 10px}
+.property-play :is(button,select,summary,a,input):focus-visible{outline:3px solid #5eead4;outline-offset:2px}
+.property-play-result{overflow-wrap:anywhere}
+.property-play-result dl{margin:8px 0}
+.property-play-result dt{font-weight:700}
+.property-play-result dd{margin:0 0 6px}
+.property-play-result a{display:inline-flex;min-height:44px;align-items:center;margin-right:12px}
+.property-play details{margin-top:8px}
+.property-play [hidden],.property-play[hidden]{display:none!important}
+
+.property-play-shortcuts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 0}
+.property-play-shortcuts button{min-height:44px;padding:6px 8px;font:inherit}
+.property-play-shortcuts .v34-tract-coverage{margin:0}
+.property-play-shortcuts button:focus-visible{outline:3px solid #5eead4;outline-offset:2px}
+.property-play-shortcuts [hidden]{display:none!important}
+.property-play-shortcuts .property-play-start{background:#5eead4;color:#102629;border-color:#5eead4;font-weight:700}

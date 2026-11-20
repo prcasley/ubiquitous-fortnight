@@ -43,7 +43,7 @@ try:
   mode['broNoGeometry']=True;ctx,page=open_page(browser);ask(page,'industrial over 10 acres in Broward County FL')
   check('missing Broward polygon is not treated as zero matches',page.evaluate('!PublicRadarBridge.getMeta().complete') and 'no measurable parcel polygon' in page.locator('#statusText').text_content());ctx.close();mode.pop('broNoGeometry')
   ctx,page=open_page(browser);external_requests.clear();ask(page,'industrial over 10 acres in Lehigh County PA')
-  check('Lehigh is marked browser-unavailable without a doomed fetch',page.evaluate('PublicRadarBridge.getSearch()===null') and 'Lehigh County blocks direct cross-site browser requests' in page.locator('#agentLog').inner_text() and not any('gis.lehighcounty.org' in u for u in external_requests));ctx.close()
+  check('Lehigh reads the county-hosted layer and returns parcels, saying plainly the industrial filter was not applied',any('XWDNR4PQlDQwrRCL' in u for u in external_requests) and not any('gis.lehighcounty.org' in u for u in external_requests) and 'I couldn\'t apply: the industrial filter' in page.locator('#agentLog').inner_text() and page.evaluate('PublicRadarBridge.getSearch()?.type==="all"') and '2 of 2 source records retrieved' in page.locator('#statusText').text_content());ctx.close()
   ctx,page=open_page(browser);external_requests.clear();ask(page,'industrial over 10 acres in Orange County FL')
   check('unconnected county offers towns instead of radius scan',page.evaluate('PublicRadarBridge.getSearch()===null') and 'No county-centroid circle was substituted' in page.locator('#agentLog').inner_text() and page.get_by_role('button',name='Orlando',exact=True).count()==1 and not any('findAddressCandidates' in u for u in external_requests));ctx.close()
   browser.close()

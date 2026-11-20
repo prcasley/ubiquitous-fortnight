@@ -35,7 +35,7 @@
         image.addEventListener('error',()=>{image.hidden=true;unavailable.hidden=false;picture.dataset.unavailable='true';});
         picture.append(image,overlay,unavailable);
         const precision=document.createElement('small');precision.textContent=item.precision+' · Esri imagery / source providers';
-        const id=document.createElement('small');id.textContent='Parcel '+(item.parcelNumber||item.id)+' · Retrieved '+(item.retrievedAt||'time unavailable');
+        const id=document.createElement('small');id.textContent='Parcel '+(item.parcelNumber||item.id)+' · Retrieved '+(item.retrievedAt?window.RadarTime.plain(item.retrievedAt):'time unavailable');
         const actions=document.createElement('div');actions.className='property-card-actions';
         const open=button('View parcel on satellite',()=>{
           if(bridge().getMeta().scanId!==meta.scanId){open.disabled=true;open.textContent='Previous search — run it again to open';return;}
