@@ -26,7 +26,11 @@ try:
         panel=page.locator('#propertyPlay')
         assert not panel.is_visible()
         unlock(page)
-        page.wait_for_function("RadarArchive.getVisible().length===2 && PublicRadarBridge.getMap().getCenter().lng < -75")
+        page.wait_for_function("RadarArchive.getVisible().length===2")
+        page.wait_for_timeout(400)
+        # The map opens on the market the menu and status line name (Central New Jersey), not on the Pennsylvania reference pins.
+        assert page.locator('#market').input_value()=='njcentral'
+        assert page.evaluate("(()=>{const c=PublicRadarBridge.getMap().getCenter();return Math.abs(c.lat-40.527)<0.05&&Math.abs(c.lng+74.363)<0.05&&PublicRadarBridge.getMap().getZoom()===12})()")
         assert page.locator('#basemap').input_value()=='satellite'
         assert page.locator('#archiveShowPoints').is_checked()
         assert page.evaluate('PublicRadarBridge.getResults().length===0')

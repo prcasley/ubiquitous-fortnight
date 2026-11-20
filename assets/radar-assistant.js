@@ -50,7 +50,9 @@
       tell(available?'Select Explain these results for retrieved results (partial searches are labeled).':'Search returns property cards here. Open satellite views or add properties to a field trip.');buttons();
     });
     $('textFilter').addEventListener('input',()=>{controller?.abort();buttons();});
-    try{
+    // A static host (GitHub Pages, a local file) has no assistant backend, so do not ask it for one.
+    const staticHost=location.protocol==='file:'||/\.github\.io$/i.test(location.hostname)||document.documentElement.dataset.radarBackend==='none';
+    if(!staticHost)try{
       const response=await fetch('/api/radar-agent/status',{credentials:'same-origin',signal:AbortSignal.timeout(5000)});
       if(response.ok)available=(await response.json()).available===true;
     }catch{/* A static deployment still supports deterministic search. */}

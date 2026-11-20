@@ -1,5 +1,8 @@
 (() => {
   "use strict";
+  // Screen text shows a plain local date and time ("Nov 20, 2026, 3:24 PM"). Stored and exported values keep the exact ISO timestamp.
+  window.RadarTime={plain(value){const date=new Date(value);if(!value||Number.isNaN(+date))return value||'';const day=/^\d{4}-\d{2}-\d{2}$/.test(String(value));
+    return date.toLocaleString('en-US',day?{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'}:{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}};
   // Public-data-only implementation. No application-private records, keys, comps, or contact dossiers.
   const SOURCES = {
     FL: {
@@ -172,7 +175,7 @@
     const countySource={PalmBeach:"PBC",Broward:"BRO",MiamiDade:"MDC"}[window.PublicRadarCounty];
     return state==="FL"&&countySource&&stateInBounds(lat,lon,countySource)?SOURCES[countySource]:SOURCES[state];
   }
-  function serverWhere(state,mode,min,provider=SOURCES[state],wholeSitesOnly=false) {
+  function serverWhere(state,mode,min,provider=SOURCES[state],wholeSitesOnly=false,countywide=true) {
     const terms=[],county=window.PublicRadarCounty||"";
     const op=readAcreageFilter().op;
     if(state==="PA")return "1=1";
@@ -190,7 +193,9 @@
       if(mode==="vacant")terms.push("(PROPERTY_USE LIKE '%VACANT%' OR PROPERTY_USE LIKE '%UNDEVELOPED%')");
       if(min>0||op!==">=")terms.push(domain.acreageSQL("ACRES",readAcreageFilter()));
     } else if(state==="NJ") {
-      if(/^[A-Za-z ]{3,12}$/.test(county))terms.push("UPPER(COUNTY) = '"+county.toUpperCase()+"'");
+      // A radius search is bounded by its circle alone, so it keeps parcels across a county line (Edison reaches Union County).
+      // Only a whole-county search is restricted by county name.
+      if(countywide&&/^[A-Za-z ]{3,12}$/.test(county))terms.push("UPPER(COUNTY) = '"+county.toUpperCase()+"'");
       if(mode==="industrial")terms.push("PROP_CLASS = '4B'");
       if(mode==="multifamily")terms.push("PROP_CLASS = '4C'");
       if(mode==="vacant")terms.push("PROP_CLASS = '1'");
@@ -244,7 +249,7 @@
     searchSnapshot={scope:countywide?'county':'radius',countyLabel:request.countyLabel||window.PublicRadarCounty,addressMatch:request.addressMatch||null,wholeSitesOnly,year:yearFilter,state,county:window.PublicRadarCounty||"",center,radius,type:mode,acreage:acreFilter,unverified:Array.isArray(request.unverified)?request.unverified.slice(0,20):[]};
     let municipalityLookup=null;
     const base={geometry:JSON.stringify(env),geometryType:"esriGeometryEnvelope",
-      spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source,wholeSitesOnly)};
+      spatialRel:"esriSpatialRelIntersects",inSR:"4326",where:serverWhere(state,mode,min,source,wholeSitesOnly,countywide)};
     if(countywide){for(const field of ['geometry','geometryType','spatialRel','inSR'])delete base[field];}
     status("Querying the public "+state+" parcel service. No saved internal database is being read.","info");
     try {
@@ -310,6 +315,13 @@
       }
       // NJGIN's spatial count is the slow step (often 3-12 s cold, sometimes longer). Abandoning it at
       // 12 s and restarting discards the server's work; give it one long wait plus one retry instead.
+      // NJ pages are ordered by a stable key, so a page is fully described by its offset and size. Start page 1 while
+      // the (slow) count runs and keep up to three pages in flight; every page is still checked in order below.
+      const pageAhead=new Map(),njBatch=75,njCap=MAX_FEATURES;
+      const pageRequest=(offset,size)=>arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
+          returnGeometry:"true",outSR:"4326",geometryPrecision:"5",maxAllowableOffset:"0.00002",resultOffset:String(offset),resultRecordCount:String(size),orderByFields:source.orderField+" ASC"},controller.signal);
+      const startPage=(offset,size)=>{const key=offset+":"+size;if(!pageAhead.has(key)){const request=pageRequest(offset,size);request.catch(()=>{});pageAhead.set(key,request);}return pageAhead.get(key);};
+      if(state==='NJ')startPage(0,Math.min(njBatch,njCap));
       const slowCount=state==='NJ'?setTimeout(()=>{if(scanState==='loading'&&currentScan===scanId)status(source.name+" is slow to count matching parcels. Still waiting (up to 30 seconds) before retrying once…","info");},8000):null;
       let count;try{count=await arcgisQuery(source,base,{returnCountOnly:"true",returnGeometry:"false"},controller.signal,state==='NJ'?{timeoutMs:30000,attempts:2}:{});}finally{clearTimeout(slowCount);}
       checkCurrent();
@@ -327,7 +339,8 @@
       let lastParcelId=null;
       while(received<featureLimit&&received<total){
         status(source.name+": received "+received+" of "+total+" source features…","info");
-        const data=await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
+        if(state==='NJ')for(let ahead=1;ahead<=2;ahead++){const offset=received+ahead*batchSize,limit=Math.min(total,featureLimit);if(offset<limit)startPage(offset,Math.min(batchSize,featureLimit-offset));}
+        const data=state==='NJ'?await startPage(received,Math.min(batchSize,featureLimit-received)):await arcgisQuery(source,base,{f:"geojson",outFields:[...new Set([...source.fields.split(","),source.orderField])].join(","),
           returnGeometry:"true",outSR:"4326",geometryPrecision:source===SOURCES.BRO?"7":"5",
           maxAllowableOffset:state==="NJ"?"0.00002":"0",
           resultOffset:String(received),resultRecordCount:String(Math.min(batchSize,featureLimit-received)),

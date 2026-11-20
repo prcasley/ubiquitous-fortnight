@@ -275,7 +275,7 @@
    for(const row of targets){
      if(scan!==bridge().getMeta().scanId)return;
      try{const result=await window.RadarOwnership.lookup(row);singleResult=result;if(scan!==bridge().getMeta().scanId)return;
-       putMessage((row.address||row.id)+' · parcel '+row.id+': '+(result.entityName?'Published assessment entity: '+result.entityName+'. Retrieved '+result.retrievedAt+'.':result.status==='published'?(targets.length===1?'Published assessment name: '+result.publishedName+'. Organization status unverified; this name is not indexed into the company directory. Retrieved '+result.retrievedAt+'.':'The source returned an individual or unclassified assessment name; it is not indexed into the company directory. Open the selected property to review the official observation.'):result.message||'The source did not publish an owner name.')+' Assessment names are not independently verified title or control.');
+       putMessage((row.address||row.id)+' · parcel '+row.id+': '+(result.entityName?'Published assessment entity: '+result.entityName+'. Retrieved '+window.RadarTime.plain(result.retrievedAt)+'.':result.status==='published'?(targets.length===1?'Published assessment name: '+result.publishedName+'. Organization status unverified; this name is not indexed into the company directory. Retrieved '+window.RadarTime.plain(result.retrievedAt)+'.':'The source returned an individual or unclassified assessment name; it is not indexed into the company directory. Open the selected property to review the official observation.'):result.message||'The source did not publish an owner name.')+' Assessment names are not independently verified title or control.');
      }catch{putMessage((row.address||row.id)+': the public owner lookup was unavailable. No owner was inferred.');}
    }
    if(targets.length===1){bridge().choose(targets[0].key);if(singleResult)window.RadarOwnership.present(targets[0],singleResult);}
@@ -346,7 +346,7 @@
    const rows=bridge().getResults(),meta=bridge().getMeta();if(!rows.length){chips('Search a town first, then I can prepare a board summary from its public records.',examples.map(x=>[x,x]));return;}
    const sized=rows.filter(r=>r.acres!=null).sort((a,b)=>b.acres-a.acres),largest=sized[0];
    const shares=(rows.some(r=>r.state==='NJ')?['oz1','ozNJ']:rows.some(r=>r.state==='FL')?['oz1','ozFL']:['oz1','oz2']).map(kind=>{const observation=r=>r.ozObservations?.[kind]||(r.ozObservation?.kind===kind?r.ozObservation:null),checked=rows.filter(r=>observation(r)&&!['checking','unavailable','expired'].includes(observation(r).status)),hits=checked.filter(r=>['reference-intersection','reference-point-intersection'].includes(observation(r).status)&&(kind!=='ozNJ'||observation(r).nominationVerified));if(kind==='ozFL'){const met=checked.filter(r=>observation(r).eligibilityStatus==='met').length,notMet=checked.filter(r=>observation(r).eligibilityStatus==='not-met').length,mixed=checked.filter(r=>observation(r).eligibilityStatus==='mixed').length;return 'FloridaCommerce eligibility (not nomination): '+(checked.length?met+' meet / '+notMet+' do not meet / '+mixed+' mixed of '+checked.length+' checked':'not checked')+'; no official FL nomination list connected';}return (kind==='ozNJ'?'NJ nominations (not federal certification)':kind==='oz2'?'Third-party OZ2 eligibility (not nomination)':kind.toUpperCase())+': '+(checked.length?hits.length+'/'+checked.length+' checked reference intersections':'not checked');}).join(' · ');
-   const card=putMessage(rows.length+' accepted parcels'+(meta.complete?'':' (partial search)')+' · Acreage range: '+(sized.length?sized.at(-1).acres.toFixed(2)+'–'+largest.acres.toFixed(2)+' ac':'not published')+'.\nLargest site: '+(largest?(largest.address||largest.id)+' · '+largest.acres.toFixed(2)+' ac':'acreage not published')+'.\n'+shares+'.\nSource: '+meta.source+' · Retrieved '+meta.time+'.\nCaveat: '+(!meta.complete?'More parcels may exist; ':'')+'assessment class is not zoning, reference intersections are not OZ qualification; availability and title are unverified.');card.classList.add('board-summary');const host=$('agentLog');host.dataset.scrollAnchor='board';host.scrollTop=card.offsetTop-host.offsetTop;
+   const card=putMessage(rows.length+' accepted parcels'+(meta.complete?'':' (partial search)')+' · Acreage range: '+(sized.length?sized.at(-1).acres.toFixed(2)+'–'+largest.acres.toFixed(2)+' ac':'not published')+'.\nLargest site: '+(largest?(largest.address||largest.id)+' · '+largest.acres.toFixed(2)+' ac':'acreage not published')+'.\n'+shares+'.\nSource: '+meta.source+' · Retrieved '+window.RadarTime.plain(meta.time)+'.\nCaveat: '+(!meta.complete?'More parcels may exist; ':'')+'assessment class is not zoning, reference intersections are not OZ qualification; availability and title are unverified.');card.classList.add('board-summary');const host=$('agentLog');host.dataset.scrollAnchor='board';host.scrollTop=card.offsetTop-host.offsetTop;
  }
  function unknownYears(meta){const unknown=bridge().getYearUnknown?.()||[];if(!unknown.length)return;putMessage("I couldn't apply: year-built filter to "+unknown.length+' parcels (year not published).');const row=putMessage(unknown.length+' parcels: year not published — excluded from year-filter matches; listed separately below.');row.classList.add('year-not-published');window.RadarChatProperties?.render(unknown,{...meta,yearUnknown:true});}
 
@@ -369,6 +369,22 @@
    putMessage('Parcel '+pin.id+' found. Verify the address and boundary below.');
    window.RadarChatProperties?.render([record],{...bridge().getMeta(),time:record.retrievedAt,source:record.source.name,sourceURL:record.source.url,complete:true});
   }catch(e){putMessage('Parcel lookup is unavailable right now ('+e.message+'). No parcel was guessed.');}
+ }
+ // A visible "working" state: a spinner row in the chat with the seconds elapsed and the source's own progress line,
+ // and the button reads "Searching…". Public parcel sources can take 10-40 seconds.
+ function startProgress(btn){
+   const log=$("agentLog"),row=document.createElement('div'),label=btn?.textContent,started=Date.now();
+   row.className='msg bot search-progress';row.setAttribute('role','status');
+   const spin=document.createElement('span');spin.className='search-spinner';spin.setAttribute('aria-hidden','true');
+   const text=document.createElement('span'),detail=document.createElement('small');text.className='search-progress-text';
+   const body=document.createElement('span');body.className='search-progress-body';body.append(text,detail);row.append(spin,body);
+   const paint=()=>{const seconds=Math.round((Date.now()-started)/1000),status=bridge()?.getStatus?.().message||'';
+     text.textContent='Searching public parcel records… '+seconds+'s';
+     detail.textContent=(seconds>=8?'Public county and state servers can take up to a minute. ':'')+(/Ready\.|^Centered on/.test(status)?'':status);
+     if(!row.isConnected||log.lastElementChild!==row){log.append(row);log.scrollTop=log.scrollHeight;}};
+   if(btn){btn.dataset.idleLabel=label;btn.textContent='Searching…';btn.setAttribute('aria-busy','true');}
+   paint();const timer=setInterval(paint,500);
+   return {stop(){clearInterval(timer);row.remove();if(btn){btn.textContent=btn.dataset.idleLabel||label;btn.removeAttribute('aria-busy');delete btn.dataset.idleLabel;}}};
  }
  async function ask(raw,options={}){
    let intent=options.intent?{...options.intent}:parseIntent(raw);if(!intent.q)return;
@@ -451,6 +467,7 @@
        (missing.length?' '+missing.join(', ')+' are not connected; I can show candidates using the available public-record filters only.':''));return;
    }
    busy=true;const btn=$("agentForm")?.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
+   const progress=startProgress(btn);
    try{
      const countywide=intent.countywide||preserved?.scope==='county';
      if(countywide&&preserved?.countyLabel)intent.countyLabel=preserved.countyLabel;
@@ -537,7 +554,7 @@
        if(rows.length)window.RadarChatProperties?.render(intent.top?rows.slice(0,intent.top):rows,meta);unknownYears(meta);if(intent.recommendation&&rows.length)window.RadarAcquisition?.build({officialOffersOnly:intent.governmentOffersOnly});
        return;
      }
-     putMessage(sourceSummary(rows).sentence+"\nRetrieved: "+meta.time+
+     putMessage(sourceSummary(rows).sentence+"\nRetrieved: "+window.RadarTime.plain(meta.time)+
        ".","bot",bridge().getSources()[meta.state]);
      if(!rows.length&&intent.comparison==='=')putMessage(`No accepted records matched exactly ${intent.acres} acres. Try “about ${intent.acres} acres” for a clearly labeled ±10% size range.`);
      if(intent.questionOwnership)putMessage("For a Florida candidate, open its parcel card and choose Look up published assessment name. New Jersey's connected statewide layer does not supply owner names; its official property-record link is available on the parcel card. Assessment names do not establish legal or beneficial ownership.");
@@ -550,7 +567,7 @@
      if(!intent.questionOwnership&&!intent.questionOZ){const host=$('agentLog'),cards=[...host.querySelectorAll('.chat-properties')].find(n=>n.dataset.scan===String(meta.scanId));if(cards)host.scrollTop=cards.offsetTop-host.offsetTop;}
 
    }catch(e){putMessage("The public search could not complete: "+String(e?.message||e)+". No zero-result conclusion was made.");}
-   finally{busy=false;if(btn)btn.disabled=false;}
+   finally{progress.stop();busy=false;if(btn)btn.disabled=false;}
  }
  function showAssembly(){
    let panel=$("assemblyTray");
@@ -632,7 +649,10 @@
    document.addEventListener('radar:parcel-selected',e=>{plainSelected=e.detail?.key||null;});
    document.addEventListener('radar:scan-complete',()=>{plainSelected=null;plainLast=null;});
    async function submitPlain(raw){
-     const box=$("agentPrompt");box.value='';box.focus();
+     const box=$("agentPrompt");
+     // The grey example in an empty box reads as filled in, so pressing the button runs that example instead of doing nothing.
+     if(!clean(raw||'')){if(busy)return;raw=box.placeholder||'Industrial 5+ acres in Edison, NJ';putMessage('The search box was empty, so I ran the example: “'+raw+'”. Type your own town, size or property type any time.');}
+     box.value='';box.focus();
      // Outcome rule: every message ends in an action that says how it was read, a question with choices,
      // or an honest "can't do that". The safety net below guarantees the chat is never silent.
      const log=$("agentLog"),marker=log?.lastElementChild||null;
@@ -678,7 +698,7 @@
       if(!row.connected)return;
       applyCounty(state,row.key,{center:false});activeCounty=row.key;window.PublicRadarCounty=activeCounty;
       bridge().setCenter(row.lat,row.lon,12);clearOldResults();
-      bridge().setStatus("Centered on "+row.label+" County. Searches are public-source, bounded by radius and selected county.","info");
+      bridge().setStatus("Centered on "+row.label+" County. Searches are public-source, bounded by the radius you set.","info");
    });
    $("market").addEventListener("change",()=>{
      locationKnown=true;pendingSearch=null;
