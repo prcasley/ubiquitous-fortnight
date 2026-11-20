@@ -31,8 +31,8 @@ cases=[
 ('IOS sites 3-8 acres near Port Newark','NJ','industrial','between',3,8,5,'Port Newark','search'),
 ('vacant land over 5 acres in Mangonia Park FL','FL','vacant','>',5,None,5,'Mangonia Park','search'),
 ('industrial over 10 acres built before 1990 in Edison NJ','NJ','industrial','>',10,None,5,'Edison','search'),
-('Lehigh Valley industrial over 50 acres','PA','industrial','>',50,None,5,'Allentown','unavailable'),
-('industrial over 25 acres within 2 miles of Allentown PA','PA','industrial','>',25,None,2,'Allentown','unavailable'),
+('Lehigh Valley industrial over 50 acres','PA','all','>',50,None,5,'Allentown','search'),
+('industrial over 25 acres within 2 miles of Allentown PA','PA','all','>',25,None,2,'Allentown','search'),
 ('multifamily over 3 acres in Edison NJ','NJ','multifamily','>',3,None,5,'Edison','search'),
 ]
 try:
@@ -63,13 +63,13 @@ try:
             check('state/type/size/radius for '+q,query['state']==state and query['type']==kind and query['acreage']['op']==op and query['acreage']['value']==acres and query['acreage'].get('max')==upper and query['radius']==radius)
             if place: check('place for '+q,place.lower() in page.locator('#placeInput').input_value().lower())
             if 'available' in q or 'for sale' in q: check('availability is explicitly unapplied',"I couldn't apply: current sale availability" in page.locator('#agentLog').inner_text())
+            if 'Lehigh Valley' in q or 'Allentown' in q:check('Lehigh industrial request falls back to all types and says so',"I couldn't apply: the industrial filter" in page.locator('#agentLog').inner_text())
             if 'Turnpike' in q:check('road proximity is explicitly unapplied',"I couldn't apply: Turnpike proximity" in page.locator('#agentLog').inner_text())
             if 'built before' in q:
                 check('published year filter excludes newer and missing years',page.evaluate('PublicRadarBridge.getResults().every(r=>r.yearBuilt!=null&&r.yearBuilt<1990)'))
                 check('missing years are separate',page.evaluate('PublicRadarBridge.getYearUnknown().length>0') and page.locator('.year-not-published').count()==1)
         else:
             check('non-search does not run a guessed scan: '+q,page.evaluate('PublicRadarBridge.getSearch()===null'))
-            if action=='unavailable':check('Lehigh direct browser source is explicitly unavailable','Lehigh County blocks direct cross-site browser requests' in page.locator('#agentLog').inner_text())
             if action=='help':check('help has four tappable examples: '+q,page.locator('.chat-chip').count()==4)
             if action=='compare':check('comparison asks which market to search',page.locator('.chat-chip').count()==2)
             if action=='font':check('text enlarged by chat',page.evaluate('getComputedStyle(document.body).fontSize')=='19px')
