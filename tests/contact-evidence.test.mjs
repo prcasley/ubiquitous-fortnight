@@ -24,3 +24,36 @@ test('Florida and Pennsylvania carrier leads require exact state, city and stree
   assert.equal(V.verify(parcel,result.contacts[0]).fields.length,1);
  }
 });
+
+test('address ranges are bounded research leads without callable fields',async()=>{
+ const parcel={id:'range',address:'50-78 Carter Dr',municipality:'Edison',state:'NJ'};
+ const row={dot_number:11,legal_name:'Warehouse Carrier',phy_street:'55 CARTER DRIVE',phy_city:'EDISON',phy_state:'NJ',phone:'7325550100',status_code:'A'};
+ const result=await V.lookup(parcel,async url=>{
+  const where=new URL(url).searchParams.get('$where');
+  assert.match(where,/like '55 %'/);
+  assert.doesNotMatch(where,/like '79 %'/);
+  return {ok:true,json:async()=>[row,{...row,dot_number:12,phy_street:'80 CARTER DRIVE'},{...row,dot_number:13,phy_street:'55 NORTH CARTER DRIVE'}]};
+ });
+ assert.equal(result.contacts.length,0);
+ assert.deepEqual(result.leads.map(l=>l.reason),['Street number within reported range']);
+ assert.equal(result.leads[0].fields,undefined);
+ assert.equal(JSON.stringify(result).includes(row.phone),false);
+});
+
+test('spelling variants and inactive exact filings stay research leads',async()=>{
+ const parcel={id:'exact',address:'20 Center Turnpike',municipality:'Edison',state:'NJ'};
+ const row={dot_number:10,legal_name:'Example Carrier',phy_street:'20 CTR TPKE',phy_city:'EDISON',phy_state:'NJ',phone:'7325550100',status_code:'A'};
+ const result=await V.lookup(parcel,async()=>({ok:true,json:async()=>[
+  row,{...row,dot_number:11,phy_street:'20 CENTER TURNPIKE',status_code:'I'},
+  {...row,dot_number:12,phy_street:'20 CENTER ROAD'},{...row,dot_number:13,phy_city:'NEWARK'}
+ ]}));
+ assert.equal(result.contacts.length,0);
+ assert.deepEqual(result.leads.map(l=>l.reason),['Address spelling variant','Carrier status not active']);
+ assert.equal(JSON.stringify(result).includes(row.phone),false);
+});
+
+test('missing street number skips the carrier query',async()=>{
+ const result=await V.lookup({id:'road',address:'Washington Road',municipality:'Edison',state:'NJ'},async()=>{assert.fail('Unexpected carrier request');});
+ assert.equal(result.contacts.length,0);
+ assert.match(result.status,/street number/);
+});
