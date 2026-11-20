@@ -8,7 +8,7 @@ Main already contained a scan of all 130 supplied tract boundaries, not just two
 
 Parcel-to-tract association is a geometry intersection for research. It is not a claim of whole-parcel inclusion or tax qualification. Every source observation retains its own timestamp. A dataset's assembly time is not a recheck of every federal, filing or historical source.
 
-Default parcel criteria are class `1`, `4A`, `4B`, acreage `>=2`. They are applied in ArcGIS `where` before ID discovery. `returnIdsOnly`, 100-ID POST batches, unique identities, geometry validation and before/after source counts prevent transfer-limit truncation. Each tract gets an atomic checkpoint. A bounded per-tract limit produces an explicit partial report; it never claims a complete scan.
+Default parcel criteria are class `1`, `4A`, `4B` and at least two mapped acres. ArcGIS filters only on class and tract intersection before ID discovery. The scanner measures each returned parcel polygon before applying the acreage screen. Checkpoints distinguish source candidates, checked candidates and qualifying parcels. A capped scan leaves the final qualifying count unknown. `returnIdsOnly`, 100-ID POST batches, unique identities, geometry validation and before/after source counts prevent transfer-limit truncation. Each tract gets an atomic checkpoint. A bounded per-tract limit produces an explicit partial report; it never claims a complete scan.
 
 ## Commands
 
@@ -25,7 +25,7 @@ python3 scripts/nj_enrichment_pipeline.py --scan-dir .radar/nj-enrichment/scans
 # Review local full.json/full.csv, coverage and business-filing-queue.json, then publish data.
 python3 scripts/nj_enrichment_pipeline.py --scan-dir .radar/nj-enrichment/scans --publish
 
-# Always finish a publication with the acreage step: mapped area replaces unreliable CALC_ACRE values and lots under 2 acres are removed.
+# Finish publication by applying the mapped acreage screen to the merged inventory.
 node scripts/apply-mapped-acreage.mjs
 
 # Force a source refresh; the filing limit is explicit and remaining companies stay pending.

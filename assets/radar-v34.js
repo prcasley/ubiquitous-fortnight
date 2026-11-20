@@ -23,20 +23,83 @@
   const nav=document.querySelector('.workspace-mode-tabs');nav.classList.add('v34-nav');nav.setAttribute('aria-label','Radar navigation');top.insertBefore(nav,brand.nextSibling);
   const extra=make('section',null,'v34-list-view');extra.id='v34ListView';extra.hidden=true;$('workspaceDrawer').prepend(extra);
   const normal=[...$('workspaceDrawer').children].filter(e=>e!==extra);let view='scan';
-  let stars=[];try{stars=JSON.parse(localStorage.getItem('radar-v34-stars')||'[]');if(!Array.isArray(stars))stars=[];}catch{}
+  // An address usually already ends with its town and state; add each part only when it is missing, and repair labels saved with the repeat.
+  const tidyLabel=text=>{const parts=[];for(const part of String(text||'').split(',').map(x=>x.trim()).filter(Boolean))if(!parts.some(x=>x.toLowerCase()===part.toLowerCase()))parts.push(part);return parts.join(', ');};
+  const starLabel=r=>tidyLabel([r.address||('Parcel '+(r.parcelNumber||r.id)),r.municipality,r.state].filter(Boolean).join(', '));
+  let stars=[];try{stars=JSON.parse(localStorage.getItem('radar-v34-stars')||'[]');if(!Array.isArray(stars))stars=[];const tidy=stars.map(x=>x&&typeof x.address==='string'?{...x,address:tidyLabel(x.address)}:x);if(JSON.stringify(tidy)!==JSON.stringify(stars)){stars=tidy;localStorage.setItem('radar-v34-stars',JSON.stringify(stars));}}catch{}
   const save=()=>{try{localStorage.setItem('radar-v34-stars',JSON.stringify(stars));}catch{}renderStarsCount();};
-  const renderStarsCount=()=>{const b=nav.querySelector('[data-view="stars"]');if(b)b.textContent='Starred ('+stars.length+')';};
+  // Phones get short tab names so all five fit on one row; the full name stays as the accessible label.
+  const phone=window.matchMedia('(max-width:600px)'),tabNames={scan:['Find','Find'],deal:['Deal Nav','Deals'],owners:['Ownership','Owners'],stars:['Starred','Starred'],data:['Data & Export','Data']};
+  const renderTabNames=()=>{for(const b of nav.querySelectorAll('[data-view]')){const names=tabNames[b.dataset.view];if(!names)continue;const count=b.dataset.view==='stars'?' ('+stars.length+')':'';b.textContent=(phone.matches?names[1]:names[0])+count;b.setAttribute('aria-label',names[0]+count);}};
+  phone.addEventListener('change',()=>renderTabNames());
+  const renderStarsCount=()=>renderTabNames();
   function show(mode){view=mode;document.body.dataset.v34View=mode;extra.hidden=!['stars','data'].includes(mode);if(!extra.hidden){normal.forEach(p=>p.hidden=true);renderExtra();if(mode==='data'){$('workspace-mode-scan').hidden=false;$('workspaceDrawer').scrollTop=0;}}else{window.RadarWorkspace.activate(mode);if(mode==='owners')renderOwnership();}for(const b of nav.querySelectorAll('[data-view]'))b.setAttribute('aria-current',b.dataset.view===mode?'page':'false');}
   for(const [mode,label] of [['scan','Find'],['deal','Deal Nav'],['owners','Ownership'],['stars','Starred'],['data','Data & Export']]){const b=$('workspace-tab-'+mode)||make('button');b.textContent=label;b.type='button';b.dataset.view=mode;b.addEventListener('click',()=>show(mode));nav.append(b);}
   document.querySelectorAll('.workspace-mode-tabs button[data-mode]').forEach(b=>b.addEventListener('click',()=>{extra.hidden=true;view=b.dataset.mode;document.body.dataset.v34View=view;}));
   function go(r){show('scan');if(B().getRecord(r.key))B().choose(r.key);else window.RadarMapActions?.retrieve(r.address);}
+  const evidenceOptions=[['all','All evidence'],['assessment','Published assessment owner'],['business','Business lead'],['research','Needs research']];
+  const outreachOptions=[['not-started','Not started'],['contacted','Contacted'],['follow-up','Follow-up']];
+  let shortlistFilter='all';
+  function optionMenu(options,value){
+   const select=make('select');
+   for(const [key,label] of options){const option=make('option',label);option.value=key;select.append(option);}
+   select.value=options.some(([key])=>key===value)?value:options[0][0];
+   return select;
+  }
+  function renderShortlist(){
+   extra.append(make('p','Outreach status is saved on this device. Open a property to refresh its evidence.'));
+   const label=make('label','Filter by evidence','v34-shortlist-field');
+   const filter=optionMenu(evidenceOptions,shortlistFilter);
+   const rows=make('div');
+   filter.onchange=()=>{shortlistFilter=filter.value;renderRows();};
+   label.append(filter);extra.append(label,rows);renderRows();
+   function renderRows(){
+    rows.replaceChildren();
+    for(const entry of stars){
+     const record=B()?.getRecord(entry.key);
+     const core=window.RadarExecutiveCardCore;
+     const research=record&&window.RadarOwnerAuto?.getResearch(record.key);
+     const restricted=record&&core.isProtectedRecord(record,research);
+     const observation=record?.publishedOwner||record?.ownership;
+     const usdot=record&&window.RadarNJPublicResearch?.usdot?.(record);
+     const owner=record&&!restricted?core.getPrimaryDisplayOwner(record,{usdot:usdot?.status==='ACTIVE'?usdot:null}):null;
+     const assessment=owner?.tier==='owner'&&!!owner.url;
+     const carrier=owner?.tier==='carrier'&&!!(owner.phone||owner.email);
+     const evidence=assessment?'assessment':carrier?'business':'research';
+     if(shortlistFilter!=='all'&&shortlistFilter!==evidence)continue;
+     const row=make('article',null,'v34-shortlist-row');
+     const actions=make('div',null,'v34-saved-row');
+     const open=make('button',entry.address),remove=make('button','Remove');
+     remove.setAttribute('aria-label','Remove '+entry.address);
+     open.onclick=()=>go(entry);remove.onclick=()=>{stars=stars.filter(x=>x.key!==entry.key);save();renderRows();filter.focus();};
+     actions.append(open,remove);row.append(actions);
+     if(record){
+      const size=core.numbers(record).acres;
+      row.append(make('p',[size==null?'Acreage unavailable':size.toLocaleString('en-US',{maximumFractionDigits:2})+' acres',core.oz(record)].join(' · ')));
+      if(assessment||carrier){
+       const description=assessment?'Assessment owner · deed review needed':'Business lead · on-site carrier';
+       const rawDate=String((assessment?observation?.retrievedAt:usdot?.filingDate)||'').replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3');
+       const date=/^\d{4}-\d{2}-\d{2}/.test(rawDate)?rawDate.slice(0,10):null;
+       const detail=make('p',description+' · '+owner.name+' · '+(date?(assessment?'Checked ':'Filed ')+date:'Source date unavailable'));
+       const source=make('a','View source');source.href=owner.url;source.target='_blank';source.rel='noopener noreferrer';
+       row.append(detail,source);
+      }else row.append(make('p',restricted?'Protected record':'Needs research'));
+     }else row.append(make('p','Open property to reload acreage and evidence.'));
+     const state=optionMenu(outreachOptions,entry.outreach);
+     const status=make('label','Outreach','v34-shortlist-field');state.setAttribute('aria-label','Outreach for '+entry.address);
+     state.onchange=()=>{entry.outreach=state.value;save();};
+     status.append(state);row.append(status);rows.append(row);
+    }
+    if(!rows.children.length)rows.append(make('p',stars.length?'No starred properties match this filter.':'Select a property, then choose Star property.'));
+   }
+  }
   function renderExtra(){extra.replaceChildren(make('h2',view==='stars'?'Starred properties':'Data & Export'));
-   if(view==='stars'){extra.append(make('p','Saved on this device. Select a property to reopen current records.'));if(!stars.length)extra.append(make('p','Select a property, then choose ☆ Star property.'));for(const r of stars){const row=make('div',null,'v34-saved-row'),open=make('button',r.address),remove=make('button','Remove');open.onclick=()=>go(r);remove.onclick=()=>{stars=stars.filter(x=>x.key!==r.key);save();renderExtra();};row.append(open,remove);extra.append(row);}}
+   if(view==='stars')renderShortlist();
    else{extra.append(make('p','Reference data, OZ 2.0 evidence, tract coverage, map overlays and exports. Imported private files stay in your browser.'));
     const jump=make('div',null,'v34-data-jumps');
     for(const [id,label,mode] of [['researchTools','Local files & assemblies','deal'],['fieldTripPanel','Field packs & exports','owners']]){const b=make('button',label+' →');b.type='button';b.onclick=()=>{show(mode);const el=$(id);for(let p=el?.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;window.RadarWorkspace.reveal(id);};jump.append(b);}
     extra.append(jump);
-    const links=make('p',null,'v34-downloads');for(const [href,label] of [['assets/data/nj-tract-coverage.csv','NJ 130-tract coverage report (CSV)'],['assets/data/nj-parcel-research.csv','NJ parcel research (CSV)'],['assets/data/oz2-designations.json','Treasury OZ 2.0 designations, NJ & FL (JSON)']]){const a=make('a',label);a.href=href;a.download='';links.append(a);}extra.append(links);}
+    const links=make('p',null,'v34-downloads');for(const [href,label] of [['assets/data/nj-tract-coverage.csv','NJ 130-tract coverage report (CSV)'],['assets/data/nj-parcel-research.csv','NJ parcel research (CSV)'],['assets/data/oz2-designations.json','Treasury OZ 2.0 designations, NJ & FL (JSON)']]){const a=make('a',label);a.href=href;a.download='';if(href.endsWith('/nj-tract-coverage.csv'))a.id='v34PublishedTractCoverage';links.append(a);}extra.append(links);}
   }
   const lock=$('lockRadar');if(lock){lock.classList.add('v34-vault-pill');top.append(lock);}
   const lockLabel=()=>{if(lock)lock.textContent=window.RadarExecutiveVault?.isVaultUnlocked?.()?'🔓 Contacts open · Lock':'Lock screen';};document.addEventListener('radar:vault-state',lockLabel);lockLabel();
@@ -46,9 +109,16 @@
   const AREAS={palm:'West Palm Beach, FL',palmarea:'Riviera Beach, FL',delray:'Delray Beach, FL',newark:'Newark, NJ',secaucus:'Secaucus, NJ',northbergen:'North Bergen, NJ',edison:'Edison, NJ'};
   const area=()=>AREAS[$('executiveMarket')?.value]||'Edison, NJ',chipLabel=make('span',null,'v34-chip-area');chips.append(chipLabel);
   const chipArea=()=>{chipLabel.textContent='Quick search · '+area();};chipArea();$('executiveMarket')?.addEventListener('change',chipArea);
-  for(const [label,q] of [['Warehouse',a=>'warehouses in '+a],['IOS',a=>'outdoor storage in '+a],['Designated OZ 2.0',a=>'industrial properties in opportunity zones in '+a]]){const b=make('button',label);b.type='button';b.onclick=()=>{$('agentPrompt').value=q(area());$('agentForm').requestSubmit();};chips.append(b);}
+  for(const [label,q] of [['Warehouse',a=>'warehouses in '+a],['Outdoor storage',a=>'outdoor storage in '+a],['Designated OZ 2.0',a=>'industrial properties in opportunity zones in '+a]]){const b=make('button',label);b.type='button';b.onclick=()=>{$('agentPrompt').value=q(area());$('agentForm').requestSubmit();};chips.append(b);}
+  const coverageLink=make('button','NJ tract coverage','v34-tract-coverage');
+  coverageLink.type='button';
+  coverageLink.addEventListener('click',()=>{
+   show('data');
+   $('v34PublishedTractCoverage')?.focus();
+  });
+  chips.before(coverageLink);
   const scan=$('workspace-mode-scan');const title=make('div',null,'v34-section-title');title.append(make('h2','Acquisition Radar'),make('p','Find properties and contacts from published records.'));scan.prepend(title);
-  $('scanner').prepend(agent);const filter=$('filterDrawer');if(filter){filter.querySelector('summary').textContent='Area, filters & OZ gates';filter.open=false;agent.after(filter);}
+  $('scanner').prepend(agent);const filter=$('filterDrawer');if(filter){filter.querySelector('summary').textContent='Search area and filters';filter.open=false;agent.after(filter);}
   const layers=$('workspaceLayers');if(layers)layers.open=false;
   // One search box: the older deterministic Ask panel stays in the page (and working) but is not shown.
   document.getElementById('askForm')?.closest('section.panel')?.classList.add('v34-legacy-ask');
@@ -109,7 +179,7 @@
   new MutationObserver(()=>{dossierCount();if($('ownerDossier')?.children.length&&!dossier.open)dossier.open=true;}).observe(dossier,{childList:true,subtree:true});
   const place=()=>{if(col.lastElementChild!==dossier)col.append(dossier);col.classList.toggle('has-selection',!$('details').hidden);};
   const openDossier=()=>{show(view==='stars'||view==='data'?'scan':view);place();dossier.open=true;requestAnimationFrame(()=>dossier.scrollIntoView({block:'start',behavior:'smooth'}));};
-  function selection(){empty.hidden=!!B()?.getSelected()&&!$('details').hidden;place();const card=$('details');if(!card||card.hidden)return;let star=card.querySelector('.v34-star');if(!star){star=make('button',null,'v34-star');star.type='button';card.querySelector('.executive-facts')?.after(star);}const r=B().getRecord(B().getSelected());if(!r)return;const has=stars.some(x=>x.key===r.key);star.textContent=has?'★ Starred · remove':'☆ Star property';star.onclick=()=>{stars=has?stars.filter(x=>x.key!==r.key):[...stars,{key:r.key,address:[r.address,r.municipality,r.state].filter(Boolean).join(', ')}];save();selection();};}
+  function selection(){empty.hidden=!!B()?.getSelected()&&!$('details').hidden;place();const card=$('details');if(!card||card.hidden)return;let star=card.querySelector('.v34-star');if(!star){star=make('button',null,'v34-star');star.type='button';card.querySelector('.executive-facts')?.after(star);}const r=B().getRecord(B().getSelected());if(!r)return;const has=stars.some(x=>x.key===r.key);star.textContent=has?'★ Starred · remove':'☆ Star property';star.onclick=()=>{stars=has?stars.filter(x=>x.key!==r.key):[...stars,{key:r.key,address:starLabel(r)}];save();selection();};}
   document.addEventListener('radar:parcel-selected',selection);
   new MutationObserver(()=>{empty.hidden=!$('details').hidden;place();}).observe($('details'),{attributes:true,attributeFilter:['hidden'],childList:true});
   place();

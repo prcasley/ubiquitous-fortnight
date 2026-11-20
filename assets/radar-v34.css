@@ -116,7 +116,12 @@ body.radar-v34 .executive-parcel .executive-technical :is(.public-owner-section,
 .v34-list-view{color:#fff}
 .v34-list-view>button{display:block;width:100%;margin:8px 0;text-align:left}
 .v34-saved-row{display:flex;gap:8px;margin:8px 0}
-.v34-saved-row button:first-child{flex:1}
+.v34-saved-row button:first-child{flex:1;min-width:0;overflow-wrap:anywhere}
+.v34-shortlist-row{border-top:1px solid var(--line);margin-top:12px;padding-top:4px;overflow-wrap:anywhere}
+.v34-shortlist-row p{margin:6px 0}
+.v34-shortlist-field{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0}
+.v34-shortlist-field select{min-height:44px;max-width:100%;font:inherit}
+.v34-shortlist-row a{display:inline-flex;align-items:center;min-height:44px}
 .v34-downloads{display:grid;gap:8px;margin-top:14px}
 .v34-ownership input{width:100%;padding:10px}
 
