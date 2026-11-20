@@ -14,3 +14,13 @@ test('Florida OZ line carries poverty and income-to-area percentages',()=>{asser
 test('when no owner is published the on-site carrier leads with its officer and a labelled role; owner still outranks it',()=>{const usdot={carrierName:'TRANSWAYS MOTOR EXPRESS CO INC',officers:['PERSON A'],businessPhone:'7325550000',status:'ACTIVE',sourceURL:source};const c=C.getPrimaryDisplayOwner({},{usdot});assert.equal(c.tier,'carrier');assert.equal(c.role,'ON-SITE CARRIER (USDOT)');assert.match(c.name,/TRANSWAYS.*PERSON A/);assert.match(c.note,/Not confirmed owner/);assert.equal(c.phone,'7325550000');assert.equal(C.getPrimaryDisplayOwner({publishedOwner:{status:'published',publishedName:'LAND LLC',sourceURL:source}},{usdot}).tier,'owner');assert.equal(C.getPrimaryDisplayOwner({publishedOwner:{status:'not-published',message:'protected'}},{usdot}).tier,'carrier');assert.equal(C.getPrimaryDisplayOwner({publishedOwner:{status:'not-published',message:'protected'}},{research:{sourceURL:source,mailing:{street:'1 MAIL ST'}}}).tier,'protected');});
 
 test('an inactive carrier filing is a site signal with no phone or email, and ranks below active businesses',()=>{const usdot={carrierName:'OLD FLEET INC',officers:['PERSON A'],businessPhone:'7325550000',email:'a@oldfleet.example',status:'INACTIVE',filingDate:'20190412',sourceURL:source};const c=C.getPrimaryDisplayOwner({},{usdot});assert.equal(c.tier,'carrier-inactive');assert.match(c.role,/INACTIVE CARRIER FILING/);assert.equal(c.name,'OLD FLEET INC');assert.equal(c.phone,null);assert.equal(c.email,null);assert.match(c.note,/not a current contact · last filed 2019-04-12/);assert.equal(C.getPrimaryDisplayOwner({},{usdot,epa:[{name:'ACTIVE PLANT',sourceURL:source}]}).tier,'facility');assert.equal(C.getPrimaryDisplayOwner({},{usdot:{...usdot,status:'ACTIVE'}}).phone,'7325550000');});
+
+test('protection applies regardless of the primary business label or observation path',()=>{
+ const record={publishedOwner:{status:'unavailable'},ownership:{protectedName:true}};
+ const usdot={carrierName:'Business at this address',status:'ACTIVE',sourceURL:source};
+ assert.equal(C.getPrimaryDisplayOwner(record,{usdot}).tier,'carrier');
+ assert.equal(C.isProtectedRecord(record),true);
+ assert.equal(C.isProtectedRecord({publishedOwner:{message:'Confidential owner record'}}),true);
+ assert.equal(C.isProtectedRecord({},{protectedName:true}),true);
+ assert.equal(C.isProtectedRecord({publishedOwner:{status:'published'}}),false);
+});
