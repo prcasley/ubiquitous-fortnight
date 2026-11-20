@@ -96,3 +96,6 @@ body.radar-v34 :is(.v34-tract-coverage,.v34-nav button,#agentPrompt,#agentForm b
 body.radar-v34[data-radar-mode=simple] section[aria-label="Parcel search results"]{display:none!important}
 body.radar-v34[data-radar-mode=simple] .radar-agent .agent-log{max-height:none}
 @media(min-width:901px){body.radar-v34[data-radar-mode=simple] .radar-agent .agent-log{max-height:calc(100vh - 330px);min-height:220px}}
+
+/* Simple view keeps the collapsed "Parcel details" section on each card (acreage, values, OZ, mailing, sources live there now). */
+body.radar-v34[data-radar-mode=simple] .executive-parcel>.executive-technical{display:block!important}
