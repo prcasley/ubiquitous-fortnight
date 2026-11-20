@@ -35,7 +35,8 @@
    if(!navigated&&(!landing||gate.hasAttribute('data-radar-locked')))return;
    watchGate.disconnect();interaction.abort();
    requestAnimationFrame(()=>{
-    if(navigated||gate.hasAttribute('data-radar-locked')||bridge.getSearch()||bridge.getSelected()||!landing.length)return;
+    // The map must open where the Market menu and status line say it is. The Lehigh Valley reference view applies only when that market is the one selected.
+    if(navigated||gate.hasAttribute('data-radar-locked')||bridge.getSearch()||bridge.getSelected()||!landing.length||!['lehigh','northampton'].includes($('market').value))return;
     map().invalidateSize({pan:false});
     map().fitBounds(L.latLngBounds(landing),{padding:[20,20],maxZoom:13,animate:false});
    });

@@ -23,9 +23,16 @@
   const nav=document.querySelector('.workspace-mode-tabs');nav.classList.add('v34-nav');nav.setAttribute('aria-label','Radar navigation');top.insertBefore(nav,brand.nextSibling);
   const extra=make('section',null,'v34-list-view');extra.id='v34ListView';extra.hidden=true;$('workspaceDrawer').prepend(extra);
   const normal=[...$('workspaceDrawer').children].filter(e=>e!==extra);let view='scan';
-  let stars=[];try{stars=JSON.parse(localStorage.getItem('radar-v34-stars')||'[]');if(!Array.isArray(stars))stars=[];}catch{}
+  // An address usually already ends with its town and state; add each part only when it is missing, and repair labels saved with the repeat.
+  const tidyLabel=text=>{const parts=[];for(const part of String(text||'').split(',').map(x=>x.trim()).filter(Boolean))if(!parts.some(x=>x.toLowerCase()===part.toLowerCase()))parts.push(part);return parts.join(', ');};
+  const starLabel=r=>tidyLabel([r.address||('Parcel '+(r.parcelNumber||r.id)),r.municipality,r.state].filter(Boolean).join(', '));
+  let stars=[];try{stars=JSON.parse(localStorage.getItem('radar-v34-stars')||'[]');if(!Array.isArray(stars))stars=[];const tidy=stars.map(x=>x&&typeof x.address==='string'?{...x,address:tidyLabel(x.address)}:x);if(JSON.stringify(tidy)!==JSON.stringify(stars)){stars=tidy;localStorage.setItem('radar-v34-stars',JSON.stringify(stars));}}catch{}
   const save=()=>{try{localStorage.setItem('radar-v34-stars',JSON.stringify(stars));}catch{}renderStarsCount();};
-  const renderStarsCount=()=>{const b=nav.querySelector('[data-view="stars"]');if(b)b.textContent='Starred ('+stars.length+')';};
+  // Phones get short tab names so all five fit on one row; the full name stays as the accessible label.
+  const phone=window.matchMedia('(max-width:600px)'),tabNames={scan:['Find','Find'],deal:['Deal Nav','Deals'],owners:['Ownership','Owners'],stars:['Starred','Starred'],data:['Data & Export','Data']};
+  const renderTabNames=()=>{for(const b of nav.querySelectorAll('[data-view]')){const names=tabNames[b.dataset.view];if(!names)continue;const count=b.dataset.view==='stars'?' ('+stars.length+')':'';b.textContent=(phone.matches?names[1]:names[0])+count;b.setAttribute('aria-label',names[0]+count);}};
+  phone.addEventListener('change',()=>renderTabNames());
+  const renderStarsCount=()=>renderTabNames();
   function show(mode){view=mode;document.body.dataset.v34View=mode;extra.hidden=!['stars','data'].includes(mode);if(!extra.hidden){normal.forEach(p=>p.hidden=true);renderExtra();if(mode==='data'){$('workspace-mode-scan').hidden=false;$('workspaceDrawer').scrollTop=0;}}else{window.RadarWorkspace.activate(mode);if(mode==='owners')renderOwnership();}for(const b of nav.querySelectorAll('[data-view]'))b.setAttribute('aria-current',b.dataset.view===mode?'page':'false');}
   for(const [mode,label] of [['scan','Find'],['deal','Deal Nav'],['owners','Ownership'],['stars','Starred'],['data','Data & Export']]){const b=$('workspace-tab-'+mode)||make('button');b.textContent=label;b.type='button';b.dataset.view=mode;b.addEventListener('click',()=>show(mode));nav.append(b);}
   document.querySelectorAll('.workspace-mode-tabs button[data-mode]').forEach(b=>b.addEventListener('click',()=>{extra.hidden=true;view=b.dataset.mode;document.body.dataset.v34View=view;}));
@@ -109,7 +116,7 @@
   new MutationObserver(()=>{dossierCount();if($('ownerDossier')?.children.length&&!dossier.open)dossier.open=true;}).observe(dossier,{childList:true,subtree:true});
   const place=()=>{if(col.lastElementChild!==dossier)col.append(dossier);col.classList.toggle('has-selection',!$('details').hidden);};
   const openDossier=()=>{show(view==='stars'||view==='data'?'scan':view);place();dossier.open=true;requestAnimationFrame(()=>dossier.scrollIntoView({block:'start',behavior:'smooth'}));};
-  function selection(){empty.hidden=!!B()?.getSelected()&&!$('details').hidden;place();const card=$('details');if(!card||card.hidden)return;let star=card.querySelector('.v34-star');if(!star){star=make('button',null,'v34-star');star.type='button';card.querySelector('.executive-facts')?.after(star);}const r=B().getRecord(B().getSelected());if(!r)return;const has=stars.some(x=>x.key===r.key);star.textContent=has?'★ Starred · remove':'☆ Star property';star.onclick=()=>{stars=has?stars.filter(x=>x.key!==r.key):[...stars,{key:r.key,address:[r.address,r.municipality,r.state].filter(Boolean).join(', ')}];save();selection();};}
+  function selection(){empty.hidden=!!B()?.getSelected()&&!$('details').hidden;place();const card=$('details');if(!card||card.hidden)return;let star=card.querySelector('.v34-star');if(!star){star=make('button',null,'v34-star');star.type='button';card.querySelector('.executive-facts')?.after(star);}const r=B().getRecord(B().getSelected());if(!r)return;const has=stars.some(x=>x.key===r.key);star.textContent=has?'★ Starred · remove':'☆ Star property';star.onclick=()=>{stars=has?stars.filter(x=>x.key!==r.key):[...stars,{key:r.key,address:starLabel(r)}];save();selection();};}
   document.addEventListener('radar:parcel-selected',selection);
   new MutationObserver(()=>{empty.hidden=!$('details').hidden;place();}).observe($('details'),{attributes:true,attributeFilter:['hidden'],childList:true});
   place();
