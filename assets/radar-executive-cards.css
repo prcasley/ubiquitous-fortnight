@@ -44,3 +44,10 @@ body .executive-parcel .card-source-box,body .executive-parcel .card-source-box 
 body .executive-parcel .executive-technical > .card-source-box{background:#163954;border-color:#94a3b8}
 
 body .executive-parcel .executive-glance{margin:6px 0 8px;font-weight:700;font-size:1rem;line-height:1.35;color:#fff}
+
+.executive-parcel .county-tax-facts{margin:10px 0;padding:10px 12px;border:1px solid #2a3a50;border-radius:10px;background:#0f1722}
+.executive-parcel .county-tax-facts h4{margin:0 0 6px;font-size:1rem;color:#fff}
+.executive-parcel .county-tax-facts dl{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:4px 12px;margin:0 0 8px}
+.executive-parcel .county-tax-facts dt{color:#cbd5e1}
+.executive-parcel .county-tax-facts dd{margin:0;font-weight:700;color:#fff;overflow-wrap:anywhere}
+.executive-parcel .county-tax-facts small{display:block;margin-top:6px;color:#cbd5e1}
