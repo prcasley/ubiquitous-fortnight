@@ -1,4 +1,4 @@
-import sys, unittest
+import json, sys, unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import nj_ocean_tax_list_lookup as O
@@ -15,8 +15,8 @@ DETAIL = """<html><body><table><tr><td>Tax List Details - Current Year</td></tr>
 <tr><td>Last yr taxes:</td><td>2345.55</td><td>Sale price:</td><td>368,150</td></tr>
 <tr><td>Nonusable code:</td><td>04 (List)</td><td>Facility:</td><td></td></tr>
 </table><span>Assessment History</span><table><tr><td>Zone:</td><td>WRONG</td></tr></table></body></html>"""
-RESULTS = """<table><tr><td><a href="frmTaxBoardTaxListDetail.aspx?ID=AAAAAAAA-0000-0000-0000-000000000001">INFO</a></td><td>Synth</td><td>1.01</td><td>2</td><td>&nbsp;</td><td>1 SYNTHETIC WAY</td></tr>
-<tr><td><a href="frmTaxBoardTaxListDetail.aspx?ID=AAAAAAAA-0000-0000-0000-000000000002">INFO</a></td><td>Synth</td><td>1.01</td><td>2</td><td>C0001</td><td>1 SYNTHETIC WAY</td></tr>
+RESULTS = """<table><tr><td><a href="frmTaxBoardTaxListDetail.aspx?ID=AAAAAAAA-0000-0000-0000-000000000001">INFO</a></td><td>Synth</td><td>1.01</td><td>2</td><td>n/a</td><td>1 SYNTHETIC WAY</td></tr>
+<tr><td><a href='frmTaxBoardTaxListDetail.aspx?ID=AAAAAAAA-0000-0000-0000-000000000002'>INFO</a></td><td>Synth</td><td>1.01</td><td>2</td><td>C0001</td><td>1 SYNTHETIC WAY</td></tr>
 <tr><td><a href="frmTaxBoardTaxListDetail.aspx?ID=AAAAAAAA-0000-0000-0000-000000000003">INFO</a></td><td>Synth</td><td>1.01</td><td>20</td><td>&nbsp;</td><td>3 SYNTHETIC WAY</td></tr></table>"""
 
 
@@ -38,3 +38,16 @@ class OceanTaxList(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Sidecar(unittest.TestCase):
+    def test_sidecar_keeps_only_published_parcels_and_parcel_facts(self):
+        import build_county_tax_list_facts as B
+        lookup = {"1500_1_1": {"status": "found", "url": "https://tax.example.gov/detail?ID=1", "retrievedAt": "2026-11-24",
+                               "facts": {"zone": "LI", "deedDate": "N/A", "deedBookPage": "/", "salePrice": "", "lastYearTaxes": "94.41", "location": "1 SYNTHETIC WAY", "landValue": "3,300", "landDescription": "4.49AC EXAMPLE REALTY,"}},
+                  "1500_1_2": {"status": "found", "url": "https://tax.example.gov/detail?ID=2", "facts": {"zone": "B3"}},
+                  "1500_1_3": {"status": "not-found"}, "1500_1_4": {"status": "found", "url": "http://insecure.example/x", "facts": {"zone": "B3"}}}
+        out = B.build(lookup, {"1500_1_1", "1500_1_3", "1500_1_4"}, "Synthetic County tax list", "https://tax.example.gov/")
+        self.assertEqual(list(out["records"]), ["1500_1_1"])
+        self.assertEqual(out["records"]["1500_1_1"], {"zone": "LI", "lastYearTaxes": "94.41", "landDescription": "4.49AC", "url": "https://tax.example.gov/detail?ID=1", "retrievedAt": "2026-11-24"})
+        self.assertNotIn("owner", json.dumps(out).lower().replace("no owner name", ""))

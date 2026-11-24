@@ -55,8 +55,9 @@ def find_detail_link(page: str, block: str, lot: str, qual: str) -> str | None:
     hits = []
     for row in re.findall(r"<tr[^>]*>(.*?)</tr>", page, flags=re.S | re.I):
         cells = [html.unescape(re.sub(r"<[^>]+>", "", c)).replace("\xa0", " ").strip() for c in re.findall(r"<td[^>]*>(.*?)</td>", row, flags=re.S | re.I)]
-        link = re.search(r'href="(frmTaxBoardTaxListDetail\.aspx\?ID=[0-9A-Fa-f-]+)"', row)
-        if link and len(cells) >= 5 and cells[2] == block and cells[3] == lot and (cells[4] or "") == (qual or ""):
+        link = re.search(r"(frmTaxBoardTaxListDetail\.aspx\?ID=[0-9A-Fa-f-]+)", row)
+        blank = lambda v: "" if (v or "").strip().lower() in ("", "n/a") else v.strip().upper()
+        if link and len(cells) >= 5 and cells[2].upper() == block.upper() and cells[3].upper() == lot.upper() and blank(cells[4]) == blank(qual):
             hits.append(link.group(1))
     return hits[0] if len(set(hits)) == 1 else None
 
