@@ -6,7 +6,7 @@
  * Reference Blueprint:
  *   https://docs.google.com/document/d/1OgCA9Ceciqls80gmMRw5NvtgVGYfYNt0Jal3ebrSjjE/edit?usp=drivesdk&ouid=116023042542475839899
  *
- * Replaces the hardcoded client-side welcome gate (`WP123`) with native browser
+ * Replaces the hardcoded client-side welcome gate with native browser
  * Web Crypto API key derivation (PBKDF2-HMAC-SHA256, 600,000 iterations) and
  * in-memory AES-256-GCM decryption of `assets/data/executive-vault.enc`.
  *

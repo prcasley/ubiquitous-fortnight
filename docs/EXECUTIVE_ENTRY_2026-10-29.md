@@ -2,7 +2,7 @@
 
 ## Entry screen
 
-The public app opens on a black password screen. The requested `WP123` password reveals it; entry is remembered for the tab's session, and **Lock screen** returns to the entry form without deleting trips, dossiers or notes. Storage failures are handled. The map is resized after unlocking.
+The public app opens on a black password screen. The welcome passphrase (kept outside the repository) reveals it; entry is remembered for the tab's session, and **Lock screen** returns to the entry form without deleting trips, dossiers or notes. Storage failures are handled. The map is resized after unlocking.
 
 This is a **courtesy screen**, not authentication or confidentiality protection. GitHub Pages serves public HTML, scripts, the password comparison and assets. Do not put private company data behind it. Real access control requires a host that checks authentication before serving the app; that hosting is not configured by this change.
 
