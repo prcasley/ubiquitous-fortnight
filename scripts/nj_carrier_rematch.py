@@ -170,6 +170,12 @@ def county_record_link(p: dict) -> dict:
         query = urlencode({"ms_user": "ctb" + code, "passwd": "", "srch_type": "1", "select_cc": code + "01", "district": district,
                            "adv": "1", "out_type": "1", "ms_ln": "50", "p_loc": "", "owner": "", "block": block, "lot": lot, "qual": qual})
         return {"kind": "prefilled", "url": "https://taxrecords-nj.com/pub/cgi/inf.cgi?" + query}
+    # Monmouth County runs its own copy of the same search; the form at tax1.co.monmouth.nj.us carries these fixed public values.
+    if code == "13" and re.fullmatch(r"13\d{2}", district) and block and lot:
+        from urllib.parse import urlencode
+        query = urlencode({"ms_user": "monm", "passwd": "data", "srch_type": "1", "select_cc": "1301", "district": district,
+                           "adv": "1", "out_type": "1", "ms_ln": "50", "p_loc": "", "owner": "", "block": block, "lot": lot, "qual": qual})
+        return {"kind": "prefilled", "url": "https://tax1.co.monmouth.nj.us/cgi-bin/inf.cgi?" + query}
     return {"kind": "manual", "url": COUNTY_BOARD_PAGE.get(code, "https://www.nj.gov/treasury/taxation/lpt/cboards.shtml"),
             "enter": f"district {district}, block {block}, lot {lot}" + (f", qualifier {qual}" if qual else "")}
 
