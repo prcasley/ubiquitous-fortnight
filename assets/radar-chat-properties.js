@@ -18,7 +18,7 @@
     let shown=0;
     const more=button('Show more properties',()=>page());
     function page(){
-      const end=Math.min(rows.length,shown+6);
+      /* Simple view shows compact rows, so a page holds twice as many parcels. */const end=Math.min(rows.length,shown+(document.body.dataset.radarMode==='simple'?12:6));
       for(const record of rows.slice(shown,end)){
         let item;try{item=P.snapshot(record,meta);}catch{continue;}
         const article=document.createElement('article');article.className='chat-property-card';article.dataset.parcelKey=item.key;

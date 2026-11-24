@@ -121,3 +121,28 @@ body.radar-v34 #filterDrawer .geo-row button{width:100%}
 body.radar-v34 #workspaceDrawer{overflow-x:hidden}
 /* Buttons added beside Play pick up the dark control style instead of the browser default white. */
 body.radar-v34 .radar-agent :is(.v34-tract-coverage,button[aria-label="Choose a market for Play"]){background:#152031;color:#fff;border:1px solid #334155;border-radius:8px;padding:8px 12px;font-weight:700}
+
+/* Compact parcel rows (simple view only). A collapsed card shows just its row; All tools keeps full cards and hides the row. */
+.parcel-row,.parcel-row-tools{display:none}
+body.radar-v34[data-radar-mode=simple] .chat-property-card>.parcel-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 10px;width:100%;text-align:left;background:#101826;color:#fff;border:1px solid #2a3a50;border-left:4px solid #475569;border-radius:10px;padding:7px 10px;cursor:pointer;font:inherit}
+body.radar-v34[data-radar-mode=simple] .chat-property-card>.parcel-row[data-lead=yes]{border-left-color:#2dd4bf}
+body.radar-v34[data-radar-mode=simple] .chat-property-card>.parcel-row:hover{background:#152031}
+body.radar-v34[data-radar-mode=simple] .parcel-row-line{grid-column:1;min-width:0;overflow-wrap:anywhere;line-height:1.35}
+body.radar-v34[data-radar-mode=simple] .parcel-row-title{font-size:max(16px,1em);font-weight:800}
+body.radar-v34[data-radar-mode=simple] .parcel-row-glance{color:#e2e8f0;font-size:15px}
+body.radar-v34[data-radar-mode=simple] .parcel-row-lead{font-size:15px;font-weight:700}
+body.radar-v34[data-radar-mode=simple] .parcel-row[data-lead=no] .parcel-row-lead{font-weight:400;color:#cbd5e1}
+body.radar-v34[data-radar-mode=simple] .parcel-row-toggle{grid-column:2;grid-row:1;align-self:start;font-size:15px;font-weight:700;color:#99f6e4;white-space:nowrap}
+body.radar-v34[data-radar-mode=simple] .chat-property-card>.parcel-row,body.radar-v34[data-radar-mode=simple] .chat-property-card>.parcel-row *{text-decoration:none!important}
+body.radar-v34[data-radar-mode=simple] .parcel-row-glance,body.radar-v34[data-radar-mode=simple] .parcel-row-lead{grid-column:1/-1}
+body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=true] .parcel-row-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.radar-v34[data-radar-mode=simple] .chat-properties{position:relative}
+body.radar-v34[data-radar-mode=simple] .chat-properties>strong{display:block;padding-right:118px}
+body.radar-v34[data-radar-mode=simple] .parcel-row-tools{position:absolute;top:8px;right:10px;margin:0}
+body.radar-v34[data-radar-mode=simple] .parcel-row-tools button{padding:4px 10px;font-size:15px}
+body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=true]>:not(.parcel-row){display:none!important}
+body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=true]{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;margin:0}
+body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=false]>.parcel-row{margin-bottom:10px}
+body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=false] .executive-card-heading{display:none}
+body.radar-v34[data-radar-mode=simple] .chat-property-grid{gap:8px}
+body.radar-v34[data-radar-mode=simple] .parcel-row-tools{display:block}
