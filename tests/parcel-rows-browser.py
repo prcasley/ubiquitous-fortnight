@@ -24,6 +24,13 @@ try:
    first.locator(':scope > .parcel-row').click();check(f'{width}px: selecting it again closes it',first.get_attribute('data-collapsed')=='true')
    page.get_by_role('button',name='Expand all',exact=True).click();check(f'{width}px: Expand all opens every card',page.locator('#agentLog .chat-property-card[data-collapsed=true]').count()==0)
    page.get_by_role('button',name='Collapse all',exact=True).click();check(f'{width}px: Collapse all closes every card',page.locator('#agentLog .chat-property-card[data-collapsed=false]').count()==0)
+   # A second list for the same search replaces the first as the current answer; the earlier one folds to its heading.
+   page.evaluate("RadarChatProperties.render(PublicRadarBridge.getResults().slice(0,1),PublicRadarBridge.getMeta())");page.wait_for_timeout(500)
+   state=page.evaluate("[...document.querySelectorAll('#agentLog .chat-properties')].map(s=>[s.classList.contains('superseded'),s.querySelector(':scope > strong').textContent,[...s.querySelectorAll('.parcel-row')].filter(r=>r.getClientRects().length).length])")
+   check(f'{width}px: an earlier list for the same search is marked and folded',len(state)==2 and state[0][0] and state[0][1].startswith('Earlier list — ') and state[0][2]==0 and not state[1][0] and state[1][2]==1)
+   search(page);page.wait_for_function("document.querySelectorAll('#agentLog .chat-properties.previous-search').length>=1")
+   state=page.evaluate("[...document.querySelectorAll('#agentLog .chat-properties')].map(s=>[s.classList.contains('previous-search'),[...s.querySelectorAll('.parcel-row')].filter(r=>r.getClientRects().length).length])")
+   check(f'{width}px: lists from a previous search fold; only the current one shows rows',all(n==0 for prev,n in state if prev) and [n for prev,n in state if not prev]==[3])
    check(f'{width}px: no page errors',not errors);page.close()
   # All tools keeps the full cards.
   page=browser.new_page(viewport={'width':1366,'height':900});page.route('**/*',network);page.goto(base);unlock(page);page.wait_for_function('document.body.classList.contains("radar-v34")');search(page)

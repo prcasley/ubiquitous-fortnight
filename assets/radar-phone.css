@@ -146,3 +146,9 @@ body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=false]
 body.radar-v34[data-radar-mode=simple] .chat-property-card[data-collapsed=false] .executive-card-heading{display:none}
 body.radar-v34[data-radar-mode=simple] .chat-property-grid{gap:8px}
 body.radar-v34[data-radar-mode=simple] .parcel-row-tools{display:block}
+
+/* Simple view: lists from an earlier search, or an earlier list replaced within the same search, fold to their heading
+   so only the current answer shows rows. All tools keeps them open. */
+body.radar-v34[data-radar-mode=simple] .chat-properties:is(.previous-search,.superseded)>:not(strong){display:none!important}
+body.radar-v34[data-radar-mode=simple] .chat-properties:is(.previous-search,.superseded){padding-top:8px;padding-bottom:8px;opacity:.75}
+body.radar-v34[data-radar-mode=simple] .chat-properties:is(.previous-search,.superseded)>strong{font-weight:600;padding-right:0}
