@@ -20,6 +20,22 @@ function towns(s){const raw=upper(s),base=town(raw),out=new Set(base?[base]:[]);
 const sameTown=(a,b)=>{const x=upper(a),y=upper(b);if(!x||!y)return false;return towns(x).includes(y)||towns(y).includes(x)||(town(x)===town(y)&&!/\sCITY$/.test(x)&&!/\sCITY$/.test(y));};
 const sharedTown=s=>SHARED.has(town(s));
 const street=s=>String(s||'').split(',')[0].toUpperCase().replace(/\b(UNIT|SUITE|STE|APT)\b.*$/,'').replace(/[.]/g,'').split(/\s+/).map(x=>suffix[x]||x).join(' ').trim();
+// Secondary address matches are review leads. Keep directions and street types in the comparison.
+const reviewStreet=s=>street(s).replace(/\b(?:CENTER|CTR)\b/g,'CTR').replace(/\b(?:TURNPIKE|TPKE)\b/g,'TPKE').replace(/\bSAINT\b/g,'ST').replace(/\bMEADOWLANDS\b/g,'MEADOWLAND');
+function houseRange(first){
+ const pieces=/^(\d{1,6})-(\d{1,6})$/.exec(first);
+ if(!pieces)return null;
+ const start=Number(pieces[1]),end=Number(pieces[2]);
+ return start>0&&end>start&&end-start<=100?{start,end}:null;
+}
+function addressMatch(address,candidate,range){
+ const wanted=street(address),found=street(candidate);
+ if(wanted===found)return /^\d+-\d+ /.test(wanted)?'range':'exact';
+ const [first,...rest]=reviewStreet(wanted).split(' '),[number,...filed]=reviewStreet(found).split(' ');
+ if(!rest.length||rest.join(' ')!==filed.join(' '))return null;
+ if(range&&/^\d+$/.test(number)&&Number(number)>=range.start&&Number(number)<=range.end)return 'range';
+ return first===number?'spelling':null;
+}
 const phone=s=>String(s||'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
 const safe=u=>{try{return new URL(u).protocol==='https:'}catch{return false}};
 function parcel(r){return {id:r.id||r.parcelId,address:r.original?.PROP_LOC||r.facts?.PROP_LOC||r.address,city:r.original?.MUN_NAME||r.facts?.MUN_NAME||r.municipality,state:r.state||'NJ'};}
@@ -31,20 +47,37 @@ function verify(p,c,now=Date.now()){
  const fields=(c.fields||[]).filter(f=>associated&&fresh&&c.company&&c.role&&f.company===c.company&&safe(f.sourceUrl)&&f.evidenceValue===f.value&&['source-observed','human-reviewed'].includes(f.method)&&((f.type==='phone'&&/^[2-9]\d{2}[2-9]\d{6}$/.test(phone(f.value)))||(f.type==='email'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value))));
  const filing=filingAge(c.filingDate,now);return {associated,fields,filing,status:!associated?'Address or parcel mismatch':!fresh?'Needs a fresh source check':fields.length?'Source-supported business contact':'Needs verification'};
 }
-function fromCarrier(p,row,sourceUrl,checkedAt){p=parcel(p);const company=row.legal_name||row.dba_name||'';return {parcelId:p.id,address:row.phy_street,city:row.phy_city,state:row.phy_state,company,role:sharedTown(p.city)?'Carrier at a matching street address — this town name is used by more than one NJ municipality; confirm the location. Ownership unconfirmed':'On-site carrier — ownership unconfirmed',checkedAt,filingDate:row.mcs150_date||null,fields:[['phone',row.phone],['email',row.email_address]].filter(x=>x[1]).map(([type,value])=>({type,value,evidenceValue:value,company,sourceUrl,method:'source-observed'}))};}
+function fromCarrier(p,row,sourceUrl,checkedAt){p=parcel(p);const company=row.legal_name||row.dba_name||'';return {parcelId:p.id,address:row.phy_street,city:row.phy_city,state:row.phy_state,company,role:p.state==='NJ'&&sharedTown(p.city)?'Carrier at a matching street address — this town name is used by more than one NJ municipality; confirm the location. Ownership unconfirmed':'On-site carrier — ownership unconfirmed',checkedAt,filingDate:row.mcs150_date||null,fields:[['phone',row.phone],['email',row.email_address]].filter(x=>x[1]).map(([type,value])=>({type,value,evidenceValue:value,company,sourceUrl,method:'source-observed'}))};}
 const SOURCE='https://data.transportation.gov/resource/az4n-8mr2.json?';
 const quote=v=>"'"+String(v).replaceAll("'","''")+"'";
 async function rowsFor(params,fetcher){const res=await fetcher(SOURCE+new URLSearchParams(params),{credentials:'omit',signal:AbortSignal.timeout(20000)});if(!res.ok)throw Error('Carrier source unavailable ('+res.status+')');const rows=await res.json();if(!Array.isArray(rows))throw Error('Unexpected carrier response');return rows;}
-// One small query per property: the town and the house number are filtered at the source, so a phone no longer
-// downloads every carrier in the municipality. The exact street/town comparison below is unchanged.
-async function lookup(r,fetcher=g.fetch){const p=parcel(r);if(p.state!=='NJ'||!p.city)return {status:'Source unavailable: municipality missing',contacts:[]};const contacts=[],names=towns(p.city),wanted=street(p.address),first=wanted.split(' ')[0];
- if(!names.length)return {status:'Source unavailable: municipality missing',contacts:[]};
- const townWhere="phy_state='NJ' AND upper(phy_city) in ("+names.map(quote).join(',')+")",narrow=/^\d[0-9A-Z\/-]*$/.test(first)?" AND upper(phy_street) like "+quote(first+' %'):'';let complete=false;
+// Query a bounded set of street numbers and keep approximate or inactive matches out of callable contacts.
+async function lookup(r,fetcher=g.fetch){const p=parcel(r);
+ if(!['NJ','FL','PA'].includes(p.state)||!p.id||!p.city)return {status:'Carrier search needs a supported state, parcel ID and municipality',contacts:[]};
+ const contacts=[],leads=[],names=p.state==='NJ'?towns(p.city):[upper(p.city)].filter(Boolean),wanted=street(p.address),first=wanted.split(' ')[0];
+ if(!names.length||!/^\d[0-9A-Z\/-]*$/.test(first))return {status:'Carrier search needs a published municipality and street number',contacts:[]};
+ const townWhere="phy_state="+quote(p.state)+" AND upper(phy_city) in ("+names.map(quote).join(',')+")";
+ const range=houseRange(first),prefixes=range?[first,...Array.from({length:range.end-range.start+1},(_,i)=>String(range.start+i))]:[first];
+ const filters=prefixes.map(number=>'upper(phy_street) like '+quote(number+' %'));
+ const narrow=' AND '+(range?'('+filters.join(' OR ')+')':filters[0]);
+ let complete=false;
  for(let offset=0;offset<10000;offset+=1000){const rows=await rowsFor({$where:townWhere+narrow,$order:'dot_number',$limit:'1000',$offset:String(offset),$select:'dot_number,legal_name,dba_name,phy_street,phy_city,phy_state,phone,email_address,mcs150_date,status_code'},fetcher);
-  for(const row of rows){if(row.status_code!=='A'||street(row.phy_street)!==wanted||!sameTown(row.phy_city,p.city)||row.phy_state!=='NJ')continue;contacts.push(fromCarrier(p,row,SOURCE+new URLSearchParams({$where:'dot_number='+Number(row.dot_number)}),new Date().toISOString()));}
+  for(const row of rows){
+   if(row.phy_state!==p.state||!(p.state==='NJ'?sameTown(row.phy_city,p.city):upper(row.phy_city)===upper(p.city)))continue;
+   const match=addressMatch(p.address,row.phy_street,range);
+   if(!match||!/^\d+$/.test(String(row.dot_number)))continue;
+   const sourceUrl=SOURCE+new URLSearchParams({$where:'dot_number='+Number(row.dot_number)});
+   if(match==='exact'&&row.status_code==='A')contacts.push(fromCarrier(p,row,sourceUrl,new Date().toISOString()));
+   else if(row.status_code==='A'||match==='exact')leads.push({
+    company:row.legal_name||row.dba_name||'',address:row.phy_street,filingDate:row.mcs150_date||null,
+    reason:row.status_code==='A'?(match==='range'?'Street number within reported range':'Address spelling variant'):'Carrier status not active',
+    sourceUrl
+   });
+  }
   if(rows.length<1000){complete=true;break;}}
- if(!complete)return {status:'Partial carrier search: source limit reached',contacts,complete};
- if(contacts.length)return {status:sharedTown(p.city)?'Carrier contacts found — confirm the town, this name is shared by more than one NJ municipality':'Carrier contacts found',contacts,complete};
+ if(!complete)return {status:'Partial carrier search: source limit reached',contacts,leads,complete};
+ if(contacts.length)return {status:p.state==='NJ'&&sharedTown(p.city)?'Carrier contacts found — confirm the town, this name is shared by more than one NJ municipality':'Carrier contacts found',contacts,leads,complete};
+ if(leads.length)return {status:'No contact found yet',contacts,leads,complete};
  // No match: tell "nothing at this address" apart from "this town name is not used in carrier filings".
  let listed=null;try{const count=await rowsFor({$select:'count(*) as n',$where:townWhere},fetcher);listed=Number(count[0]?.n);}catch{}
  if(listed===0)return {status:'No carrier records are filed under '+names.join(' / ')+'. Filings use postal city names, so this is not a confirmed absence; research other business sources.',contacts,complete:false,townListed:false};

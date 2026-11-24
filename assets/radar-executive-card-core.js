@@ -9,9 +9,13 @@
   // Some sources already fold city/state/ZIP into the street line; do not repeat them.
   const up=street.toUpperCase();if(m.cityState&&!up.includes(String(m.cityState).split(',')[0].trim().toUpperCase()))parts.push(m.cityState);
   const zip=String(m.zip||'').slice(0,5);if(zip&&!up.includes(zip))parts.push(zip);return parts.join(', ');}
+ function isProtectedRecord(record,research){
+  return !!research?.protectedName||[record.publishedOwner,record.ownership].some(ownership=>
+   !!ownership?.protectedName||/protected|confidential/i.test(ownership?.message||''));
+ }
  function getPrimaryDisplayOwner(record,{historical=[],research=null,regulatory=null,sharedCount=0,usdot=null,epa=[]}={}){
   const o=record.publishedOwner||record.ownership;
-  const isProtected=!!(o?.protectedName||research?.protectedName||/protected|confidential/i.test(o?.message||''));
+  const isProtected=isProtectedRecord(record,research);
   // On-site businesses (federal carrier, environmental permit) can lead when no owner name is published.
   // An inactive federal filing is a business that stopped filing: a site signal, never a contact. No phone or email leaves this function.
   const inactive=!!usdot?.status&&String(usdot.status).toUpperCase()!=='ACTIVE',filed=usdot?.filingDate?' · last filed '+String(usdot.filingDate).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'):'';
@@ -52,5 +56,5 @@
  return 'OZ reference only · not a Treasury designation check';
  }
  function ozBadges(r){const D=(typeof window!=='undefined'?window:globalThis).RadarOZ2Designations;if(!D?.isLoaded?.())return [];const o=r.ozObservations?.[r.state==='NJ'?'ozNJ':r.state==='FL'?'ozFL':'oz2']||r.ozObservation;if(!o||!['reference-intersection','reference-point-intersection'].includes(o.status))return [];if(r.state==='NJ'&&!(o.coverageBasis==='parcel-area'&&o.overlapPercent>=95))return [];const seen=new Set(),out=[];for(const t of o.tractDetails||[])for(const b of D.badges(t.geoid))if(!seen.has(b.text)){seen.add(b.text);out.push(b);}return out;}
- return {https,getPrimaryDisplayOwner,numbers,oz,ozBadges,mailingText,ROLES};
+ return {https,isProtectedRecord,getPrimaryDisplayOwner,numbers,oz,ozBadges,mailingText,ROLES};
 });

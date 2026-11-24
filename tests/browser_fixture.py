@@ -268,7 +268,8 @@ def network(route):
         elif params.get('returnCountOnly')==['true']:respond(route,{'count':1})
         else:respond(route,{'features':[{'type':'Feature','geometry':parcel_polygon(-75.22,40.69,50000),'properties':{'FULLNAME':'Synthetic Williams Township','MUNI_CODE':'36'}}]})
         return
-    if parsed.hostname in ('gis.lehighcounty.org','gis.northamptoncounty.org'):
+    # Lehigh is read from the county-hosted layer (services1.arcgis.com/XWDNR4PQlDQwrRCL): PIN, ACRES and situs fields, no land-use field.
+    if parsed.hostname=='gis.northamptoncounty.org' or (parsed.hostname=='services1.arcgis.com' and '/XWDNR4PQlDQwrRCL/' in parsed.path):
         if mode.get('paFail'):
             respond(route,{'error':{'message':'Synthetic PA outage'}},503)
             return
@@ -278,12 +279,12 @@ def network(route):
         def cama(i):
             n=i-base-(1 if multipart and i-base>=50 else 0)-(1 if multipart and i-base>=101 else 0)
             return 'J10 3 '+str(n).zfill(4)+' 0311' if multipart else i
-        acresfield='ASMT_ACREAGE' if north else 'ACREAGE';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
+        acresfield='ASMT_ACREAGE' if north else 'ACRES';yearfield='COM_YEAR_BUILT' if north else 'YEAR_BUILT'
         size=mode.get('paSize') or (320 if mode.get('paLarge') else 2);base=1000000000 if mode.get('paLarge') else 0
         if not parsed.path.endswith('/query'):
             fields=[{'name':'OBJECTID','type':'esriFieldTypeOID'},{'name':idfield,'type':'esriFieldTypeInteger' if north and not multipart else 'esriFieldTypeString'},{'name':acresfield,'type':'esriFieldTypeDouble'},{'name':'USE_DESC','type':'esriFieldTypeString'},{'name':yearfield,'type':'esriFieldTypeSmallInteger'},{'name':'SITE_ADDRESS','type':'esriFieldTypeString'}]+[{'name':f,'type':'esriFieldTypeDouble'} for f in ['LAND_VALUE','BLDG_VALUE','SALE_PRICE','SALE_DATE','SALE_VALIDITY_CODE','FLAG_10_KOZ']]
             if north: fields.append({'name':'PARCEL_ID','type':'esriFieldTypeString'})
-            if mode.get('paNoClass'): fields=[f for f in fields if f['name']!='USE_DESC']
+            if mode.get('paNoClass') or not north: fields=[f for f in fields if f['name']!='USE_DESC']
             respond(route,{'geometryType':'esriGeometryPolygon','fields':fields,'advancedQueryCapabilities':{'supportsPagination':True,'supportsOrderBy':True}})
         elif params.get('returnCountOnly')==['true']: respond(route,{'count':size if not mode.get('paSnapshotFail') else -1})
         elif params.get('returnIdsOnly')==['true']: respond(route,{'objectIds':list(reversed(range(base,base+size))) if not mode.get('paSnapshotFail') else [0]*size})

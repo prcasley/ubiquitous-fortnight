@@ -27,7 +27,7 @@ test('PA source preparation omits credentials and rejects unavailable metadata',
  let seen;
  const source=await PA.prepare(PA.sources.Lehigh,{fetcher:async(url,options)=>{seen={url,options};return {ok:true,json:async()=>meta()};}});
  assert.ok(source.verifiedAt);assert.equal(seen.options.credentials,'omit');assert.equal(seen.options.headers,undefined);
- assert.equal(new URL(seen.url).hostname,'gis.lehighcounty.org');
+ assert.equal(new URL(seen.url).hostname,'services1.arcgis.com');assert.equal(PA.sources.Lehigh.browserAvailable,undefined);assert.match(seen.url,/XWDNR4PQlDQwrRCL\/arcgis\/rest\/services\/ATestParcel\/FeatureServer\/1\?f=json$/);
  await assert.rejects(PA.prepare(PA.sources.Lehigh,{fetcher:async()=>({ok:false,status:503})}),/Pennsylvania coverage could not be verified/);
 });
 test('Northampton ASMT acreage and commercial year apply on server; financial placeholders excluded',()=>{

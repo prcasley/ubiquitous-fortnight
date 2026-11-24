@@ -3,7 +3,10 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.RadarPA=api;})(globalThis,()=>{
   'use strict';
   const sources={
-    Lehigh:{browserAvailable:false,unavailableReason:'Lehigh County blocks direct cross-site browser requests. A hosted server proxy is required; this browser source is unavailable.',name:'Lehigh County public parcel GIS',url:'https://gis.lehighcounty.org/arcgis/rest/services/ParcelSDE/MapServer/0',id:'PIN',provider:'lehigh',jurisdiction:'42077',attribution:'Lehigh County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.91,40.40,-75.32,40.88]},
+    // Lehigh County's own server (gis.lehighcounty.org) sits behind a bot filter and refuses cross-site browser requests.
+    // The county also publishes the same parcels, refreshed monthly, as a hosted layer that browsers may read.
+    // Layer 1 is the parcel polygons; layer 0 (assessment owner points) is not read here.
+    Lehigh:{name:'Lehigh County Assessment Parcels (county-hosted layer)',url:'https://services1.arcgis.com/XWDNR4PQlDQwrRCL/arcgis/rest/services/ATestParcel/FeatureServer/1',catalog:'https://www.arcgis.com/home/search.html?q=owner%3ALehighCountyPA%20Assessment%20Parcels',id:'PIN',provider:'lehigh',noUseClass:true,jurisdiction:'42077',attribution:'Lehigh County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.91,40.40,-75.32,40.88]},
     Northampton:{name:'Northampton County public parcel GIS',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Assessment_Services/Land_Records_LGM/MapServer/0',id:'CAMA_ID',parcelField:'PARCEL_ID',provider:'northampton',jurisdiction:'42095',attribution:'Northampton County GIS',date:'Source vintage requires live metadata verification',geometry:'polygon',bounds:[-75.66,40.52,-75.05,41.03],
       // Fallbacks used ONLY when the live parcel layer publishes no coded-value domain for MUNI / LUC.
       municipalities:{source:'Northampton County GIS · Administration/OperationalLayers Municipal Boundary (MUNI_CODE → FULLNAME)',url:'https://gis.northamptoncounty.org/arcgisweb/rest/services/Administration/OperationalLayers/MapServer/0',checked:'2026-11-02',
