@@ -30,11 +30,11 @@ try:
    log=page.locator('#agentLog').inner_text()
    check('official nomination route: '+phrase,'1 of 5 checked parcels meet the 95% mapped-area screening rule against the 130 New Jersey designated OZ 2.0 tracts' in log and 'Newark city · tract 34013001000' in log and page.evaluate('PublicRadarBridge.getMeta().scanId')==scan)
    check('eligibility-only tract never called nominated: '+phrase,'Designated OZ 2.0 tract 34013006800' not in log and 'NJ-nominated OZ 2.0 tract 34013006800' not in log and 'Third-party OZ 2 eligibility reference' not in page.locator('.chat-properties').last.text_content())
-  submit(page,'Summarize this for the board');check('board summary names nomination stage, not generic OZ2','NJ nominations (not federal certification): 1/5' in page.locator('.board-summary').last.inner_text())
+  submit(page,'Summarize this for the board');check('board summary names the NJ OZ 2.0 designation','NJ designated OZ 2.0 tracts: 1/5' in page.locator('.board-summary').last.inner_text())
   page.select_option('#executiveMarket','newark');page.fill('#executiveAcres','2');page.click('#executiveScanForm [type=submit]');page.wait_for_function('!document.querySelector("#executiveScanForm [type=submit]").disabled && PublicRadarBridge.getResults().some(r=>r.ozObservations?.ozNJ?.nominationVerified)')
   check('executive industrial brief refreshes nomination labels','Designated OZ 2.0 tract 34013001000' in page.locator('#executiveScanSummary').text_content())
   mode['ozFail']=True;submit(page,'Which of these are nominated?')
-  check('official outage is unavailable, never zero nominations','No properties were labeled qualified or ineligible' in page.locator('#agentLog').inner_text() and 'Official NJ nomination check unavailable' in page.locator('#executiveScanSummary').text_content())
+  check('official outage is unavailable, never zero nominations','No properties were labeled qualified or ineligible' in page.locator('#agentLog').inner_text() and 'NJ designated-tract check unavailable' in page.locator('#executiveScanSummary').text_content())
   mode['ozFail']=False;mode['njNomCase']=False
   submit(page,'industrial over 2 acres in West Palm Beach FL');submit(page,'opportunity zone')
   check('FL keeps eligibility and states the Treasury designation result',any(x in page.locator('.chat-properties').last.text_content() for x in ['Designated OZ 2.0 (Effective Jan 1, 2027)','Not designated by U.S. Treasury','Treasury designation list still loading']))
