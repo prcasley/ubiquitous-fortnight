@@ -102,23 +102,23 @@ body.radar-v34[data-radar-mode=simple] .executive-parcel>.executive-technical{di
 
 /* "Search area and filters" drawer in the narrow left rail: one dark panel, fields that fit the rail, no sideways scroll.
    The detailed-filter grid used fixed 140-165px columns and a white background meant for the old wide layout. */
-body.radar-v34 #filterDrawer{overflow:hidden}
+body.radar-v34 #filterDrawer{min-width:0;max-width:100%;color-scheme:dark}
+body.radar-v34 #publicParcelFilters{margin:0;padding:0 0 12px;background:var(--panel);color:#fff}
+body.radar-v34 #publicParcelFilters > summary{padding:10px 14px;min-height:44px;cursor:pointer;font-weight:700}
 body.radar-v34 #filterDrawer :is(label,select,input,button,form,p,h2,h3){max-width:100%;min-width:0}
-body.radar-v34 #filterDrawer :is(select,input:not([type=checkbox]):not([type=radio])){width:100%;background:#0a0e14!important;color:#fff!important;border:1px solid #334155;-webkit-text-fill-color:#fff}
+body.radar-v34 #filterDrawer :is(select,input:not([type=checkbox]):not([type=radio])){width:100%;min-height:44px;background:#0a0e14!important;color:#fff!important;border:1px solid #334155;-webkit-text-fill-color:#fff}
 body.radar-v34 #filterDrawer input::placeholder{color:#cbd5e1;-webkit-text-fill-color:#cbd5e1}
 body.radar-v34 #filterDrawer label{color:#fff;text-align:left}
 body.radar-v34 #filterDrawer #executiveScanForm label{display:block;width:100%;margin:0 0 10px}
-body.radar-v34 #filterDrawer :is(.whole-site-option,#executiveScanForm label:has(input[type=checkbox])){display:flex!important;flex-direction:row!important;align-items:flex-start;gap:10px}
-body.radar-v34 #filterDrawer #executiveScanForm input[type=checkbox]{flex:none;margin-top:3px}
-body.radar-v34 #filterDrawer .toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px;background:transparent!important;border:0;border-top:1px solid #243245;box-shadow:none;padding:12px 14px 0!important;margin:12px 0 0!important;width:auto}
-body.radar-v34 #filterDrawer .toolbar::before{content:"More filters";grid-column:1/-1;font-weight:800;color:#fff;font-size:1.05rem}
+body.radar-v34 #filterDrawer :is(.whole-site-option,#executiveScanForm label:has(input[type=checkbox])){display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start;gap:10px}
+body.radar-v34 #filterDrawer #executiveScanForm input[type=checkbox]{flex:0 0 22px!important;width:22px!important;max-width:22px!important;margin-top:3px}
+body.radar-v34 #filterDrawer .toolbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px;background:var(--panel)!important;border:0;box-shadow:none;padding:0 14px!important;margin:0!important;width:auto}
 body.radar-v34 #filterDrawer .toolbar .field{display:flex;flex-direction:column;gap:4px;width:100%}
 body.radar-v34 #filterDrawer .toolbar :is(.primary,#scanButton){grid-column:1/-1;width:100%}
-body.radar-v34 #filterDrawer .geo-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px;margin:10px 0 12px!important;padding:0 14px!important}
+body.radar-v34 #filterDrawer .geo-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px;background:var(--panel)!important;border:0;box-shadow:none;margin:10px 0 0!important;padding:0 14px!important}
 body.radar-v34 #filterDrawer .geo-row .location-form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;width:100%}
 body.radar-v34 #filterDrawer .geo-row .location-form .field{flex:1 1 160px}
 body.radar-v34 #filterDrawer .geo-row button{width:100%}
-body.radar-v34 #workspaceDrawer{overflow-x:hidden}
 /* Buttons added beside Play pick up the dark control style instead of the browser default white. */
 body.radar-v34 .radar-agent :is(.v34-tract-coverage,button[aria-label="Choose a market for Play"]){background:#152031;color:#fff;border:1px solid #334155;border-radius:8px;padding:8px 12px;font-weight:700}
 

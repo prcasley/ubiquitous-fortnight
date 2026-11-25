@@ -227,7 +227,7 @@ try:
         natural.locator('#agentForm button[type=submit]').click()
         natural.wait_for_function('window.PublicRadarBridge.getMeta().complete && window.PublicRadarBridge.getSearch().acreage.op==="between"')
         assert natural.evaluate('window.PublicRadarBridge.getResults().map(r=>r.acres)')==[6,6.4]
-        natural.locator('#filterDrawer').evaluate('e=>e.open=true')
+        natural.locator('#filterDrawer').evaluate('e=>{e.open=true;e.querySelector("#publicParcelFilters").open=true}')
         assert natural.locator('#maxAcresField').is_visible()
         assert natural.locator('#maxAcres').input_value()=='6.6'
         assert any('CALC_ACRE >= 5.4 AND CALC_ACRE <= 6.6' in where for host,where in queries)

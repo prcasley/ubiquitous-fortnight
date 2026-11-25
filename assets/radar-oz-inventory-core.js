@@ -45,12 +45,12 @@
   if(!/^34\d{9}$/.test(tract))throw Error('An exact 11-digit NJ tract is required');
   if(!Number.isInteger(limit)||limit<1||limit>5000)throw Error('Parcel retrieval limit must be 1–5,000');
   if(!Array.isArray(classes)||classes.some(c=>!['1','2','4A','4B','4C'].includes(c))||!Number.isFinite(minAcres)||minAcres<0||minAcres>99999)throw Error('Invalid published assessment class/acreage filter');
-  const report={tract,boundarySource:boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service',criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
+  const report={tract,boundarySource:boundaryFeature?'uploaded dated designated-tract boundary snapshot':'live NJ DCA boundary service',criteria:{classes,minAcres},status:'unavailable',expected:null,received:0,features:[],rejected:0,sourceURL:parcelURL,nominationURL,checkedAt:new Date().toISOString(),message:''};
   const options={fetcher,signal,attempts,backoffMs};
   try{
    const boundary=boundaryFeature?{features:[boundaryFeature]}:await json(nominationURL,{f:'geojson',where:"Geography = '"+tract+"'",outFields:'Geography',returnGeometry:'true',outSR:'4326',resultRecordCount:'2'},options);
    if(boundary.exceededTransferLimit||boundary.features?.length!==1||String(boundary.features[0].properties?.Geography)!==tract)throw Error('Nomination boundary did not return one exact tract');
-   const geometry=boundary.features[0].geometry,polygon=esriPolygon(geometry);report.boundarySource=boundaryFeature?'uploaded dated nomination boundary snapshot':'live NJ DCA boundary service';
+   const geometry=boundary.features[0].geometry,polygon=esriPolygon(geometry);report.boundarySource=boundaryFeature?'uploaded dated designated-tract boundary snapshot':'live NJ DCA boundary service';
    const meta=await schema(options),available=new Set((meta.fields||[]).map(f=>f.name));
    const oid=meta.objectIdField||meta.fields?.find(f=>f.type==='esriFieldTypeOID')?.name;
    if(!oid||!available.has(oid)||!fields.every(f=>available.has(f))||meta.geometryType!=='esriGeometryPolygon')throw Error('NJ parcel schema could not be verified');
