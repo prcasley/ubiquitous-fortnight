@@ -117,7 +117,7 @@ try:
     # NJ board shares preserve official nominations separately from OZ1.
     mode['njNomination']=True
     submit(page,'Which of these qualify for OZ1?');submit(page,'Which of these qualify for OZ2?');submit(page,'Summarize this for the board')
-    check('board retains OZ1 and official NJ nomination shares', 'OZ1: 5/5' in page.locator('.board-summary').last.inner_text() and 'NJ nominations (not federal certification): 5/5' in page.locator('.board-summary').last.inner_text())
+    check('board retains OZ1 and NJ designated OZ 2.0 shares', 'OZ1: 5/5' in page.locator('.board-summary').last.inner_text() and 'NJ designated OZ 2.0 tracts: 5/5' in page.locator('.board-summary').last.inner_text())
     mode['njNomination']=False
     submit(page,'industrial newer than 2000 in Edison NJ')
     check('newer-than filter never accepts missing years',page.evaluate('PublicRadarBridge.getResults().length===0&&PublicRadarBridge.getYearUnknown().length===2'))

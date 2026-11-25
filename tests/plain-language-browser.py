@@ -35,7 +35,7 @@ try:
   log=say(page,'whats the owners phone number');check('contact question explains no phone/email data',"doesn't have owner phone numbers or emails" in log and CATCH_ALL not in log)
   log=say(page,'how much is it worth');check('value question shows labeled tax-record values',('Published tax-record values' in log or 'assessment figures' in log) and 'not market value' in log)
   for q in ['QOZ?','opp zone?','is this in one of those new tax break zones']:
-   log=say(page,q);check('OZ phrasing routes to the official check: '+q,CATCH_ALL not in log and ('nominat' in log.lower() or 'opportunity' in log.lower()))
+   log=say(page,q);check('OZ phrasing routes to the official check: '+q,CATCH_ALL not in log and ('designated' in log.lower() or 'opportunity' in log.lower()))
   log=say(page,'only the ones near the highway');check('highway filter request explains the limit',"isn't a search filter yet" in log)
   log=say(page,'explain that in plain english');check('plain-English request reaches the explanation',CATCH_ALL not in log)
   log=say(page,'start over');check('start over clears results',('Cleared' in log) and page.evaluate('PublicRadarBridge.getResults().length')==0)

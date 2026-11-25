@@ -14,11 +14,15 @@
     section.append(heading);
     const radiusNote=document.createElement('p');radiusNote.textContent=meta.scope==='county'?'Countywide search in '+meta.countyLabel+' County. No radius limit; rankings cover retrieved records only.': 'Parcels touching the search circle qualify. Distances are to a map reference point, so edge parcels can show a distance beyond the radius.';
     let criteriaNote=null;if(meta.unverified?.length){criteriaNote=document.createElement('p');criteriaNote.textContent='Candidates only: '+meta.unverified.join(', ')+' remain unverified.';}
+    // A second list for the same search (for example the designated-tract matches after the full radius list) replaces
+    // the first as the current one. The earlier list stays in the log, marked, so it is not mistaken for the answer.
+    if(!meta.subjectParcel&&!meta.selectedParcel)for(const earlier of host.querySelectorAll('.chat-properties:not(.previous-search):not(.superseded):not(.subject-list)'))if(earlier.dataset.scan===section.dataset.scan){earlier.classList.add('superseded');const h=earlier.querySelector(':scope > strong');if(h)h.textContent='Earlier list — '+h.textContent;}
+    if(meta.subjectParcel||meta.selectedParcel)section.classList.add('subject-list');
     const grid=document.createElement('div');grid.className='chat-property-grid';section.append(grid);
     let shown=0;
     const more=button('Show more properties',()=>page());
     function page(){
-      const end=Math.min(rows.length,shown+6);
+      /* Simple view shows compact rows, so a page holds twice as many parcels. */const end=Math.min(rows.length,shown+(document.body.dataset.radarMode==='simple'?12:6));
       for(const record of rows.slice(shown,end)){
         let item;try{item=P.snapshot(record,meta);}catch{continue;}
         const article=document.createElement('article');article.className='chat-property-card';article.dataset.parcelKey=item.key;
