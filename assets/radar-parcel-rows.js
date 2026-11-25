@@ -8,8 +8,13 @@
   function summary(card){
     const identity=card.querySelector('.executive-identity'),tier=identity?.dataset.tier||'none',name=text(card,'.executive-identity strong'),role=text(card,'.executive-identity .executive-label');
     const phone=card.querySelector('.executive-facts a[href^="tel:"]')?.textContent.replace(/\s+/g,' ').trim()||'';
-    const lead=tier==='none'||!name?'No owner or contact on file yet':tier==='protected'?'Protected record — open the official record':role?role+': '+name:name;
-    return {title:text(card,'.executive-card-heading h3')||'Property record',glance:text(card,'.executive-glance'),lead,phone,has:tier!=='none'&&tier!=='protected'&&!!name};
+    let lead=tier==='none'||!name?'No owner or contact on file yet':tier==='protected'?'Protected record — open the official record':role?role+': '+name:name,has=tier!=='none'&&tier!=='protected'&&!!name;
+    // An unlocked contact record for this parcel leads the row, with the role label the card gives it.
+    const vault=tier==='protected'?null:card.querySelector('.executive-vault-contact');
+    if(vault){const vaultName=text(vault,':scope > strong'),vaultRole=text(vault,':scope > .executive-label').replace(/^VAULT CONTACT\s*·?\s*/i,''),owner=text(vault,'.executive-vault-owner').replace(/\s+—.*$/,'');
+      if(vaultName&&vaultName!=='Contact record'){lead=(vaultRole?vaultRole+': ':'')+vaultName;has=true;}
+      else if(owner){lead=owner;has=true;}}
+    return {title:text(card,'.executive-card-heading h3')||'Property record',glance:text(card,'.executive-glance'),lead,phone,has};
   }
   function paint(card){
     const row=card.querySelector(':scope > .parcel-row');if(!row)return;const s=summary(card),parts=[s.title,s.glance,s.lead+(s.phone?' · '+s.phone:'')];
